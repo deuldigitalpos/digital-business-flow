@@ -42,6 +42,41 @@ export type Database = {
         }
         Relationships: []
       }
+      business_roles: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          permissions: Json
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          permissions?: Json
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          permissions?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_roles_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_users: {
         Row: {
           business_id: string
@@ -52,6 +87,7 @@ export type Database = {
           last_name: string
           password: string
           role: string
+          role_id: string | null
           user_id: string
           username: string
         }
@@ -64,6 +100,7 @@ export type Database = {
           last_name: string
           password: string
           role?: string
+          role_id?: string | null
           user_id: string
           username: string
         }
@@ -76,6 +113,7 @@ export type Database = {
           last_name?: string
           password?: string
           role?: string
+          role_id?: string | null
           user_id?: string
           username?: string
         }
@@ -85,6 +123,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_users_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "business_roles"
             referencedColumns: ["id"]
           },
         ]

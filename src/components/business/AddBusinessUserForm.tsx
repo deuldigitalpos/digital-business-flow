@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+import React, { useEffect } from 'react';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { BusinessUser } from '@/types/business-user';
+import { BusinessRole } from '@/types/business-role';
 
 const formSchema = z.object({
   first_name: z.string().min(1, "First name is required."),
@@ -21,6 +22,7 @@ const formSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters."),
   password: z.string().min(6, "Password must be at least 6 characters."),
   role: z.string().min(1, "Role is required."),
+  role_id: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,11 +53,28 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
       username: businessUser?.username || '',
       password: businessUser?.password ? '********' : '',
       role: businessUser?.role || 'Staff',
+      role_id: businessUser?.role_id || undefined,
     }
   });
 
+  // Fetch business roles
+  const { data: roles, isLoading: isLoadingRoles } = useQuery({
+    queryKey: ['business-roles', businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('business_roles')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('name', { ascending: true });
+      
+      if (error) throw error;
+      return data as BusinessRole[];
+    },
+    enabled: !!businessId,
+  });
+
   // Reset form when business user changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (isEditing && businessUser) {
       form.reset({
         first_name: businessUser.first_name || '',
@@ -64,6 +83,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
         username: businessUser.username || '',
         password: '********', // Placeholder for existing password
         role: businessUser.role || 'Staff',
+        role_id: businessUser.role_id || undefined,
       });
     } else if (!isEditing) {
       form.reset({
@@ -73,9 +93,10 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
         username: '',
         password: '',
         role: 'Staff',
+        role_id: roles && roles.length > 0 ? roles[0].id : undefined,
       });
     }
-  }, [businessUser, form, isEditing]);
+  }, [businessUser, form, isEditing, roles]);
 
   const saveBusinessUser = useMutation({
     mutationFn: async (values: FormValues) => {
@@ -89,6 +110,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
           email: values.email,
           username: values.username,
           role: values.role,
+          role_id: values.role_id,
         };
         
         // Only update password if it was changed
@@ -118,6 +140,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
               username: values.username,
               password: values.password,
               role: values.role,
+              role_id: values.role_id,
             }
           ])
           .select();
@@ -240,33 +263,63 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Admin">Admin</SelectItem>
-                      <SelectItem value="Manager">Manager</SelectItem>
-                      <SelectItem value="Staff">Staff</SelectItem>
-                      <SelectItem value="Viewer">Viewer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Legacy Role</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Admin">Admin</SelectItem>
+                        <SelectItem value="Manager">Manager</SelectItem>
+                        <SelectItem value="Staff">Staff</SelectItem>
+                        <SelectItem value="Viewer">Viewer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="role_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Permission Role</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                      value={field.value}
+                      disabled={isLoadingRoles || !roles || roles.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a permission role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {roles?.map((role) => (
+                          <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <DialogFooter>
               <Button variant="outline" type="button" onClick={onClose}>Cancel</Button>
