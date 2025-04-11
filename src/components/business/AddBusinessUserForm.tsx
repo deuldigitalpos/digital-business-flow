@@ -22,11 +22,24 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+interface BusinessUser {
+  id: string;
+  business_id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username: string;
+  role: string;
+  password?: string;
+  created_at: string;
+}
+
 interface AddBusinessUserFormProps {
   isOpen: boolean;
   onClose: () => void;
   businessId: string;
-  businessUser?: any;
+  businessUser?: BusinessUser | null;
 }
 
 const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({ 
@@ -76,8 +89,8 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
       const userId = crypto.randomUUID(); // Generate a user ID
       
       // If editing, update existing user
-      if (isEditing) {
-        let updateData = { 
+      if (isEditing && businessUser) {
+        let updateData: Record<string, any> = { 
           first_name: values.first_name,
           last_name: values.last_name,
           email: values.email,
@@ -86,7 +99,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
         
         // Only update password if it was changed
         if (values.password !== '********') {
-          updateData = { ...updateData, password: values.password };
+          updateData.password = values.password;
         }
         
         const { data, error } = await supabase

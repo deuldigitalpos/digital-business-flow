@@ -4,10 +4,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
 
+interface BusinessUser {
+  id: string;
+  business_id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username: string;
+  role: string;
+  created_at: string;
+}
+
 interface BusinessUserListProps {
-  businessUsers: any[];
+  businessUsers: BusinessUser[];
   isLoading: boolean;
-  onEdit: (user: any) => void;
+  onEdit: (user: BusinessUser) => void;
   onDelete: (id: string) => void;
 }
 

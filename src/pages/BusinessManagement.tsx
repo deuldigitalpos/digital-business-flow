@@ -13,12 +13,36 @@ import AddBusinessUserForm from '@/components/business/AddBusinessUserForm';
 import EditBusinessForm from '@/components/business/EditBusinessForm';
 import { useToast } from '@/components/ui/use-toast';
 
+interface Business {
+  id: string;
+  business_name: string;
+  currency: string;
+  country: string;
+  website: string | null;
+  logo_url: string | null;
+  contact_number: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface BusinessUser {
+  id: string;
+  business_id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username: string;
+  role: string;
+  created_at: string;
+}
+
 const BusinessManagement = () => {
   const [showAddBusinessModal, setShowAddBusinessModal] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showEditBusinessModal, setShowEditBusinessModal] = useState(false);
-  const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
-  const [selectedBusinessUser, setSelectedBusinessUser] = useState<any>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [selectedBusinessUser, setSelectedBusinessUser] = useState<BusinessUser | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -32,7 +56,7 @@ const BusinessManagement = () => {
         .order('business_name', { ascending: true });
       
       if (error) throw error;
-      return data;
+      return data as Business[];
     },
   });
 
@@ -49,7 +73,7 @@ const BusinessManagement = () => {
         .order('first_name', { ascending: true });
       
       if (error) throw error;
-      return data;
+      return data as BusinessUser[];
     },
     enabled: !!selectedBusiness?.id,
   });
@@ -116,16 +140,16 @@ const BusinessManagement = () => {
     }
   }, [businesses, selectedBusiness]);
 
-  const handleBusinessSelect = (business: any) => {
+  const handleBusinessSelect = (business: Business) => {
     setSelectedBusiness(business);
   };
 
-  const handleBusinessUserSelect = (user: any) => {
+  const handleBusinessUserSelect = (user: BusinessUser) => {
     setSelectedBusinessUser(user);
     setShowAddUserModal(true);
   };
 
-  const handleEditBusiness = (business: any) => {
+  const handleEditBusiness = (business: Business) => {
     setSelectedBusiness(business);
     setShowEditBusinessModal(true);
   };
