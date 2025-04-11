@@ -96,6 +96,7 @@ export type Database = {
           country: string
           created_at: string
           currency: string
+          custom_data: Json | null
           id: string
           logo_url: string | null
           updated_at: string
@@ -107,6 +108,7 @@ export type Database = {
           country: string
           created_at?: string
           currency: string
+          custom_data?: Json | null
           id?: string
           logo_url?: string | null
           updated_at?: string
@@ -118,6 +120,7 @@ export type Database = {
           country?: string
           created_at?: string
           currency?: string
+          custom_data?: Json | null
           id?: string
           logo_url?: string | null
           updated_at?: string

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,9 @@ interface Business {
   contact_number: string | null;
   created_at: string;
   updated_at: string;
-  is_active?: boolean;
+  custom_data?: {
+    is_active?: boolean;
+  } | null;
 }
 
 interface BusinessUser {
@@ -212,6 +215,11 @@ const BusinessManagement = () => {
     toggleBusinessActive.mutate({ business, isActive });
   };
 
+  // Helper to check if business is active
+  const isBusinessActive = (business: Business) => {
+    return business.custom_data?.is_active !== false;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -289,8 +297,8 @@ const BusinessManagement = () => {
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Status</h3>
-                    <p className={`text-base ${selectedBusiness.is_active !== false ? 'text-green-600' : 'text-red-600'}`}>
-                      {selectedBusiness.is_active !== false ? 'Active' : 'Inactive'}
+                    <p className={`text-base ${isBusinessActive(selectedBusiness) ? 'text-green-600' : 'text-red-600'}`}>
+                      {isBusinessActive(selectedBusiness) ? 'Active' : 'Inactive'}
                     </p>
                   </div>
                 </div>

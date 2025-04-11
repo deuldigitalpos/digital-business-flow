@@ -15,7 +15,9 @@ interface Business {
   contact_number: string | null;
   created_at: string;
   updated_at: string;
-  is_active?: boolean;
+  custom_data?: {
+    is_active?: boolean;
+  } | null;
 }
 
 interface BusinessListProps {
@@ -52,6 +54,11 @@ const BusinessList: React.FC<BusinessListProps> = ({
       </div>
     );
   }
+
+  // Helper to check if business is active
+  const isBusinessActive = (business: Business) => {
+    return business.custom_data?.is_active !== false;
+  };
 
   return (
     <div className="overflow-x-auto">
@@ -105,12 +112,11 @@ const BusinessList: React.FC<BusinessListProps> = ({
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // We'll treat undefined as active (true)
-                    const isCurrentlyActive = business.is_active !== false;
-                    onToggleActive(business, !isCurrentlyActive);
+                    const currentlyActive = isBusinessActive(business);
+                    onToggleActive(business, !currentlyActive);
                   }}
                 >
-                  {business.is_active !== false ? (
+                  {isBusinessActive(business) ? (
                     <><ToggleRight className="w-4 h-4 mr-1 text-green-500" /> Deactivate</>
                   ) : (
                     <><ToggleLeft className="w-4 h-4 mr-1 text-gray-500" /> Activate</>
