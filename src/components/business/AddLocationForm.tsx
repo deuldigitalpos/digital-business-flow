@@ -29,8 +29,7 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   
   const queryClient = useQueryClient();
-  // Removed the incorrect session reference
-  const { isAuthenticated } = useBusinessAuth();
+  const { businessUser } = useBusinessAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,8 +48,7 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Use Supabase client directly - the authenticated business user's context is handled
-      // by the auth state in the BusinessAuthContext
+      // Use Supabase client with RLS policies
       const { data, error } = await supabase
         .from('business_locations')
         .insert({
