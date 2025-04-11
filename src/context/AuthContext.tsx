@@ -9,6 +9,7 @@ import { Database } from '@/integrations/supabase/types';
 type User = {
   username: string;
   isAdmin: boolean;
+  id: string; // Add user ID to store
 };
 
 type AdminUser = {
@@ -63,9 +64,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      // Query the adminuser table for the provided username and password
+      // Sign in with Supabase auth using email and password
+      // For now, we're just querying the adminuser table directly
       const { data, error } = await supabase
-        .from('adminuser' as any)
+        .from('adminuser')
         .select('*')
         .eq('username', username)
         .eq('password', password)
@@ -85,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userData: User = {
           username: adminUser.username,
           isAdmin: adminUser.role.toLowerCase() === 'admin',
+          id: adminUser.id, // Store the user ID
         };
         
         setUser(userData);

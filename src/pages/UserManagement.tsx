@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useAuth } from '@/context/AuthContext';
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: 'First name is required' }),
@@ -52,6 +54,7 @@ type AdminUser = {
 };
 
 const UserManagement = () => {
+  const { user } = useAuth(); // Get the current authenticated user
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +75,7 @@ const UserManagement = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('adminuser' as any)
+        .from('adminuser')
         .select('*');
       
       if (error) {
@@ -105,8 +108,8 @@ const UserManagement = () => {
       };
 
       const { error } = await supabase
-        .from('adminuser' as any)
-        .insert([newUser as any]);
+        .from('adminuser')
+        .insert([newUser]);
 
       if (error) {
         if (error.code === '23505') {
