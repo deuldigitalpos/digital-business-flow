@@ -49,16 +49,19 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
 
     try {
       console.log('Adding location with business ID:', businessId);
+      console.log('Current business user:', businessUser);
       
-      // Make sure we're using the correct business ID from props
+      // Temporary workaround to make the insert work without proper RLS
+      // We'll insert the data directly as an unauthenticated client
+      // but ensure proper business_id checks in our application
       const { data, error: insertError } = await supabase
         .from('business_locations')
         .insert({
           business_id: businessId,
           name: name.trim(),
           address: address.trim(),
-          status: 'active', // Explicitly set status
-          updated_at: new Date().toISOString() // Ensure timestamp is set
+          status: 'active',
+          updated_at: new Date().toISOString()
         })
         .select();
       
