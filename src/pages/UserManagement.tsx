@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +23,16 @@ import { UserPlus, Search, Filter, MoreHorizontal, RefreshCw } from 'lucide-reac
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 // Define form schema with validation
 const formSchema = z.object({
@@ -35,16 +44,22 @@ const formSchema = z.object({
 
 type UserFormValues = z.infer<typeof formSchema>;
 
-// Mock data for the users table
-const mockUsers = [
-  { id: 1, firstName: 'Admin', lastName: 'User', username: 'zayrene', role: 'Admin', status: 'Active' },
-  { id: 2, firstName: 'John', lastName: 'Doe', username: 'johndoe', role: 'Manager', status: 'Active' },
-  { id: 3, firstName: 'Jane', lastName: 'Smith', username: 'janesmith', role: 'Staff', status: 'Inactive' },
-];
+// Define user type for display
+type AdminUser = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  role: string;
+  status: string;
+};
 
 const UserManagement = () => {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  const { toast } = useToast();
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Initialize the form
   const form = useForm<UserFormValues>({
@@ -57,20 +72,87 @@ const UserManagement = () => {
     },
   });
 
-  // Handle form submission
-  const onSubmit = (data: UserFormValues) => {
-    // Here you would typically make an API call to create a user
-    console.log('Form submitted with:', data);
-    
-    toast({
-      title: "User created",
-      description: `User ${data.firstName} ${data.lastName} has been created successfully.`,
-    });
-    
-    // Reset form and close modal
-    form.reset();
-    setIsAddUserModalOpen(false);
+  // Fetch users from the database
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.from('adminuser').select('*');
+      
+      if (error) {
+        console.error('Error fetching users:', error);
+        toast.error('Failed to load users');
+      } else {
+        setUsers(data as AdminUser[]);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to load users');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // Fetch users on component mount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Handle form submission
+  const onSubmit = async (data: UserFormValues) => {
+    try {
+      const newUser = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        username: data.username,
+        password: data.password,
+        role: 'staff', // Default role
+        status: 'active' // Default status
+      };
+
+      const { error } = await supabase.from('adminuser').insert([newUser]);
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('Username already exists');
+        } else {
+          console.error('Error creating user:', error);
+          toast.error('Failed to create user');
+        }
+        return;
+      }
+
+      toast.success(`User ${data.firstName} ${data.lastName} has been created successfully.`);
+      
+      // Reset form and close modal
+      form.reset();
+      setIsAddUserModalOpen(false);
+      
+      // Refresh user list
+      fetchUsers();
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast.error('Failed to create user');
+    }
+  };
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchUsers().finally(() => setIsRefreshing(false));
+  };
+
+  // Filter users based on search query
+  const filteredUsers = users.filter(user => {
+    if (!searchQuery) return true;
+    
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      user.first_name.toLowerCase().includes(searchLower) ||
+      user.last_name.toLowerCase().includes(searchLower) ||
+      user.username.toLowerCase().includes(searchLower) ||
+      user.role.toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -78,7 +160,7 @@ const UserManagement = () => {
         <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
         <Button 
           onClick={() => setIsAddUserModalOpen(true)}
-          className="hover:bg-secondary transition-colors"
+          className="hover:bg-[#f99b23] transition-colors"
         >
           <UserPlus className="mr-2 h-4 w-4" />
           Add User
@@ -89,14 +171,24 @@ const UserManagement = () => {
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-          <Input placeholder="Search users..." className="pl-10" />
+          <Input 
+            placeholder="Search users..." 
+            className="pl-10" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
         <Button variant="outline" className="gap-2">
           <Filter className="h-4 w-4" />
           Filters
         </Button>
-        <Button variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
+        <Button 
+          variant="outline" 
+          className="gap-2"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
@@ -107,47 +199,58 @@ const UserManagement = () => {
           <CardTitle>Users</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  <th className="px-6 py-3">Name</th>
-                  <th className="px-6 py-3">Username</th>
-                  <th className="px-6 py-3">Role</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockUsers.map((user) => (
-                  <tr 
-                    key={user.id} 
-                    className="border-b hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <td className="px-6 py-4 font-medium">
-                      {user.firstName} {user.lastName}
-                    </td>
-                    <td className="px-6 py-4">{user.username}</td>
-                    <td className="px-6 py-4">{user.role}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        user.status === 'Active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {user.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                        {searchQuery ? 'No users found matching your search' : 'No users found'}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">
+                          {user.first_name} {user.last_name}
+                        </TableCell>
+                        <TableCell>{user.username}</TableCell>
+                        <TableCell>{user.role}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            user.status === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {user.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -224,7 +327,7 @@ const UserManagement = () => {
                 </Button>
                 <Button 
                   type="submit"
-                  className="hover:bg-secondary transition-colors"
+                  className="hover:bg-[#f99b23] transition-colors"
                 >
                   Save User
                 </Button>

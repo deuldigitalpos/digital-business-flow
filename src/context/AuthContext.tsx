@@ -2,11 +2,21 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
 
 // Define user types
 type User = {
   username: string;
   isAdmin: boolean;
+};
+
+type AdminUser = {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  status: string;
 };
 
 type AuthContextType = {
@@ -43,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Login function with hardcoded admin credentials
+  // Login function that checks credentials against adminuser table
   const login = async (username: string, password: string): Promise<boolean> => {
     // Simple validation
     if (!username || !password) {
@@ -51,19 +61,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
 
-    // Check credentials against hardcoded admin
-    if (username === 'zayrene' && password === '123456') {
-      const userData: User = {
-        username: 'zayrene',
-        isAdmin: true,
-      };
-      
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      toast.success('Login successful!');
-      return true;
-    } else {
-      toast.error('Invalid username or password');
+    try {
+      // Query the adminuser table for the provided username and password
+      const { data, error } = await supabase
+        .from('adminuser')
+        .select('*')
+        .eq('username', username)
+        .eq('password', password)
+        .eq('status', 'active')
+        .single();
+
+      if (error) {
+        console.error('Login error:', error);
+        toast.error('Invalid username or password');
+        return false;
+      }
+
+      if (data) {
+        const adminUser = data as AdminUser;
+        
+        // Create a user object for the client
+        const userData: User = {
+          username: adminUser.username,
+          isAdmin: adminUser.role.toLowerCase() === 'admin',
+        };
+        
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        toast.success('Login successful!');
+        return true;
+      } else {
+        toast.error('Invalid username or password');
+        return false;
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('An error occurred during login');
       return false;
     }
   };
