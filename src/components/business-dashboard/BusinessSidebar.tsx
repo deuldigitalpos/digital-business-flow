@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -36,7 +35,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  ChevronsUpDown
+  ChevronsUpDown,
+  Building
 } from 'lucide-react';
 import {
   Collapsible,
@@ -85,7 +85,7 @@ const BusinessSidebar = () => {
         },
         {
           title: "Locations",
-          icon: MapPin,
+          icon: Building,
           href: "/business-dashboard/locations",
         },
         {

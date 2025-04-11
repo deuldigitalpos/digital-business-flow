@@ -21,6 +21,7 @@ import ReferralManagement from "./pages/ReferralManagement";
 import Settings from "./pages/Settings";
 import BusinessDashboard from "./pages/BusinessDashboard";
 import BusinessRoles from "./pages/BusinessRoles";
+import BusinessLocations from "./pages/BusinessLocations";
 
 // Layout
 import DashboardLayout from "./components/DashboardLayout";
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/business-dashboard" element={<BusinessDashboardLayout />}>
                 <Route index element={<BusinessDashboard />} />
                 <Route path="roles" element={<BusinessRoles />} />
+                <Route path="locations" element={<BusinessLocations />} />
                 {/* More business dashboard routes will be added here as needed */}
               </Route>
 
