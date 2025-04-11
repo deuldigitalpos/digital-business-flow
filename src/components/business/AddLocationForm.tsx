@@ -48,20 +48,28 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Use Supabase client with RLS policies
-      const { data, error } = await supabase
+      console.log('Adding location with business ID:', businessId);
+      
+      // Make sure we're using the correct business ID from props
+      const { data, error: insertError } = await supabase
         .from('business_locations')
         .insert({
           business_id: businessId,
           name: name.trim(),
-          address: address.trim()
+          address: address.trim(),
+          status: 'active', // Explicitly set status
+          updated_at: new Date().toISOString() // Ensure timestamp is set
         })
         .select();
       
-      if (error) throw error;
+      if (insertError) {
+        console.error('Error inserting location:', insertError);
+        throw insertError;
+      }
       
+      console.log('Location added successfully:', data);
       toast.success('Location added successfully');
-      queryClient.invalidateQueries({ queryKey: ['business-locations'] });
+      queryClient.invalidateQueries({ queryKey: ['business-locations', businessId] });
       
       // Reset form
       setName('');

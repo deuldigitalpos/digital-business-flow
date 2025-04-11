@@ -25,6 +25,8 @@ const LocationManager = () => {
     queryFn: async () => {
       if (!business?.id) return [];
       
+      console.log('Fetching locations for business ID:', business.id);
+      
       const { data, error } = await supabase
         .from('business_locations')
         .select('*')
@@ -37,6 +39,7 @@ const LocationManager = () => {
         throw error;
       }
       
+      console.log('Fetched locations:', data);
       return data as BusinessLocation[];
     },
     enabled: !!business?.id,
@@ -70,7 +73,7 @@ const LocationManager = () => {
       if (error) throw error;
       
       toast.success('Location deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['business-locations'] });
+      queryClient.invalidateQueries({ queryKey: ['business-locations', business?.id] });
     } catch (error) {
       console.error('Error deleting location:', error);
       toast.error('Failed to delete location');
@@ -89,12 +92,20 @@ const LocationManager = () => {
       if (error) throw error;
       
       toast.success(`Location status changed to ${newStatus}`);
-      queryClient.invalidateQueries({ queryKey: ['business-locations'] });
+      queryClient.invalidateQueries({ queryKey: ['business-locations', business?.id] });
     } catch (error) {
       console.error('Error updating location status:', error);
       toast.error('Failed to update location status');
     }
   };
+
+  if (!business?.id) {
+    return (
+      <div className="py-12 text-center">
+        <p className="text-muted-foreground">Business not found or not loaded.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
