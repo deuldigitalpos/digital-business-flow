@@ -111,7 +111,7 @@ const Sidebar = () => {
                 onClick={closeSidebar}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-primary-foreground hover:bg-primary-foreground/10 transition-colors",
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-primary-foreground hover:bg-[#f99b23] hover:text-primary transition-colors",
                     isActive && "bg-primary-foreground/10 font-medium"
                   )
                 }
@@ -129,7 +129,7 @@ const Sidebar = () => {
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start text-primary-foreground hover:bg-primary-foreground/10",
+              "w-full justify-start text-primary-foreground hover:bg-[#f99b23] hover:text-primary",
               !isSidebarOpen && "md:justify-center"
             )}
             onClick={logout}
