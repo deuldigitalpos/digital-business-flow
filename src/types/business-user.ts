@@ -8,6 +8,7 @@ export interface BusinessUser {
   email: string;
   username: string;
   role: string;
-  password?: string; // Added password as optional property
+  role_id?: string; // Added role_id as optional property
+  password?: string; // Keep the existing optional property
   created_at: string;
 }
