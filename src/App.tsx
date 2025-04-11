@@ -20,7 +20,6 @@ import DiscountManagement from "./pages/DiscountManagement";
 import ReferralManagement from "./pages/ReferralManagement";
 import Settings from "./pages/Settings";
 import BusinessDashboard from "./pages/BusinessDashboard";
-import BusinessRoles from "./pages/BusinessRoles";
 
 // Layout
 import DashboardLayout from "./components/DashboardLayout";
@@ -55,7 +54,6 @@ const App = () => (
               {/* Business Dashboard Routes */}
               <Route path="/business-dashboard" element={<BusinessDashboardLayout />}>
                 <Route index element={<BusinessDashboard />} />
-                <Route path="roles" element={<BusinessRoles />} />
                 {/* More business dashboard routes will be added here as needed */}
               </Route>
 
