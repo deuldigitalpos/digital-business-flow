@@ -42,6 +42,89 @@ export type Database = {
         }
         Relationships: []
       }
+      business_users: {
+        Row: {
+          business_id: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          password: string
+          role: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          password: string
+          role?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          password?: string
+          role?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_users_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      businessdetails: {
+        Row: {
+          business_name: string
+          contact_number: string | null
+          country: string
+          created_at: string
+          currency: string
+          id: string
+          logo_url: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          business_name: string
+          contact_number?: string | null
+          country: string
+          created_at?: string
+          currency: string
+          id?: string
+          logo_url?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          business_name?: string
+          contact_number?: string | null
+          country?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          logo_url?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
