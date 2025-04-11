@@ -77,7 +77,7 @@ const UserManagement = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('adminuser')
+        .from('adminuser' as any)
         .select('*');
       
       if (error) {
@@ -112,8 +112,8 @@ const UserManagement = () => {
       };
 
       const { error } = await supabase
-        .from('adminuser')
-        .insert([newUser]);
+        .from('adminuser' as any)
+        .insert([newUser as any]);
 
       if (error) {
         if (error.code === '23505') {
