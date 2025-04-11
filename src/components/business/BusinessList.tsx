@@ -5,16 +5,29 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, CreditCard, Building2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface Business {
+  id: string;
+  business_name: string;
+  currency: string;
+  country: string;
+  website: string | null;
+  logo_url: string | null;
+  contact_number: string | null;
+  created_at: string;
+  updated_at: string;
+  is_active?: boolean;
+}
+
 interface BusinessListProps {
-  businesses: any[];
+  businesses: Business[];
   isLoading: boolean;
-  selectedBusiness: any;
-  onSelect: (business: any) => void;
-  onEdit: (business: any) => void;
+  selectedBusiness: Business | null;
+  onSelect: (business: Business) => void;
+  onEdit: (business: Business) => void;
   onDelete: (id: string) => void;
-  onManage: (business: any) => void;
-  onAddSubscription: (business: any) => void;
-  onToggleActive: (business: any, isActive: boolean) => void;
+  onManage: (business: Business) => void;
+  onAddSubscription: (business: Business) => void;
+  onToggleActive: (business: Business, active: boolean) => void;
 }
 
 const BusinessList: React.FC<BusinessListProps> = ({
@@ -92,7 +105,8 @@ const BusinessList: React.FC<BusinessListProps> = ({
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    const isCurrentlyActive = business.is_active !== false; // Default to true if undefined
+                    // We'll treat undefined as active (true)
+                    const isCurrentlyActive = business.is_active !== false;
                     onToggleActive(business, !isCurrentlyActive);
                   }}
                 >

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import AddBusinessUserForm from '@/components/business/AddBusinessUserForm';
 import EditBusinessForm from '@/components/business/EditBusinessForm';
 import { useToast } from '@/components/ui/use-toast';
 
+// Define the Business type to match the database schema
 interface Business {
   id: string;
   business_name: string;
@@ -114,7 +114,9 @@ const BusinessManagement = () => {
     mutationFn: async ({ business, isActive }: { business: Business, isActive: boolean }) => {
       const { error } = await supabase
         .from('businessdetails')
-        .update({ is_active: isActive })
+        .update({ 
+          custom_data: { is_active: isActive }
+        })
         .eq('id', business.id);
       
       if (error) throw error;
