@@ -19,7 +19,33 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { UserPlus, Search, Filter, MoreHorizontal, RefreshCw } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { 
+  UserPlus, 
+  Search, 
+  Filter, 
+  RefreshCw, 
+  MoreHorizontal, 
+  Eye, 
+  Pencil, 
+  Trash2,
+  AlertCircle
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -40,6 +66,8 @@ const formSchema = z.object({
   lastName: z.string().min(1, { message: 'Last name is required' }),
   username: z.string().min(3, { message: 'Username must be at least 3 characters' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  role: z.string().optional(),
+  status: z.string().optional(),
 });
 
 type UserFormValues = z.infer<typeof formSchema>;
@@ -51,16 +79,22 @@ type AdminUser = {
   username: string;
   role: string;
   status: string;
+  password?: string;
 };
 
 const UserManagement = () => {
-  const { user } = useAuth(); // Get the current authenticated user
+  const { user } = useAuth();
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const form = useForm<UserFormValues>({
     resolver: zodResolver(formSchema),
@@ -69,6 +103,20 @@ const UserManagement = () => {
       lastName: '',
       username: '',
       password: '',
+      role: 'staff',
+      status: 'active',
+    },
+  });
+
+  const editForm = useForm<UserFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      username: '',
+      password: '',
+      role: '',
+      status: '',
     },
   });
 
@@ -106,8 +154,8 @@ const UserManagement = () => {
         last_name: data.lastName,
         username: data.username,
         password: data.password,
-        role: 'staff', // Default role
-        status: 'active' // Default status
+        role: data.role || 'staff',
+        status: data.status || 'active'
       };
 
       console.log('Creating new user:', newUser);
@@ -141,6 +189,100 @@ const UserManagement = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const onEditSubmit = async (data: UserFormValues) => {
+    if (!selectedUser) return;
+    
+    setIsSubmitting(true);
+    try {
+      const updateData: Record<string, any> = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        username: data.username,
+        role: data.role,
+        status: data.status
+      };
+
+      // Only include password if it's been changed
+      if (data.password && data.password.trim() !== '') {
+        updateData.password = data.password;
+      }
+
+      const { error } = await supabase
+        .from('adminuser')
+        .update(updateData)
+        .eq('id', selectedUser.id);
+
+      if (error) {
+        console.error('Error updating user:', error);
+        if (error.code === '23505') {
+          toast.error('Username already exists');
+        } else {
+          toast.error(`Failed to update user: ${error.message}`);
+        }
+        return;
+      }
+
+      toast.success(`User ${data.firstName} ${data.lastName} has been updated successfully`);
+      setIsEditModalOpen(false);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedUser) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('adminuser')
+        .delete()
+        .eq('id', selectedUser.id);
+
+      if (error) {
+        console.error('Error deleting user:', error);
+        toast.error(`Failed to delete user: ${error.message}`);
+        return;
+      }
+
+      toast.success(`User ${selectedUser.first_name} ${selectedUser.last_name} has been deleted`);
+      setIsDeleteDialogOpen(false);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleViewUser = (user: AdminUser) => {
+    setSelectedUser(user);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditUser = (user: AdminUser) => {
+    setSelectedUser(user);
+    editForm.reset({
+      firstName: user.first_name,
+      lastName: user.last_name,
+      username: user.username,
+      password: '',
+      role: user.role,
+      status: user.status
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteUser = (user: AdminUser) => {
+    setSelectedUser(user);
+    setIsDeleteDialogOpen(true);
   };
 
   const handleRefresh = () => {
@@ -244,9 +386,30 @@ const UserManagement = () => {
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewUser(user)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => handleDeleteUser(user)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))
@@ -258,6 +421,7 @@ const UserManagement = () => {
         </CardContent>
       </Card>
 
+      {/* Add User Modal */}
       <Dialog open={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -341,6 +505,201 @@ const UserManagement = () => {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* View User Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">User Details</DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Full Name</h3>
+                <p className="mt-1">{selectedUser.first_name} {selectedUser.last_name}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Username</h3>
+                <p className="mt-1">{selectedUser.username}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Role</h3>
+                <p className="mt-1">{selectedUser.role}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                <p className="mt-1">
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    selectedUser.status === 'active' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {selectedUser.status}
+                  </span>
+                </p>
+              </div>
+              <DialogFooter className="pt-4">
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsViewModalOpen(false)}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleEditUser(selectedUser);
+                  }}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Edit User</DialogTitle>
+            <DialogDescription>
+              Update user information below.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="johndoe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Leave blank to keep current password" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <FormControl>
+                      <Input placeholder="staff" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <FormControl>
+                      <Input placeholder="active" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter className="pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => setIsEditModalOpen(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit"
+                  className="hover:bg-[#f99b23] transition-colors"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Updating..." : "Update User"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the user 
+              {selectedUser && ` "${selectedUser.first_name} ${selectedUser.last_name}"`} and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
