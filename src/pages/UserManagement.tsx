@@ -76,7 +76,9 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.from('adminuser').select('*');
+      const { data, error } = await supabase
+        .from('adminuser')
+        .select('*');
       
       if (error) {
         console.error('Error fetching users:', error);
@@ -109,7 +111,9 @@ const UserManagement = () => {
         status: 'active' // Default status
       };
 
-      const { error } = await supabase.from('adminuser').insert([newUser]);
+      const { error } = await supabase
+        .from('adminuser')
+        .insert([newUser]);
 
       if (error) {
         if (error.code === '23505') {
