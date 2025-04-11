@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,6 @@ import AddBusinessUserForm from '@/components/business/AddBusinessUserForm';
 import EditBusinessForm from '@/components/business/EditBusinessForm';
 import { useToast } from '@/components/ui/use-toast';
 
-// Define the Business type to match the database schema
 interface Business {
   id: string;
   business_name: string;
@@ -51,7 +49,6 @@ const BusinessManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch businesses
   const { data: businesses, isLoading: isLoadingBusinesses } = useQuery({
     queryKey: ['businesses'],
     queryFn: async () => {
@@ -65,7 +62,6 @@ const BusinessManagement = () => {
     },
   });
 
-  // Fetch business users for selected business
   const { data: businessUsers, isLoading: isLoadingUsers } = useQuery({
     queryKey: ['businessUsers', selectedBusiness?.id],
     queryFn: async () => {
@@ -83,7 +79,6 @@ const BusinessManagement = () => {
     enabled: !!selectedBusiness?.id,
   });
 
-  // Delete business mutation
   const deleteBusiness = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -112,13 +107,17 @@ const BusinessManagement = () => {
     }
   });
 
-  // Toggle business active status mutation
   const toggleBusinessActive = useMutation({
     mutationFn: async ({ business, isActive }: { business: Business, isActive: boolean }) => {
+      const updatedCustomData = { 
+        ...business.custom_data,
+        is_active: isActive 
+      };
+      
       const { error } = await supabase
         .from('businessdetails')
         .update({ 
-          custom_data: { is_active: isActive }
+          custom_data: updatedCustomData 
         })
         .eq('id', business.id);
       
@@ -140,7 +139,6 @@ const BusinessManagement = () => {
     }
   });
 
-  // Delete business user mutation
   const deleteBusinessUser = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -166,7 +164,6 @@ const BusinessManagement = () => {
     }
   });
 
-  // Select first business if none selected and businesses are loaded
   useEffect(() => {
     if (!selectedBusiness && businesses && businesses.length > 0) {
       setSelectedBusiness(businesses[0]);
@@ -215,7 +212,6 @@ const BusinessManagement = () => {
     toggleBusinessActive.mutate({ business, isActive });
   };
 
-  // Helper to check if business is active
   const isBusinessActive = (business: Business) => {
     return business.custom_data?.is_active !== false;
   };
@@ -333,7 +329,6 @@ const BusinessManagement = () => {
         )}
       </Tabs>
 
-      {/* Modals */}
       <AddBusinessForm
         isOpen={showAddBusinessModal}
         onClose={() => setShowAddBusinessModal(false)} 
