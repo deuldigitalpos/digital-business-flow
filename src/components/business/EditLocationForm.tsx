@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { BusinessLocation } from '@/types/business-location';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 interface EditLocationFormProps {
   isOpen: boolean;
@@ -25,8 +27,10 @@ const EditLocationForm: React.FC<EditLocationFormProps> = ({
   const [name, setName] = useState(location.name);
   const [address, setAddress] = useState(location.address);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const queryClient = useQueryClient();
+  const { business } = useBusinessAuth();
 
   // Update form when location changes
   useEffect(() => {
@@ -38,6 +42,7 @@ const EditLocationForm: React.FC<EditLocationFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     if (!name.trim() || !address.trim()) {
       toast.error('Please fill in all required fields');
@@ -47,6 +52,8 @@ const EditLocationForm: React.FC<EditLocationFormProps> = ({
     setIsSubmitting(true);
 
     try {
+      console.log('Updating location:', location.id);
+      
       const { error } = await supabase
         .from('business_locations')
         .update({
@@ -56,13 +63,18 @@ const EditLocationForm: React.FC<EditLocationFormProps> = ({
         })
         .eq('id', location.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating location:', error);
+        throw new Error(error.message || 'Failed to update location');
+      }
       
+      console.log('Location updated successfully');
       toast.success('Location updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['business-locations'] });
+      queryClient.invalidateQueries({ queryKey: ['business-locations', business?.id] });
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating location:', error);
+      setError(error.message || 'Failed to update location');
       toast.error('Failed to update location');
     } finally {
       setIsSubmitting(false);
@@ -75,6 +87,13 @@ const EditLocationForm: React.FC<EditLocationFormProps> = ({
         <DialogHeader>
           <DialogTitle>Edit Location</DialogTitle>
         </DialogHeader>
+        
+        {error && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">

@@ -20,7 +20,7 @@ const LocationManager = () => {
   const queryClient = useQueryClient();
   
   // Fetch locations for the current business
-  const { data: locations, isLoading } = useQuery({
+  const { data: locations, isLoading, isError } = useQuery({
     queryKey: ['business-locations', business?.id],
     queryFn: async () => {
       if (!business?.id) return [];
@@ -56,13 +56,18 @@ const LocationManager = () => {
     }
 
     try {
+      console.log('Deleting location:', id);
+      
       // First, delete any user location mappings
       const { error: mappingError } = await supabase
         .from('user_locations')
         .delete()
         .eq('location_id', id);
       
-      if (mappingError) throw mappingError;
+      if (mappingError) {
+        console.error('Error deleting user location mappings:', mappingError);
+        throw mappingError;
+      }
 
       // Then delete the location
       const { error } = await supabase
@@ -70,8 +75,12 @@ const LocationManager = () => {
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting location:', error);
+        throw error;
+      }
       
+      console.log('Location deleted successfully');
       toast.success('Location deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['business-locations', business?.id] });
     } catch (error) {
@@ -82,15 +91,23 @@ const LocationManager = () => {
 
   const handleToggleStatus = async (location: BusinessLocation) => {
     try {
+      console.log('Toggling status for location:', location.id);
       const newStatus = location.status === 'active' ? 'inactive' : 'active';
       
       const { error } = await supabase
         .from('business_locations')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .update({ 
+          status: newStatus, 
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', location.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating location status:', error);
+        throw error;
+      }
       
+      console.log('Location status updated successfully to:', newStatus);
       toast.success(`Location status changed to ${newStatus}`);
       queryClient.invalidateQueries({ queryKey: ['business-locations', business?.id] });
     } catch (error) {
@@ -98,6 +115,14 @@ const LocationManager = () => {
       toast.error('Failed to update location status');
     }
   };
+
+  if (isError) {
+    return (
+      <div className="py-12 text-center">
+        <p className="text-red-500">Error loading locations. Please try again later.</p>
+      </div>
+    );
+  }
 
   if (!business?.id) {
     return (

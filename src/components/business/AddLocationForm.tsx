@@ -49,11 +49,9 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
 
     try {
       console.log('Adding location with business ID:', businessId);
-      console.log('Current business user:', businessUser);
+      console.log('Business user in session:', businessUser);
       
-      // Temporary workaround to make the insert work without proper RLS
-      // We'll insert the data directly as an unauthenticated client
-      // but ensure proper business_id checks in our application
+      // Insert the location with all required fields
       const { data, error: insertError } = await supabase
         .from('business_locations')
         .insert({
@@ -67,14 +65,16 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
       
       if (insertError) {
         console.error('Error inserting location:', insertError);
-        throw insertError;
+        throw new Error(insertError.message || 'Failed to add location');
       }
       
       console.log('Location added successfully:', data);
       toast.success('Location added successfully');
+      
+      // Make sure to use the correct query key that matches LocationManager
       queryClient.invalidateQueries({ queryKey: ['business-locations', businessId] });
       
-      // Reset form
+      // Reset form and close dialog
       setName('');
       setAddress('');
       onClose();
