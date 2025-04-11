@@ -2,7 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, CreditCard, Building2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BusinessListProps {
@@ -12,6 +12,9 @@ interface BusinessListProps {
   onSelect: (business: any) => void;
   onEdit: (business: any) => void;
   onDelete: (id: string) => void;
+  onManage: (business: any) => void;
+  onAddSubscription: (business: any) => void;
+  onToggleActive: (business: any, isActive: boolean) => void;
 }
 
 const BusinessList: React.FC<BusinessListProps> = ({
@@ -20,7 +23,10 @@ const BusinessList: React.FC<BusinessListProps> = ({
   selectedBusiness,
   onSelect,
   onEdit,
-  onDelete
+  onDelete,
+  onManage,
+  onAddSubscription,
+  onToggleActive
 }) => {
   if (isLoading) {
     return <div className="flex items-center justify-center p-8">Loading businesses...</div>;
@@ -60,7 +66,42 @@ const BusinessList: React.FC<BusinessListProps> = ({
               <TableCell>{business.country}</TableCell>
               <TableCell>{business.currency}</TableCell>
               <TableCell>{business.contact_number || '-'}</TableCell>
-              <TableCell className="text-right space-x-2">
+              <TableCell className="text-right space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onManage(business);
+                  }}
+                >
+                  <Building2 className="w-4 h-4 mr-1" /> Manage
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddSubscription(business);
+                  }}
+                >
+                  <CreditCard className="w-4 h-4 mr-1" /> Add Subscription
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const isCurrentlyActive = business.is_active !== false; // Default to true if undefined
+                    onToggleActive(business, !isCurrentlyActive);
+                  }}
+                >
+                  {business.is_active !== false ? (
+                    <><ToggleRight className="w-4 h-4 mr-1 text-green-500" /> Deactivate</>
+                  ) : (
+                    <><ToggleLeft className="w-4 h-4 mr-1 text-gray-500" /> Activate</>
+                  )}
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"

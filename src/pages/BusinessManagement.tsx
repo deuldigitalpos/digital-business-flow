@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Building2, Users, Pencil, Trash2, FileCheck } from 'lucide-react';
+import { PlusCircle, Building2, Users, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AddBusinessForm from '@/components/business/AddBusinessForm';
@@ -23,6 +23,7 @@ interface Business {
   contact_number: string | null;
   created_at: string;
   updated_at: string;
+  is_active?: boolean;
 }
 
 interface BusinessUser {
@@ -43,6 +44,7 @@ const BusinessManagement = () => {
   const [showEditBusinessModal, setShowEditBusinessModal] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [selectedBusinessUser, setSelectedBusinessUser] = useState<BusinessUser | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("businesses");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -107,6 +109,32 @@ const BusinessManagement = () => {
     }
   });
 
+  // Toggle business active status mutation
+  const toggleBusinessActive = useMutation({
+    mutationFn: async ({ business, isActive }: { business: Business, isActive: boolean }) => {
+      const { error } = await supabase
+        .from('businessdetails')
+        .update({ is_active: isActive })
+        .eq('id', business.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['businesses'] });
+      toast({
+        title: variables.isActive ? "Business activated" : "Business deactivated",
+        description: `${variables.business.business_name} has been ${variables.isActive ? 'activated' : 'deactivated'}.`
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update business status: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  });
+
   // Delete business user mutation
   const deleteBusinessUser = useMutation({
     mutationFn: async (id: string) => {
@@ -166,6 +194,22 @@ const BusinessManagement = () => {
     }
   };
 
+  const handleManageBusiness = (business: Business) => {
+    setSelectedBusiness(business);
+    setActiveTab("users");
+  };
+
+  const handleAddSubscription = (business: Business) => {
+    toast({
+      title: "Subscription Feature",
+      description: `Add subscription feature for ${business.business_name} is coming soon.`
+    });
+  };
+
+  const handleToggleActive = (business: Business, isActive: boolean) => {
+    toggleBusinessActive.mutate({ business, isActive });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -178,7 +222,7 @@ const BusinessManagement = () => {
         </Button>
       </div>
 
-      <Tabs defaultValue="businesses" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="businesses" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" /> Businesses
@@ -203,6 +247,9 @@ const BusinessManagement = () => {
                 onSelect={handleBusinessSelect}
                 onEdit={handleEditBusiness}
                 onDelete={handleDeleteBusiness}
+                onManage={handleManageBusiness}
+                onAddSubscription={handleAddSubscription}
+                onToggleActive={handleToggleActive}
                 selectedBusiness={selectedBusiness}
               />
             </CardContent>
@@ -211,6 +258,42 @@ const BusinessManagement = () => {
         
         {selectedBusiness && (
           <TabsContent value="users" className="w-full">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Business Details</CardTitle>
+                <CardDescription>Details for {selectedBusiness.business_name}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Business Name</h3>
+                    <p className="text-base">{selectedBusiness.business_name}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Country</h3>
+                    <p className="text-base">{selectedBusiness.country}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Currency</h3>
+                    <p className="text-base">{selectedBusiness.currency}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Website</h3>
+                    <p className="text-base">{selectedBusiness.website || '-'}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Contact Number</h3>
+                    <p className="text-base">{selectedBusiness.contact_number || '-'}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Status</h3>
+                    <p className={`text-base ${selectedBusiness.is_active !== false ? 'text-green-600' : 'text-red-600'}`}>
+                      {selectedBusiness.is_active !== false ? 'Active' : 'Inactive'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
@@ -224,7 +307,7 @@ const BusinessManagement = () => {
                   }}
                   className="flex items-center gap-2"
                 >
-                  <PlusCircle className="h-4 w-4" /> Add User
+                  <UserPlus className="h-4 w-4" /> Add User
                 </Button>
               </CardHeader>
               <CardContent>
