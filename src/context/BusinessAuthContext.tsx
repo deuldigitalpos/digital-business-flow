@@ -1,8 +1,9 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BusinessUser } from '@/types/business-user';
 import { Business } from '@/types/business';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type BusinessAuthContextType = {
   businessUser: BusinessUser | null;
@@ -27,29 +28,12 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [businessUser, setBusinessUser] = useState<BusinessUser | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Check if user is already logged in - optimized to load faster
-  useEffect(() => {
-    const storedUser = localStorage.getItem('businessUser');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser) as BusinessUser;
-        setBusinessUser(parsedUser);
-        
-        // Fetch the business details immediately
-        fetchBusinessDetails(parsedUser.business_id);
-      } catch (error) {
-        console.error('Failed to parse stored business user:', error);
-        localStorage.removeItem('businessUser');
-        setIsLoading(false);
-      }
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const fetchBusinessDetails = async (businessId: string) => {
+  // Fetch business details as a memoized function to avoid recreating it on every render
+  const fetchBusinessDetails = useCallback(async (businessId: string) => {
     try {
+      console.log('Fetching business details for ID:', businessId);
       const { data, error } = await supabase
         .from('businessdetails')
         .select('*')
@@ -57,27 +41,65 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .single();
         
       if (error) {
+        console.error('Error fetching business details:', error);
         throw error;
       }
       
       if (data) {
+        console.log('Business details fetched successfully');
         setBusiness(data as Business);
       }
     } catch (error) {
-      console.error('Error fetching business details:', error);
-    } finally {
-      // Always set loading to false when done
-      setIsLoading(false);
+      console.error('Error in fetchBusinessDetails:', error);
     }
-  };
+  }, []);
 
-  // Optimized login function for faster performance
+  // Initial session check - runs only once
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        console.log('Initializing business auth...');
+        const storedUser = localStorage.getItem('businessUser');
+        
+        if (!storedUser) {
+          console.log('No stored business user found');
+          setIsLoading(false);
+          setIsInitialized(true);
+          return;
+        }
+
+        try {
+          console.log('Parsing stored business user');
+          const parsedUser = JSON.parse(storedUser) as BusinessUser;
+          setBusinessUser(parsedUser);
+          
+          // Fetch business details
+          await fetchBusinessDetails(parsedUser.business_id);
+        } catch (error) {
+          console.error('Failed to parse stored business user:', error);
+          localStorage.removeItem('businessUser');
+        }
+      } catch (error) {
+        console.error('Error during initialization:', error);
+      } finally {
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    };
+
+    initializeAuth();
+  }, [fetchBusinessDetails]);
+
+  // Optimized login function
   const login = async (username: string, password: string): Promise<boolean> => {
     if (!username || !password) {
+      toast.error('Please enter both username and password');
       return false;
     }
 
     setIsLoading(true);
+    console.log('Attempting login for username:', username);
+    
     try {
       // Query the business_users table to find the user
       const { data, error } = await supabase
@@ -88,40 +110,53 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .single();
 
       if (error || !data) {
+        console.error('Login error:', error);
+        toast.error('Invalid username or password');
         setIsLoading(false);
         return false;
       }
 
       const user = data as unknown as BusinessUser;
+      console.log('Login successful, user found:', user.id);
+      
+      // Store user data first
       setBusinessUser(user);
       localStorage.setItem('businessUser', JSON.stringify(user));
       
-      // Fetch the business details in parallel
-      fetchBusinessDetails(user.business_id);
+      // Then fetch business details
+      await fetchBusinessDetails(user.business_id);
+      
+      toast.success('Login successful!');
       return true;
     } catch (error) {
       console.error('Login error:', error);
-      setIsLoading(false);
+      toast.error('An error occurred during login');
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Logout function
-  const logout = () => {
+  const logout = useCallback(() => {
     setBusinessUser(null);
     setBusiness(null);
     localStorage.removeItem('businessUser');
-  };
+    toast.info('Logged out successfully');
+  }, []);
+
+  // Derive authentication state from user data
+  const isAuthenticated = !!businessUser;
 
   return (
     <BusinessAuthContext.Provider 
       value={{ 
         businessUser, 
         business, 
-        isLoading, 
+        isLoading: isLoading || !isInitialized, 
         login, 
         logout, 
-        isAuthenticated: !!businessUser 
+        isAuthenticated
       }}
     >
       {children}
