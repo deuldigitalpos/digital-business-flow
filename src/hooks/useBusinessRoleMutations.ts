@@ -20,14 +20,17 @@ export const useBusinessRoleMutations = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating role:', error);
+        throw error;
+      }
       return data as BusinessRole;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['business-roles'] });
       toast({
         title: 'Role created',
-        description: 'The role has been successfully created.'
+        description: `Role "${variables.name}" has been successfully created.`
       });
     },
     onError: (error) => {
@@ -51,14 +54,17 @@ export const useBusinessRoleMutations = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating role:', error);
+        throw error;
+      }
       return data as BusinessRole;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['business-roles'] });
       toast({
         title: 'Role updated',
-        description: 'The role has been successfully updated.'
+        description: `Role "${variables.name}" has been successfully updated.`
       });
     },
     onError: (error) => {
@@ -77,7 +83,10 @@ export const useBusinessRoleMutations = () => {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting role:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-roles'] });

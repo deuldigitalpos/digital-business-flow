@@ -13,6 +13,7 @@ import { useBusinessRoleMutations } from '@/hooks/useBusinessRoleMutations';
 import { BusinessRole } from '@/types/business-role';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
   name: z.string().min(1, "Role name is required."),
@@ -35,6 +36,7 @@ const AddBusinessRoleForm: React.FC<AddBusinessRoleFormProps> = ({
   role
 }) => {
   const { createBusinessRole, updateBusinessRole } = useBusinessRoleMutations();
+  const { toast } = useToast();
   const isEditing = !!role;
 
   // Define permission groups
@@ -111,21 +113,30 @@ const AddBusinessRoleForm: React.FC<AddBusinessRoleFormProps> = ({
     }
   }, [form, role, isOpen]);
 
-  const onSubmit = (values: FormValues) => {
-    if (isEditing && role) {
-      updateBusinessRole.mutate({
-        id: role.id,
-        name: values.name,
-        permissions: values.permissions
-      });
-    } else {
-      createBusinessRole.mutate({
-        businessId,
-        name: values.name,
-        permissions: values.permissions
+  const onSubmit = async (values: FormValues) => {
+    try {
+      if (isEditing && role) {
+        await updateBusinessRole.mutateAsync({
+          id: role.id,
+          name: values.name,
+          permissions: values.permissions
+        });
+      } else {
+        await createBusinessRole.mutateAsync({
+          businessId,
+          name: values.name,
+          permissions: values.permissions
+        });
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error saving role:", error);
+      toast({
+        title: "Error saving role",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
       });
     }
-    onClose();
   };
 
   const [openSections, setOpenSections] = React.useState<Record<string, boolean>>(
@@ -227,7 +238,7 @@ const AddBusinessRoleForm: React.FC<AddBusinessRoleFormProps> = ({
                               <div className="flex items-center space-x-2">
                                 <Checkbox
                                   id={permission.key}
-                                  checked={field.value}
+                                  checked={field.value || false}
                                   onCheckedChange={field.onChange}
                                 />
                                 <label

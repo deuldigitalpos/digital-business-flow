@@ -9,29 +9,49 @@ import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { BusinessRole } from '@/types/business-role';
 import BusinessRoleList from '@/components/business/BusinessRoleList';
 import AddBusinessRoleForm from '@/components/business/AddBusinessRoleForm';
+import { useToast } from '@/components/ui/use-toast';
 
 const BusinessRoleManager = () => {
   const { business } = useBusinessAuth();
+  const { toast } = useToast();
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<BusinessRole | null>(null);
 
-  const { data: roles, isLoading } = useQuery({
+  // Using staleTime to prevent excessive refetches and improve loading performance
+  const { data: roles, isLoading, error } = useQuery({
     queryKey: ['business-roles', business?.id],
     queryFn: async () => {
       if (!business?.id) return [];
 
-      const { data, error } = await supabase
-        .from('business_roles')
-        .select('*')
-        .eq('business_id', business.id)
-        .order('created_at', { ascending: true });
-      
-      if (error) throw error;
-
-      return data as BusinessRole[];
+      try {
+        const { data, error } = await supabase
+          .from('business_roles')
+          .select('*')
+          .eq('business_id', business.id)
+          .order('created_at', { ascending: true });
+        
+        if (error) throw error;
+        return data as BusinessRole[];
+      } catch (err) {
+        console.error('Error fetching roles:', err);
+        throw err;
+      }
     },
     enabled: !!business?.id,
+    staleTime: 30000, // 30 seconds stale time to improve performance
+    retry: 1, // Limit retries to avoid excessive API calls
   });
+
+  // Show error toast if fetching fails
+  React.useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error loading roles",
+        description: error instanceof Error ? error.message : "Failed to load roles",
+        variant: "destructive"
+      });
+    }
+  }, [error, toast]);
 
   const handleAddRole = () => {
     setSelectedRole(null);
