@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-// Define form schema with validation
 const formSchema = z.object({
   firstName: z.string().min(1, { message: 'First name is required' }),
   lastName: z.string().min(1, { message: 'Last name is required' }),
@@ -44,7 +42,6 @@ const formSchema = z.object({
 
 type UserFormValues = z.infer<typeof formSchema>;
 
-// Define user type for display
 type AdminUser = {
   id: string;
   first_name: string;
@@ -61,7 +58,6 @@ const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Initialize the form
   const form = useForm<UserFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -72,7 +68,6 @@ const UserManagement = () => {
     },
   });
 
-  // Fetch users from the database
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
@@ -84,7 +79,7 @@ const UserManagement = () => {
         console.error('Error fetching users:', error);
         toast.error('Failed to load users');
       } else {
-        setUsers(data as AdminUser[]);
+        setUsers(data as unknown as AdminUser[]);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -94,12 +89,10 @@ const UserManagement = () => {
     }
   };
 
-  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Handle form submission
   const onSubmit = async (data: UserFormValues) => {
     try {
       const newUser = {
@@ -127,11 +120,9 @@ const UserManagement = () => {
 
       toast.success(`User ${data.firstName} ${data.lastName} has been created successfully.`);
       
-      // Reset form and close modal
       form.reset();
       setIsAddUserModalOpen(false);
       
-      // Refresh user list
       fetchUsers();
     } catch (error) {
       console.error('Error creating user:', error);
@@ -139,13 +130,11 @@ const UserManagement = () => {
     }
   };
 
-  // Handle refresh button click
   const handleRefresh = () => {
     setIsRefreshing(true);
     fetchUsers().finally(() => setIsRefreshing(false));
   };
 
-  // Filter users based on search query
   const filteredUsers = users.filter(user => {
     if (!searchQuery) return true;
     
@@ -171,7 +160,6 @@ const UserManagement = () => {
         </Button>
       </div>
 
-      {/* Search and filter section */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -197,7 +185,6 @@ const UserManagement = () => {
         </Button>
       </div>
 
-      {/* Users table */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle>Users</CardTitle>
@@ -258,7 +245,6 @@ const UserManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Add User Modal */}
       <Dialog open={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
-        const adminUser = data as AdminUser;
+        const adminUser = data as unknown as AdminUser;
         
         // Create a user object for the client
         const userData: User = {
