@@ -60,6 +60,7 @@ const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<UserFormValues>({
     resolver: zodResolver(formSchema),
@@ -97,6 +98,7 @@ const UserManagement = () => {
   }, []);
 
   const onSubmit = async (data: UserFormValues) => {
+    setIsSubmitting(true);
     try {
       // Ensure we use the proper field naming to match the database schema
       const newUser = {
@@ -116,25 +118,28 @@ const UserManagement = () => {
         .select();
 
       if (error) {
+        console.error('Error creating user:', error);
         if (error.code === '23505') {
           toast.error('Username already exists');
         } else {
-          console.error('Error creating user:', error);
-          toast.error('Failed to create user');
+          toast.error(`Failed to create user: ${error.message}`);
         }
         return;
       }
 
       console.log('User created successfully:', insertedData);
-      toast.success(`User ${data.firstName} ${data.lastName} has been created successfully.`);
+      toast.success(`User ${data.firstName} ${data.lastName} has been created successfully`);
       
       form.reset();
       setIsAddUserModalOpen(false);
       
+      // Refresh the users list
       fetchUsers();
     } catch (error) {
       console.error('Error creating user:', error);
-      toast.error('Failed to create user');
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -320,14 +325,16 @@ const UserManagement = () => {
                   type="button" 
                   variant="outline"
                   onClick={() => setIsAddUserModalOpen(false)}
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit"
                   className="hover:bg-[#f99b23] transition-colors"
+                  disabled={isSubmitting}
                 >
-                  Save User
+                  {isSubmitting ? "Creating..." : "Save User"}
                 </Button>
               </DialogFooter>
             </form>
