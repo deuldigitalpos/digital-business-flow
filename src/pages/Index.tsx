@@ -1,88 +1,61 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogIn } from 'lucide-react';
 
 const Index = () => {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-white border-b border-gray-100 py-4 px-6">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <img 
-              src="/lovable-uploads/1df1545d-8aea-4a95-8a04-a342cff67de7.png" 
-              alt="DeulDigital Logo" 
-              className="h-10 w-auto" 
-            />
-            <span className="text-xl font-bold text-primary">DeulDigital POS</span>
-          </div>
-          
-          <Button 
-            onClick={() => navigate('/login')}
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2"
-          >
-            <LogIn className="h-4 w-4" />
-            Login / Signup
-          </Button>
+    <div className="flex min-h-screen flex-col">
+      <header className="flex h-16 items-center border-b px-4 md:px-6">
+        <div className="flex gap-2 items-center">
+          <img 
+            src="/lovable-uploads/1df1545d-8aea-4a95-8a04-a342cff67de7.png" 
+            alt="DeulDigital Logo" 
+            className="h-8 w-auto" 
+          />
+          <span className="text-xl font-bold">DeulDigital POS</span>
         </div>
+        <nav className="ml-auto flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/login">Admin Login</Link>
+          </Button>
+          <Button variant="default" asChild>
+            <Link to="/business-login">Business Login</Link>
+          </Button>
+        </nav>
       </header>
-
-      <main className="flex-1">
-        <section className="bg-gradient-to-b from-gray-50 to-white py-20 px-6">
-          <div className="container mx-auto text-center max-w-4xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-primary">
-              DeulDigital POS
+      <main className="flex-1 px-4 py-12 md:py-24">
+        <div className="container grid items-center gap-6 md:gap-10 lg:grid-cols-2">
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+              DeulDigital POS System
             </h1>
-            <p className="text-lg md:text-xl mb-8 text-gray-600">
-              A powerful, all-in-one point-of-sale system designed to streamline business operations
+            <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              A comprehensive point of sale system for businesses of all sizes. 
+              Manage your inventory, sales, and customers with ease.
             </p>
-            <Button 
-              onClick={() => navigate('/login')}
-              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground text-lg px-8 py-6 h-auto"
-              size="lg"
-            >
-              Access Dashboard
-            </Button>
-          </div>
-        </section>
-        
-        <section className="py-16 px-6">
-          <div className="container mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h3 className="text-xl font-semibold mb-3">Sales Management</h3>
-                <p className="text-gray-600">
-                  Track total, net, and categorized sales with powerful analytics and reporting tools.
-                </p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h3 className="text-xl font-semibold mb-3">Inventory Control</h3>
-                <p className="text-gray-600">
-                  Get notified when stock levels are low and stay ahead of expiring products.
-                </p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h3 className="text-xl font-semibold mb-3">Financial Management</h3>
-                <p className="text-gray-600">
-                  Track outstanding payments and monitor business expenses in real time.
-                </p>
-              </div>
+            <div className="flex flex-col gap-2 min-[400px]:flex-row">
+              <Button asChild>
+                <Link to="/business-login">Login to Your Business</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/login">Admin Login</Link>
+              </Button>
             </div>
           </div>
-        </section>
-      </main>
-      
-      <footer className="bg-primary text-primary-foreground py-8 px-6">
-        <div className="container mx-auto text-center">
-          <p>© 2025 DeulDigital POS. All rights reserved.</p>
+          <div className="flex justify-center">
+            <img
+              alt="Dashboard Preview"
+              className="rounded-lg object-cover object-center sm:w-full"
+              height={400}
+              src="/placeholder.svg"
+              width={600}
+            />
+          </div>
         </div>
+      </main>
+      <footer className="border-t p-6 text-center text-sm text-muted-foreground">
+        &copy; {new Date().getFullYear()} DeulDigital POS. All rights reserved.
       </footer>
     </div>
   );
