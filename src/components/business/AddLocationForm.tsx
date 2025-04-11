@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 interface AddLocationFormProps {
   isOpen: boolean;
@@ -24,11 +26,14 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const queryClient = useQueryClient();
+  const { session } = useBusinessAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     if (!name.trim() || !address.trim()) {
       toast.error('Please fill in all required fields');
@@ -43,7 +48,10 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase
+      // Use the authenticated Supabase client with the session
+      const authClient = supabase;
+      
+      const { data, error } = await authClient
         .from('business_locations')
         .insert({
           business_id: businessId,
@@ -61,8 +69,9 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
       setName('');
       setAddress('');
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding location:', error);
+      setError(error.message || 'Failed to add location');
       toast.error('Failed to add location');
     } finally {
       setIsSubmitting(false);
@@ -75,6 +84,13 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({
         <DialogHeader>
           <DialogTitle>Add New Location</DialogTitle>
         </DialogHeader>
+        
+        {error && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
