@@ -10,6 +10,7 @@ import { BusinessRole } from '@/types/business-role';
 import BusinessRoleList from '@/components/business/BusinessRoleList';
 import AddBusinessRoleForm from '@/components/business/AddBusinessRoleForm';
 import { useToast } from '@/components/ui/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const BusinessRoleManager = () => {
   const { business } = useBusinessAuth();
@@ -38,8 +39,9 @@ const BusinessRoleManager = () => {
       }
     },
     enabled: !!business?.id,
-    staleTime: 30000, // 30 seconds stale time to improve performance
+    staleTime: 60000, // 60 seconds stale time to improve performance
     retry: 1, // Limit retries to avoid excessive API calls
+    refetchOnWindowFocus: false, // Avoid refetching when window regains focus
   });
 
   // Show error toast if fetching fails
@@ -77,20 +79,31 @@ const BusinessRoleManager = () => {
         <h1 className="text-3xl font-bold tracking-tight">Business Roles</h1>
         <Button
           onClick={handleAddRole}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
         >
           <PlusCircle className="h-4 w-4" /> Add Role
         </Button>
       </div>
 
-      <Card>
+      <Card className="border-t-4 border-t-orange-400">
         <CardHeader>
           <CardTitle>Role Management</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center justify-between p-3 border rounded-md">
+                  <div className="flex-1">
+                    <Skeleton className="h-5 w-24 mb-1" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <div className="flex space-x-2">
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <BusinessRoleList 

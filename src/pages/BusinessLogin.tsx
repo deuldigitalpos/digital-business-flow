@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { BusinessUser } from '@/types/business-user';
+import { Loader2 } from 'lucide-react';
 
 const BusinessLogin = () => {
   const [username, setUsername] = useState('');
@@ -28,6 +29,7 @@ const BusinessLogin = () => {
     try {
       if (!username || !password) {
         toast.error('Please enter both username and password');
+        setIsLoading(false);
         return;
       }
 
@@ -42,6 +44,7 @@ const BusinessLogin = () => {
       if (error) {
         console.error('Login error:', error);
         toast.error('Invalid username or password');
+        setIsLoading(false);
         return;
       }
 
@@ -55,17 +58,17 @@ const BusinessLogin = () => {
         navigate('/business-dashboard');
       } else {
         toast.error('Invalid username or password');
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Login error:', error);
       toast.error('An error occurred during login');
-    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-white px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img 
@@ -77,7 +80,7 @@ const BusinessLogin = () => {
           <p className="text-gray-600 mt-1">Business User Login</p>
         </div>
 
-        <Card>
+        <Card className="border border-orange-100 shadow-lg shadow-orange-100/20">
           <CardHeader>
             <CardTitle>Business Login</CardTitle>
             <CardDescription>
@@ -95,6 +98,7 @@ const BusinessLogin = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Username"
                   required
+                  className="border-orange-200 focus-visible:ring-orange-500"
                 />
               </div>
               <div className="space-y-2">
@@ -106,16 +110,22 @@ const BusinessLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   required
+                  className="border-orange-200 focus-visible:ring-orange-500"
                 />
               </div>
             </CardContent>
             <CardFooter>
               <Button 
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary/90"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
                 disabled={isLoading}
               >
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : "Login"}
               </Button>
             </CardFooter>
           </form>

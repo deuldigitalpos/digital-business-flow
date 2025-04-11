@@ -28,7 +28,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [business, setBusiness] = useState<Business | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is already logged in
+  // Check if user is already logged in - optimized to load faster
   useEffect(() => {
     const storedUser = localStorage.getItem('businessUser');
     if (storedUser) {
@@ -36,14 +36,16 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const parsedUser = JSON.parse(storedUser) as BusinessUser;
         setBusinessUser(parsedUser);
         
-        // Fetch the business details
+        // Fetch the business details immediately
         fetchBusinessDetails(parsedUser.business_id);
       } catch (error) {
         console.error('Failed to parse stored business user:', error);
         localStorage.removeItem('businessUser');
+        setIsLoading(false);
       }
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const fetchBusinessDetails = async (businessId: string) => {
@@ -63,15 +65,19 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     } catch (error) {
       console.error('Error fetching business details:', error);
+    } finally {
+      // Always set loading to false when done
+      setIsLoading(false);
     }
   };
 
-  // Login function that checks credentials against business_users table
+  // Optimized login function for faster performance
   const login = async (username: string, password: string): Promise<boolean> => {
     if (!username || !password) {
       return false;
     }
 
+    setIsLoading(true);
     try {
       // Query the business_users table to find the user
       const { data, error } = await supabase
@@ -81,23 +87,21 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .eq('password', password)
         .single();
 
-      if (error) {
+      if (error || !data) {
+        setIsLoading(false);
         return false;
       }
 
-      if (data) {
-        const user = data as unknown as BusinessUser;
-        setBusinessUser(user);
-        localStorage.setItem('businessUser', JSON.stringify(user));
-        
-        // Fetch the business details
-        await fetchBusinessDetails(user.business_id);
-        return true;
-      } else {
-        return false;
-      }
+      const user = data as unknown as BusinessUser;
+      setBusinessUser(user);
+      localStorage.setItem('businessUser', JSON.stringify(user));
+      
+      // Fetch the business details in parallel
+      fetchBusinessDetails(user.business_id);
+      return true;
     } catch (error) {
       console.error('Login error:', error);
+      setIsLoading(false);
       return false;
     }
   };

@@ -8,14 +8,20 @@ import {
   ShoppingCart, 
   Wallet, 
   TrendingUp, 
-  TrendingDown 
+  TrendingDown,
+  Loader2
 } from 'lucide-react';
 import { isBusinessActive } from '@/utils/business';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const BusinessDashboard = () => {
-  const { businessUser, business } = useBusinessAuth();
+  const { businessUser, business, isLoading } = useBusinessAuth();
 
   const isActive = business ? isBusinessActive(business) : false;
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6">
@@ -36,10 +42,10 @@ const BusinessDashboard = () => {
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="border-t-4 border-t-orange-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <ShoppingCart className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$24,435.00</div>
@@ -52,10 +58,10 @@ const BusinessDashboard = () => {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-t-4 border-t-orange-400">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <Package className="h-4 w-4 text-orange-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$13,120.00</div>
@@ -68,10 +74,10 @@ const BusinessDashboard = () => {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-t-4 border-t-orange-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Customers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-orange-300" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">134</div>
@@ -84,10 +90,10 @@ const BusinessDashboard = () => {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-t-4 border-t-orange-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Expenses</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+            <Wallet className="h-4 w-4 text-orange-200" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$6,240.00</div>
@@ -128,7 +134,7 @@ const BusinessDashboard = () => {
         </Card>
       </div>
       
-      <Card>
+      <Card className="bg-gradient-to-r from-orange-50 to-white">
         <CardHeader>
           <CardTitle>Recent Activities</CardTitle>
           <CardDescription>Latest system activity</CardDescription>
@@ -139,6 +145,49 @@ const BusinessDashboard = () => {
           </p>
         </CardContent>
       </Card>
+    </div>
+  );
+};
+
+// Skeleton loader component for better loading experience
+const DashboardSkeleton = () => {
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-9 w-64 mb-2" />
+        <Skeleton className="h-5 w-96" />
+      </div>
+      
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="border-t-4 border-t-orange-400">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-4 w-4 rounded-full" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-7 w-28 mb-2" />
+              <Skeleton className="h-4 w-36" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      <div className="grid gap-4 md:grid-cols-2">
+        {[1, 2].map((i) => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-6 w-32 mb-1" />
+              <Skeleton className="h-4 w-48" />
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-orange-400" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };

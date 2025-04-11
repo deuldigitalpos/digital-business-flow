@@ -30,12 +30,12 @@ const BusinessDashboardHeader = () => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center bg-white border-b border-gray-200 px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center bg-white border-b border-orange-100 px-4 md:px-6">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="md:hidden text-orange-600 hover:text-orange-700 hover:bg-orange-50"
           onClick={toggleSidebar}
         >
           <Menu className="h-5 w-5" />
@@ -63,17 +63,32 @@ const BusinessDashboardHeader = () => {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <Button variant="outline" size="icon" className="rounded-full" title="POS">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="rounded-full border-orange-200 hover:bg-orange-50 hover:text-orange-600" 
+          title="POS"
+        >
           <ShoppingCart className="h-4 w-4" />
           <span className="sr-only">POS</span>
         </Button>
         
-        <Button variant="outline" size="icon" className="rounded-full" title="Calculator">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="rounded-full border-orange-200 hover:bg-orange-50 hover:text-orange-600" 
+          title="Calculator"
+        >
           <Calculator className="h-4 w-4" />
           <span className="sr-only">Calculator</span>
         </Button>
         
-        <Button variant="outline" size="icon" className="rounded-full" title="Clock In">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="rounded-full border-orange-200 hover:bg-orange-50 hover:text-orange-600" 
+          title="Clock In"
+        >
           <Clock className="h-4 w-4" />
           <span className="sr-only">Clock In</span>
         </Button>
@@ -88,7 +103,7 @@ const BusinessDashboardHeader = () => {
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar>
                 <AvatarImage src="/placeholder.svg" alt={businessUser?.first_name || ''} />
-                <AvatarFallback className="bg-primary text-white">
+                <AvatarFallback className="bg-orange-500 text-white">
                   {businessUser ? getInitials(businessUser.first_name) : 'U'}
                 </AvatarFallback>
               </Avatar>
@@ -97,11 +112,11 @@ const BusinessDashboardHeader = () => {
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="flex items-center gap-2">
+            <DropdownMenuItem className="flex items-center gap-2 text-orange-700 focus:bg-orange-50 focus:text-orange-800">
               <Settings className="w-4 h-4" />
               <span>Profile Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="flex items-center gap-2" onClick={handleLogout}>
+            <DropdownMenuItem className="flex items-center gap-2 text-orange-700 focus:bg-orange-50 focus:text-orange-800" onClick={handleLogout}>
               <LogOut className="w-4 h-4" />
               <span>Logout</span>
             </DropdownMenuItem>
