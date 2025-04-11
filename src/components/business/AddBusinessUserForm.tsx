@@ -8,9 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { BusinessUser } from '@/types/business-user';
 
 const formSchema = z.object({
   first_name: z.string().min(1, "First name is required."),
@@ -18,22 +20,10 @@ const formSchema = z.object({
   email: z.string().email("Invalid email address."),
   username: z.string().min(3, "Username must be at least 3 characters."),
   password: z.string().min(6, "Password must be at least 6 characters."),
+  role: z.string().min(1, "Role is required."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
-
-interface BusinessUser {
-  id: string;
-  business_id: string;
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  username: string;
-  role: string;
-  password?: string;
-  created_at: string;
-}
 
 interface AddBusinessUserFormProps {
   isOpen: boolean;
@@ -60,6 +50,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
       email: businessUser?.email || '',
       username: businessUser?.username || '',
       password: businessUser?.password ? '********' : '',
+      role: businessUser?.role || 'Staff',
     }
   });
 
@@ -72,6 +63,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
         email: businessUser.email || '',
         username: businessUser.username || '',
         password: '********', // Placeholder for existing password
+        role: businessUser.role || 'Staff',
       });
     } else if (!isEditing) {
       form.reset({
@@ -80,6 +72,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
         email: '',
         username: '',
         password: '',
+        role: 'Staff',
       });
     }
   }, [businessUser, form, isEditing]);
@@ -95,6 +88,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
           last_name: values.last_name,
           email: values.email,
           username: values.username,
+          role: values.role,
         };
         
         // Only update password if it was changed
@@ -123,6 +117,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
               email: values.email,
               username: values.username,
               password: values.password,
+              role: values.role,
             }
           ])
           .select();
@@ -240,6 +235,34 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
                       Leave unchanged to keep the existing password
                     </p>
                   )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                      <SelectItem value="Manager">Manager</SelectItem>
+                      <SelectItem value="Staff">Staff</SelectItem>
+                      <SelectItem value="Viewer">Viewer</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
