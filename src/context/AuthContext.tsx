@@ -64,8 +64,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      // Sign in with Supabase auth using email and password
-      // For now, we're just querying the adminuser table directly
+      console.log(`Attempting login with username: ${username}`);
+      
+      // Query the adminuser table directly
       const { data, error } = await supabase
         .from('adminuser')
         .select('*')
@@ -82,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data) {
         const adminUser = data as unknown as AdminUser;
+        console.log('Login successful for user:', adminUser);
         
         // Create a user object for the client
         const userData: User = {

@@ -98,6 +98,7 @@ const UserManagement = () => {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
+      // Ensure we use the proper field naming to match the database schema
       const newUser = {
         first_name: data.firstName,
         last_name: data.lastName,
@@ -107,9 +108,12 @@ const UserManagement = () => {
         status: 'active' // Default status
       };
 
-      const { error } = await supabase
+      console.log('Creating new user:', newUser);
+
+      const { data: insertedData, error } = await supabase
         .from('adminuser')
-        .insert([newUser]);
+        .insert([newUser])
+        .select();
 
       if (error) {
         if (error.code === '23505') {
@@ -121,6 +125,7 @@ const UserManagement = () => {
         return;
       }
 
+      console.log('User created successfully:', insertedData);
       toast.success(`User ${data.firstName} ${data.lastName} has been created successfully.`);
       
       form.reset();
