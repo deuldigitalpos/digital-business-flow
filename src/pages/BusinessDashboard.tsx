@@ -7,8 +7,8 @@ import {
   Package, 
   ShoppingCart, 
   Wallet, 
-  ChevronUpRight, 
-  ChevronDownRight 
+  TrendingUp, 
+  TrendingDown 
 } from 'lucide-react';
 import { isBusinessActive } from '@/utils/business';
 
@@ -45,7 +45,7 @@ const BusinessDashboard = () => {
             <div className="text-2xl font-bold">$24,435.00</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <span className="text-green-500 flex items-center mr-1">
-                <ChevronUpRight className="h-3 w-3 mr-0.5" />
+                <TrendingUp className="h-3 w-3 mr-0.5" />
                 12%
               </span>
               from last month
@@ -61,7 +61,7 @@ const BusinessDashboard = () => {
             <div className="text-2xl font-bold">$13,120.00</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <span className="text-green-500 flex items-center mr-1">
-                <ChevronUpRight className="h-3 w-3 mr-0.5" />
+                <TrendingUp className="h-3 w-3 mr-0.5" />
                 4%
               </span>
               from last month
@@ -77,7 +77,7 @@ const BusinessDashboard = () => {
             <div className="text-2xl font-bold">134</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <span className="text-green-500 flex items-center mr-1">
-                <ChevronUpRight className="h-3 w-3 mr-0.5" />
+                <TrendingUp className="h-3 w-3 mr-0.5" />
                 8%
               </span>
               from last month
@@ -93,7 +93,7 @@ const BusinessDashboard = () => {
             <div className="text-2xl font-bold">$6,240.00</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <span className="text-red-500 flex items-center mr-1">
-                <ChevronDownRight className="h-3 w-3 mr-0.5" />
+                <TrendingDown className="h-3 w-3 mr-0.5" />
                 3%
               </span>
               from last month
