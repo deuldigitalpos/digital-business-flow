@@ -69,9 +69,6 @@ const CustomerList: React.FC<CustomerListProps> = ({
       </div>;
   }
   
-  // Check if user has permission to perform actions on customers
-  const canManageCustomers = hasPermission('customers');
-  
   return <>
       <div className="rounded-md border">
         <Table>
@@ -123,31 +120,27 @@ const CustomerList: React.FC<CustomerListProps> = ({
                         View
                       </DropdownMenuItem>
                       
-                      {canManageCustomers && (
-                        <>
-                          <DropdownMenuItem onClick={() => onEditCustomer(customer)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          
-                          <DropdownMenuSeparator />
-                          
-                          <DropdownMenuItem onClick={() => handleToggleStatus(customer.id, customer.account_status)}>
-                            {customer.account_status === 'active' ? <>
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Deactivate
-                              </> : <>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Activate
-                              </>}
-                          </DropdownMenuItem>
-                          
-                          <DropdownMenuItem onClick={() => setCustomerToDelete(customer)}>
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </>
-                      )}
+                      <DropdownMenuItem onClick={() => onEditCustomer(customer)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuSeparator />
+                      
+                      <DropdownMenuItem onClick={() => handleToggleStatus(customer.id, customer.account_status)}>
+                        {customer.account_status === 'active' ? <>
+                            <XCircle className="mr-2 h-4 w-4" />
+                            Deactivate
+                          </> : <>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Activate
+                          </>}
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem onClick={() => setCustomerToDelete(customer)}>
+                        <Trash className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
                       
                       <DropdownMenuSeparator />
                       
