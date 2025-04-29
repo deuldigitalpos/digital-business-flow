@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -26,6 +27,14 @@ export const useBusinessCustomerMutations = () => {
 
       // Clean up the data before sending to Supabase
       const customerData = { ...data };
+      
+      // Process lead_source_id
+      if (customerData.lead_source_id === "null") {
+        customerData.lead_source_id = null;
+        customerData.is_lead = false;
+      } else if (customerData.lead_source_id) {
+        customerData.is_lead = true;
+      }
       
       try {
         console.log("Inserting customer with data:", customerData);
@@ -84,6 +93,11 @@ export const useBusinessCustomerMutations = () => {
     mutationFn: async ({ id, data }: { id: string, data: CustomerUpdateInput }) => {
       // Clean up the data before sending to Supabase
       const customerData = { ...data };
+      
+      // Process lead_source_id
+      if (customerData.lead_source_id === "null") {
+        customerData.lead_source_id = null;
+      }
       
       const { data: customer, error } = await supabase
         .from('business_customers')

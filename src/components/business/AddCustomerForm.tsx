@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -135,7 +136,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
               <FormLabel>Lead Source</FormLabel>
               <Select 
                 onValueChange={field.onChange}
-                value={field.value || ""}
+                value={field.value || "null"}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -143,7 +144,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">Not a lead</SelectItem>
+                  <SelectItem value="null">Not a lead</SelectItem>
                   {leadSources?.map((source) => (
                     <SelectItem key={source.id} value={source.id}>
                       {source.name}
