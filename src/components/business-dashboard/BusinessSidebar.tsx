@@ -8,27 +8,21 @@ import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { sidebarNavigation } from './sidebar-navigation';
 import { NavLink } from 'react-router-dom';
+import SidebarCollapsibleSection from './SidebarCollapsibleSection';
 
 const BusinessSidebar = () => {
   const { isSidebarOpen, toggleSidebar, closeSidebar } = useSidebar();
   const { businessUser, logout, hasPermission } = useBusinessAuth();
-
-  // Filter sidebar items based on permissions
-  const visibleNavItems = sidebarNavigation.flatMap(group => group.items).filter(item => {
-    if (item.permission && !hasPermission(item.permission)) {
-      return false;
-    }
-    
-    // For items with children, include if at least one child is accessible
-    if (item.children) {
-      const hasVisibleChildren = item.children.some(child => 
-        !child.permission || hasPermission(child.permission)
-      );
-      return hasVisibleChildren;
-    }
-    
-    return true;
-  });
+  
+  // Track open/closed state of each collapsible section
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  
+  const toggleSection = (title: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [title]: !prev[title]
+    }));
+  };
 
   return (
     <>
@@ -72,18 +66,46 @@ const BusinessSidebar = () => {
         
         <ScrollArea className="flex-1 py-4">
           <nav className="grid gap-1 px-2">
-            {visibleNavItems.map((item) => (
-              item.children ? (
-                // Render flat menu items instead of collapsible sections
-                item.children.map(child => {
-                  if (child.permission && !hasPermission(child.permission)) {
+            {sidebarNavigation.map((group) => (
+              <div key={group.title} className="mb-3">
+                {isSidebarOpen && (
+                  <h4 className="mb-1 px-2 text-xs font-semibold text-white/60">
+                    {group.title}
+                  </h4>
+                )}
+                
+                {group.items.map((item) => {
+                  if (item.permission && !hasPermission(item.permission)) {
                     return null;
+                  }
+                  
+                  if (item.children) {
+                    // Filter children based on permissions
+                    const visibleChildren = item.children.filter(child => 
+                      !child.permission || hasPermission(child.permission)
+                    );
+                    
+                    // If no visible children, don't render this section
+                    if (visibleChildren.length === 0) {
+                      return null;
+                    }
+                    
+                    return (
+                      <SidebarCollapsibleSection
+                        key={item.title}
+                        item={item}
+                        isOpen={!!openSections[item.title]}
+                        onToggle={() => toggleSection(item.title)}
+                        isSidebarOpen={isSidebarOpen}
+                        onNavClick={closeSidebar}
+                      />
+                    );
                   }
                   
                   return (
                     <NavLink
-                      key={`${item.title}-${child.title}`}
-                      to={child.href || "#"}
+                      key={item.title}
+                      to={item.href || "#"}
                       onClick={closeSidebar}
                       className={({ isActive }) =>
                         cn(
@@ -92,31 +114,14 @@ const BusinessSidebar = () => {
                         )
                       }
                     >
-                      {child.icon && <child.icon className="h-5 w-5 shrink-0" />}
+                      {item.icon && <item.icon className="h-5 w-5 shrink-0" />}
                       <span className={cn("text-sm", !isSidebarOpen && "md:hidden")}>
-                        {child.title}
+                        {item.title}
                       </span>
                     </NavLink>
                   );
-                })
-              ) : (
-                <NavLink
-                  key={item.title}
-                  to={item.href || "#"}
-                  onClick={closeSidebar}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-white hover:bg-[#f99b23] hover:text-[#1A1F2C] transition-colors",
-                      isActive && "bg-white/10 font-medium"
-                    )
-                  }
-                >
-                  {item.icon && <item.icon className="h-5 w-5 shrink-0" />}
-                  <span className={cn("text-sm", !isSidebarOpen && "md:hidden")}>
-                    {item.title}
-                  </span>
-                </NavLink>
-              )
+                })}
+              </div>
             ))}
           </nav>
         </ScrollArea>
