@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,12 +27,6 @@ export const useBusinessCustomerMutations = () => {
       // Clean up the data before sending to Supabase
       const customerData = { ...data };
       
-      // Remove any references to lead_id as it doesn't exist in the schema
-      // Just ensure is_lead is set correctly
-      if (customerData.is_lead === undefined) {
-        customerData.is_lead = false; // Default to regular customer
-      }
-
       try {
         console.log("Inserting customer with data:", customerData);
         

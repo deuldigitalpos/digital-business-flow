@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,15 +47,21 @@ const formSchema = z.object({
   mobile_number: z.string().nullable(),
   address: z.string().nullable(),
   account_status: z.string().default('active'),
-  is_lead: z.boolean().optional().default(false),
+  is_lead: z.boolean().default(false),
+  lead_source_id: z.string().nullable(),
 });
 
 const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess }) => {
   const { createCustomer } = useBusinessCustomerMutations();
   const { businessUser } = useBusinessAuth();
+  const { useBusinessLeads } = useBusinessLeadsMutations();
+  
+  // Fetch lead sources
+  const { data: leadSources, isLoading: isLoadingLeadSources } = useBusinessLeads(businessId);
   
   console.log("AddCustomerForm - businessId:", businessId);
   console.log("AddCustomerForm - businessUser:", businessUser);
+  console.log("AddCustomerForm - leadSources:", leadSources);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,6 +77,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       address: null,
       account_status: 'active',
       is_lead: false,
+      lead_source_id: null,
     },
   });
 
@@ -80,6 +88,16 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       console.log("Set business_id to:", businessId);
     }
   }, [businessId, form]);
+
+  // Update is_lead when lead_source_id changes
+  useEffect(() => {
+    const leadSourceId = form.watch('lead_source_id');
+    if (leadSourceId) {
+      form.setValue('is_lead', true);
+    } else {
+      form.setValue('is_lead', false);
+    }
+  }, [form.watch('lead_source_id')]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -98,7 +116,8 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         first_name: values.first_name, 
         last_name: values.last_name, 
         account_status: values.account_status,
-        is_lead: values.is_lead || false,
+        is_lead: values.lead_source_id ? true : false,
+        lead_source_id: values.lead_source_id,
         // Optional fields
         business_name: values.business_name,
         email: values.email,
@@ -121,29 +140,33 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Lead Status */}
+        {/* Lead Source */}
         <FormField
           control={form.control}
-          name="is_lead"
+          name="lead_source_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Is this a Lead?</FormLabel>
+              <FormLabel>Lead Source</FormLabel>
               <Select 
-                onValueChange={(value) => field.onChange(value === 'true')} 
-                defaultValue={field.value ? 'true' : 'false'}
+                onValueChange={field.onChange}
+                value={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Is this contact a lead?" />
+                    <SelectValue placeholder="Select lead source or none" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="false">No</SelectItem>
-                  <SelectItem value="true">Yes</SelectItem>
+                  <SelectItem value="">Not a lead</SelectItem>
+                  {leadSources?.map((source) => (
+                    <SelectItem key={source.id} value={source.id}>
+                      {source.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormDescription>
-                Leads are potential customers that haven't made a purchase yet
+                Select a lead source if this is a lead, or "Not a lead" for regular customers
               </FormDescription>
             </FormItem>
           )}

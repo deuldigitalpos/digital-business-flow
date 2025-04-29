@@ -18,6 +18,7 @@ export interface BusinessCustomer {
   total_sell_return_due: number | null;
   account_status: string;
   is_lead: boolean | null;
+  lead_source_id: string | null; // Added lead_source_id field
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +29,7 @@ export type CustomerCreateInput = {
   last_name: string;
   account_status: string;
   is_lead?: boolean | null;
+  lead_source_id?: string | null; // Added lead_source_id field
   // Make these fields optional
   business_name?: string | null;
   email?: string | null;
@@ -35,7 +37,6 @@ export type CustomerCreateInput = {
   credit_limit?: number | null;
   address?: string | null;
   mobile_number?: string | null;
-  // Remove lead_id reference as it doesn't exist in the database schema
 };
 
 export type CustomerUpdateInput = Partial<CustomerCreateInput>;
