@@ -33,7 +33,7 @@ const formSchema = z.object({
   email: z.string().email("Invalid email format").optional().nullable(),
   tin_number: z.string().optional().nullable(),
   credit_limit: z.string().optional().nullable()
-    .transform(val => val ? Number(val) : null),
+    .transform(val => val ? parseFloat(val) : null),
   address: z.string().optional().nullable(),
   mobile_number: z.string().optional().nullable(),
   account_status: z.string().default("active"),
@@ -95,7 +95,7 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
           business_name: values.business_name,
           email: values.email,
           tin_number: values.tin_number,
-          credit_limit: values.credit_limit, // This is already transformed to number by zod
+          credit_limit: values.credit_limit, // This is transformed to number by zod
           address: values.address,
           mobile_number: values.mobile_number,
           account_status: values.account_status,
