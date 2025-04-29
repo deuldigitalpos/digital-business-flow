@@ -82,6 +82,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   useEffect(() => {
     if (businessId) {
       form.setValue('business_id', businessId);
+      console.log("Set business_id to:", businessId);
     }
   }, [businessId, form]);
 
@@ -110,6 +111,8 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         credit_limit: values.credit_limit,
         mobile_number: values.mobile_number,
         address: values.address,
+        // Only include lead_id if it's not "none"
+        lead_id: values.lead_id !== "none" ? values.lead_id : null,
       };
       
       const result = await createCustomer.mutateAsync(customerInput);
@@ -134,7 +137,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
               <FormLabel>Lead Source (Optional)</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                value={field.value || ""}
+                value={field.value || "none"}
               >
                 <FormControl>
                   <SelectTrigger>

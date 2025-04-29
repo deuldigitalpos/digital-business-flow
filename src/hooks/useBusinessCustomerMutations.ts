@@ -15,19 +15,22 @@ export const useBusinessCustomerMutations = () => {
         throw new Error("Authentication required");
       }
 
-      console.log("Creating customer/lead with data:", data);
+      console.log("Creating customer with data:", data);
       console.log("Current business user:", businessUser);
 
-      // Ensure business_id is set correctly
+      // Ensure business_id is set correctly and is a valid UUID
       if (!data.business_id) {
         data.business_id = businessUser.business_id;
         console.log("Setting business_id from context:", data.business_id);
       }
 
-      // Create customer data without extracting lead_source_id
-      const customerData = {
-        ...data
-      };
+      // Clean up the data before sending to Supabase
+      const customerData = { ...data };
+      
+      // If lead_id is "none", remove it from the data
+      if (customerData.lead_id === "none") {
+        delete customerData.lead_id;
+      }
 
       try {
         console.log("Inserting customer with data:", customerData);
@@ -44,7 +47,7 @@ export const useBusinessCustomerMutations = () => {
           throw error;
         }
         
-        console.log("Created customer/lead successfully:", customer);
+        console.log("Created customer successfully:", customer);
         return customer as BusinessCustomer;
       } catch (error) {
         console.error("Error in customer creation:", error);
@@ -60,7 +63,7 @@ export const useBusinessCustomerMutations = () => {
       toast.success(`${entityType} created successfully`);
     },
     onError: (error: any) => {
-      console.error('Error creating customer/lead:', error);
+      console.error('Error creating customer:', error);
       // More user-friendly error message
       let errorMessage = 'Failed to create customer';
       
@@ -69,7 +72,7 @@ export const useBusinessCustomerMutations = () => {
       } else if (error.message?.includes('duplicate key')) {
         errorMessage = 'A customer with this information already exists';
       } else if (error.message?.includes('row-level security policy')) {
-        errorMessage = 'There was a permission error. Please refresh and try again.';
+        errorMessage = 'Permission error. Please refresh and try again.';
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`;
       }

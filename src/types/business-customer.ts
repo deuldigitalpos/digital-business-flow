@@ -36,7 +36,7 @@ export type CustomerCreateInput = {
   address?: string | null;
   mobile_number?: string | null;
   // Lead source reference
-  lead_source_id?: string | null;
+  lead_id?: string | null;
 };
 
 export type CustomerUpdateInput = Partial<CustomerCreateInput>;
