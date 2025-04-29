@@ -52,7 +52,8 @@ const AddBusinessRoleForm: React.FC<AddBusinessRoleFormProps> = ({
       permissions: [
         { key: 'user_management', label: 'User Management' },
         { key: 'users', label: 'Users' },
-        { key: 'roles', label: 'Roles' }
+        { key: 'roles', label: 'Roles' },
+        { key: 'locations', label: 'Locations' }
       ]
     },
     {

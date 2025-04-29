@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
@@ -10,6 +11,7 @@ interface PermissionGuardProps {
 
 /**
  * A component that checks if the user has the required permission
+ * or is a default user (who has all permissions)
  * and either renders the children or redirects to the fallback
  */
 const PermissionGuard: React.FC<PermissionGuardProps> = ({ 
