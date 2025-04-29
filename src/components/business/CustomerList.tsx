@@ -54,7 +54,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
   };
   if (!customers || customers.length === 0) {
     return <div className="rounded-lg border border-dashed p-8 text-center">
-        <h3 className="text-lg font-medium">No leads found</h3>
+        <h3 className="text-lg font-medium">No customers found</h3>
         <p className="text-muted-foreground mt-1">
           Add your first customer to get started.
         </p>
