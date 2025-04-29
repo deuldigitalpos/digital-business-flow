@@ -1,21 +1,26 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { useBusinessSuppliers } from '@/hooks/useBusinessSuppliers';
 import { BusinessSupplier } from '@/types/business-supplier';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, FileText } from 'lucide-react';
 import AddSupplierForm from './AddSupplierForm';
 import EditSupplierForm from './EditSupplierForm';
 import SupplierList from './SupplierList';
 import SupplierDetails from './SupplierDetails';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Business } from '@/types/business';
 
-const SupplierManager = () => {
+interface SupplierManagerProps {
+  business: Business | null;
+}
+
+const SupplierManager: React.FC<SupplierManagerProps> = ({ business }) => {
   const { businessUser } = useBusinessAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -59,14 +64,9 @@ const SupplierManager = () => {
   
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-10 w-1/3" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <Card>
-          <Skeleton className="h-[500px] w-full" />
-        </Card>
+      <div className="flex justify-center items-center h-[60vh]">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <span className="ml-2 text-lg">Loading suppliers...</span>
       </div>
     );
   }
@@ -85,71 +85,84 @@ const SupplierManager = () => {
   }
   
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold tracking-tight">Suppliers</h2>
-        <Button onClick={handleAddSupplier}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Supplier
-        </Button>
-      </div>
+    <>
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Suppliers</h1>
+            <p className="text-muted-foreground">
+              Manage your business suppliers and track their activities.
+            </p>
+          </div>
+          
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button 
+              onClick={handleAddSupplier} 
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Supplier
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Export
+            </Button>
+          </div>
+        </div>
 
-      {/* Search and filter */}
-      <div className="flex gap-4 items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            type="search"
             placeholder="Search suppliers..."
-            className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
           />
         </div>
+        
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+          <div className="flex justify-between items-center">
+            <TabsList>
+              <TabsTrigger value="all">
+                All Suppliers ({filteredSuppliers.length})
+              </TabsTrigger>
+              <TabsTrigger value="active">
+                Active ({activeSuppliers.length})
+              </TabsTrigger>
+              <TabsTrigger value="inactive">
+                Inactive ({inactiveSuppliers.length})
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="all" className="pt-4">
+            <SupplierList 
+              suppliers={filteredSuppliers} 
+              businessId={businessUser?.business_id || ''}
+              onViewSupplier={handleViewSupplier}
+              onEditSupplier={handleEditSupplier}
+            />
+          </TabsContent>
+          
+          <TabsContent value="active" className="pt-4">
+            <SupplierList 
+              suppliers={activeSuppliers} 
+              businessId={businessUser?.business_id || ''}
+              onViewSupplier={handleViewSupplier}
+              onEditSupplier={handleEditSupplier}
+            />
+          </TabsContent>
+          
+          <TabsContent value="inactive" className="pt-4">
+            <SupplierList 
+              suppliers={inactiveSuppliers} 
+              businessId={businessUser?.business_id || ''}
+              onViewSupplier={handleViewSupplier}
+              onEditSupplier={handleEditSupplier}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
-      
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex justify-between items-center">
-          <TabsList>
-            <TabsTrigger value="all">
-              All Suppliers ({filteredSuppliers.length})
-            </TabsTrigger>
-            <TabsTrigger value="active">
-              Active ({activeSuppliers.length})
-            </TabsTrigger>
-            <TabsTrigger value="inactive">
-              Inactive ({inactiveSuppliers.length})
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <TabsContent value="all" className="pt-4">
-          <SupplierList 
-            suppliers={filteredSuppliers} 
-            businessId={businessUser?.business_id || ''}
-            onViewSupplier={handleViewSupplier}
-            onEditSupplier={handleEditSupplier}
-          />
-        </TabsContent>
-        
-        <TabsContent value="active" className="pt-4">
-          <SupplierList 
-            suppliers={activeSuppliers} 
-            businessId={businessUser?.business_id || ''}
-            onViewSupplier={handleViewSupplier}
-            onEditSupplier={handleEditSupplier}
-          />
-        </TabsContent>
-        
-        <TabsContent value="inactive" className="pt-4">
-          <SupplierList 
-            suppliers={inactiveSuppliers} 
-            businessId={businessUser?.business_id || ''}
-            onViewSupplier={handleViewSupplier}
-            onEditSupplier={handleEditSupplier}
-          />
-        </TabsContent>
-      </Tabs>
       
       {/* Add Supplier Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -211,7 +224,7 @@ const SupplierManager = () => {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </>
   );
 };
 
