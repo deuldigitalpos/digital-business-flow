@@ -22,6 +22,7 @@ import Settings from "./pages/Settings";
 import BusinessDashboard from "./pages/BusinessDashboard";
 import BusinessRoles from "./pages/BusinessRoles";
 import BusinessLocations from "./pages/BusinessLocations";
+import BusinessUsers from "./pages/BusinessUsers";
 
 // Layout
 import DashboardLayout from "./components/DashboardLayout";
@@ -58,6 +59,7 @@ const App = () => (
                 <Route index element={<BusinessDashboard />} />
                 <Route path="roles" element={<BusinessRoles />} />
                 <Route path="locations" element={<BusinessLocations />} />
+                <Route path="users" element={<BusinessUsers />} />
                 {/* More business dashboard routes will be added here as needed */}
               </Route>
 
