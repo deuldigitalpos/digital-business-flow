@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -26,6 +27,7 @@ import BusinessLeads from '@/pages/BusinessLeads';
 import BusinessSuppliers from '@/pages/BusinessSuppliers';
 import PermissionDenied from '@/pages/PermissionDenied';
 import BusinessCategories from '@/pages/BusinessCategories';
+import { BusinessAuthProvider } from '@/context/BusinessAuthContext';
 
 const queryClient = new QueryClient();
 
@@ -50,9 +52,18 @@ function App() {
             <Route path="*" element={<PlaceholderPage />} />
           </Route>
 
-          {/* Business Dashboard Routes */}
-          <Route path="/business-login" element={<BusinessLogin />} />
-          <Route path="/business-dashboard" element={<BusinessDashboardLayout />}>
+          {/* Business Dashboard Routes - Wrapped with BusinessAuthProvider */}
+          <Route path="/business-login" element={
+            <BusinessAuthProvider>
+              <BusinessLogin />
+            </BusinessAuthProvider>
+          } />
+          
+          <Route path="/business-dashboard" element={
+            <BusinessAuthProvider>
+              <BusinessDashboardLayout />
+            </BusinessAuthProvider>
+          }>
             <Route index element={<BusinessDashboard />} />
             <Route path="users" element={<BusinessUsers />} />
             <Route path="roles" element={<BusinessRoles />} />
