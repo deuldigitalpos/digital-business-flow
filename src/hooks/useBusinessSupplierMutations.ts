@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,7 +27,7 @@ export const useBusinessSupplierMutations = () => {
       console.log("Using business_id from authenticated user:", supplierData.business_id);
       
       try {
-        // Insert the supplier record
+        // Insert the supplier record with explicit business_id
         const { data: supplier, error } = await supabase
           .from('business_suppliers')
           .insert([supplierData])
@@ -52,7 +51,8 @@ export const useBusinessSupplierMutations = () => {
       toast.success(`Supplier created successfully`);
     },
     onError: (error: any) => {
-      console.error('Error creating supplier:', error);
+      console.error('Complete error object:', error);
+      
       // More user-friendly error message
       let errorMessage = 'Failed to create supplier';
       
@@ -60,7 +60,7 @@ export const useBusinessSupplierMutations = () => {
         errorMessage = 'You need to be logged in to create a supplier';
       } else if (error.message?.includes('duplicate key')) {
         errorMessage = 'A supplier with this information already exists';
-      } else if (error.message?.includes('row-level security policy')) {
+      } else if (error.code === '42501' || error.message?.includes('permission denied')) {
         errorMessage = 'Permission error: You do not have permission to add suppliers to this business';
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`;
