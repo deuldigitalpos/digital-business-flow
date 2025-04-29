@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -17,17 +18,16 @@ export const useBusinessCustomerMutations = () => {
 
       console.log("Creating customer/lead with data:", data);
 
-      // Extract the lead_source_id if it exists and add to custom data
-      let customData = {};
+      // Extract the lead_source_id if it exists
+      let leadSourceId = null;
       if (data.lead_source_id) {
-        customData = { lead_source_id: data.lead_source_id };
+        leadSourceId = data.lead_source_id;
         delete data.lead_source_id; // Remove from main data before insert
       }
 
-      // Add the custom data to the insert
+      // Create customer data without custom_data field
       const customerData = {
-        ...data,
-        custom_data: customData
+        ...data
       };
 
       try {
