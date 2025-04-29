@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -31,13 +30,7 @@ export const useBusinessCustomerMutations = () => {
       };
 
       try {
-        // Check if we already have a session
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (!sessionData.session) {
-          // No active session - proceed with creating customer without authentication
-          console.log("No active session, proceeding without authentication");
-        }
-
+        // We need to use the authenticated client
         const { data: customer, error } = await supabase
           .from('business_customers')
           .insert([customerData])
@@ -73,6 +66,8 @@ export const useBusinessCustomerMutations = () => {
         errorMessage = 'You need to be logged in to create a customer';
       } else if (error.message?.includes('duplicate key')) {
         errorMessage = 'A customer with this information already exists';
+      } else if (error.message?.includes('row-level security policy')) {
+        errorMessage = 'You don\'t have permission to create customers in this business';
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`;
       }

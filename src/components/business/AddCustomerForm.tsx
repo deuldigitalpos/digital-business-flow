@@ -98,7 +98,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         credit_limit: customerData.credit_limit,
         mobile_number: customerData.mobile_number,
         address: customerData.address,
-        // Lead source - only include if not "none"
+        // Lead source - only include if not null and not "none"
         lead_source_id: (lead_id && lead_id !== "none") ? lead_id : null
       };
       
@@ -124,7 +124,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
               <FormLabel>Lead Source</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                value={field.value || undefined}
+                value={field.value || "none"}
               >
                 <FormControl>
                   <SelectTrigger>
