@@ -1,82 +1,43 @@
-
 import React, { useState } from 'react';
-import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableHead, 
-  TableRow, 
-  TableCell 
-} from '@/components/ui/table';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { 
-  MoreHorizontal, 
-  Eye, 
-  Edit, 
-  Trash, 
-  FileText, 
-  ShoppingBag,
-  CreditCard,
-  FileClock,
-  FileEdit,
-  ActivitySquare,
-  CheckCircle,
-  XCircle
-} from 'lucide-react';
+import { MoreHorizontal, Eye, Edit, Trash, FileText, ShoppingBag, CreditCard, FileClock, FileEdit, ActivitySquare, CheckCircle, XCircle } from 'lucide-react';
 import { BusinessCustomer } from '@/types/business-customer';
 import { useBusinessCustomerMutations } from '@/hooks/useBusinessCustomerMutations';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-
 interface CustomerListProps {
   customers: BusinessCustomer[];
   businessId: string;
   onViewCustomer: (customer: BusinessCustomer) => void;
   onEditCustomer: (customer: BusinessCustomer) => void;
 }
-
-const CustomerList: React.FC<CustomerListProps> = ({ 
-  customers, 
-  businessId, 
+const CustomerList: React.FC<CustomerListProps> = ({
+  customers,
+  businessId,
   onViewCustomer,
   onEditCustomer
 }) => {
   const [customerToDelete, setCustomerToDelete] = useState<BusinessCustomer | null>(null);
-  const { deleteCustomer, toggleCustomerStatus } = useBusinessCustomerMutations();
-
+  const {
+    deleteCustomer,
+    toggleCustomerStatus
+  } = useBusinessCustomerMutations();
   const handleConfirmDelete = async () => {
     if (customerToDelete) {
       await deleteCustomer.mutateAsync(customerToDelete.id);
       setCustomerToDelete(null);
     }
   };
-  
   const handleToggleStatus = async (id: string, currentStatus: string) => {
-    await toggleCustomerStatus.mutateAsync({ 
-      id, 
-      isActive: currentStatus !== 'active' 
+    await toggleCustomerStatus.mutateAsync({
+      id,
+      isActive: currentStatus !== 'active'
     });
   };
-  
   const getStatusBadge = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'active':
         return <Badge variant="outline" className="bg-green-100 border-green-300 text-green-800">Active</Badge>;
       case 'inactive':
@@ -91,20 +52,15 @@ const CustomerList: React.FC<CustomerListProps> = ({
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-
   if (!customers || customers.length === 0) {
-    return (
-      <div className="rounded-lg border border-dashed p-8 text-center">
-        <h3 className="text-lg font-medium">No customers found</h3>
+    return <div className="rounded-lg border border-dashed p-8 text-center">
+        <h3 className="text-lg font-medium">No leads found</h3>
         <p className="text-muted-foreground mt-1">
           Add your first customer to get started.
         </p>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <>
+  return <>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -119,8 +75,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customers.map((customer) => (
-              <TableRow key={customer.id}>
+            {customers.map(customer => <TableRow key={customer.id}>
                 <TableCell className="font-medium">
                   {customer.customer_id || '—'}
                 </TableCell>
@@ -164,17 +119,13 @@ const CustomerList: React.FC<CustomerListProps> = ({
                       <DropdownMenuSeparator />
                       
                       <DropdownMenuItem onClick={() => handleToggleStatus(customer.id, customer.account_status)}>
-                        {customer.account_status === 'active' ? (
-                          <>
+                        {customer.account_status === 'active' ? <>
                             <XCircle className="mr-2 h-4 w-4" />
                             Deactivate
-                          </>
-                        ) : (
-                          <>
+                          </> : <>
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Activate
-                          </>
-                        )}
+                          </>}
                       </DropdownMenuItem>
                       
                       <DropdownMenuItem onClick={() => setCustomerToDelete(customer)}>
@@ -216,8 +167,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
-              </TableRow>
-            ))}
+              </TableRow>)}
           </TableBody>
         </Table>
       </div>
@@ -234,17 +184,12 @@ const CustomerList: React.FC<CustomerListProps> = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleConfirmDelete}
-              className="bg-red-500 hover:bg-red-600"
-            >
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-500 hover:bg-red-600">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
-  );
+    </>;
 };
-
 export default CustomerList;
