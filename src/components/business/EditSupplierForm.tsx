@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -31,7 +32,7 @@ const formSchema = z.object({
   business_name: z.string().optional().nullable(),
   email: z.string().email("Invalid email format").optional().nullable(),
   tin_number: z.string().optional().nullable(),
-  credit_limit: z.string().optional().nullable().transform(val => val ? Number(val) : null),
+  credit_limit: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   mobile_number: z.string().optional().nullable(),
   account_status: z.string().default("active"),
