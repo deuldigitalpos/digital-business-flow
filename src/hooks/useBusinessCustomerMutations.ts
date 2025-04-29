@@ -39,10 +39,13 @@ export const useBusinessCustomerMutations = () => {
       try {
         console.log("Inserting customer with data:", customerData);
         
-        // Use the authenticated client for the insert operation
+        // Use the business_id from authenticated user to ensure proper access
         const { data: customer, error } = await supabase
           .from('business_customers')
-          .insert([customerData])
+          .insert([{
+            ...customerData,
+            business_id: businessUser.business_id // Ensure we always use the authenticated user's business_id
+          }])
           .select('*')
           .single();
 
@@ -76,7 +79,7 @@ export const useBusinessCustomerMutations = () => {
       } else if (error.message?.includes('duplicate key')) {
         errorMessage = 'A customer with this information already exists';
       } else if (error.message?.includes('row-level security policy')) {
-        errorMessage = 'Permission error. Please refresh and try again.';
+        errorMessage = 'You do not have permission to add customers to this business';
       } else if (error.message?.includes('lead_source_id')) {
         errorMessage = 'There was an issue with the lead source. Please try with a different lead source.';
       } else if (error.message?.includes('violates foreign key constraint')) {
@@ -89,8 +92,13 @@ export const useBusinessCustomerMutations = () => {
     }
   });
 
+  // Update the rest of the mutations to ensure they enforce business_id from the authenticated user
   const updateCustomer = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: CustomerUpdateInput }) => {
+      if (!businessUser) {
+        throw new Error("Authentication required");
+      }
+      
       // Clean up the data before sending to Supabase
       const customerData = { ...data };
       
@@ -101,8 +109,12 @@ export const useBusinessCustomerMutations = () => {
       
       const { data: customer, error } = await supabase
         .from('business_customers')
-        .update(customerData)
+        .update({
+          ...customerData,
+          business_id: businessUser.business_id // Ensure business_id stays correct
+        })
         .eq('id', id)
+        .eq('business_id', businessUser.business_id) // Add this line to ensure we only update customers from our business
         .select('*')
         .single();
 
@@ -122,10 +134,14 @@ export const useBusinessCustomerMutations = () => {
       console.error('Error updating customer:', error);
       let errorMessage = 'Failed to update customer';
       
-      if (error.message?.includes('lead_source_id')) {
+      if (error.message === 'Authentication required') {
+        errorMessage = 'You need to be logged in to update a customer';
+      } else if (error.message?.includes('lead_source_id')) {
         errorMessage = 'There was an issue with the lead source. Please try with a different lead source.';
       } else if (error.message?.includes('violates foreign key constraint')) {
         errorMessage = 'Invalid reference to a lead source that does not exist.';
+      } else if (error.message?.includes('row-level security policy')) {
+        errorMessage = 'You do not have permission to update customers in this business';
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`;
       }
@@ -136,10 +152,15 @@ export const useBusinessCustomerMutations = () => {
 
   const deleteCustomer = useMutation({
     mutationFn: async (id: string) => {
+      if (!businessUser) {
+        throw new Error("Authentication required");
+      }
+      
       const { error } = await supabase
         .from('business_customers')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('business_id', businessUser.business_id); // Add this line to ensure we only delete customers from our business
 
       if (error) throw error;
       return id;
@@ -150,20 +171,35 @@ export const useBusinessCustomerMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['business-leads'] });
       toast.success('Customer deleted successfully');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error deleting customer:', error);
-      toast.error(`Failed to delete customer: ${error.message}`);
+      let errorMessage = 'Failed to delete customer';
+      
+      if (error.message === 'Authentication required') {
+        errorMessage = 'You need to be logged in to delete a customer';
+      } else if (error.message?.includes('row-level security policy')) {
+        errorMessage = 'You do not have permission to delete customers in this business';
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      toast.error(errorMessage);
     }
   });
 
   const toggleCustomerStatus = useMutation({
     mutationFn: async ({ id, isActive }: { id: string, isActive: boolean }) => {
+      if (!businessUser) {
+        throw new Error("Authentication required");
+      }
+      
       const status = isActive ? 'active' : 'inactive';
       
       const { data: customer, error } = await supabase
         .from('business_customers')
         .update({ account_status: status })
         .eq('id', id)
+        .eq('business_id', businessUser.business_id) // Add this line to ensure we only update customers from our business
         .select('*')
         .single();
 
@@ -176,9 +212,19 @@ export const useBusinessCustomerMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['business-leads'] });
       toast.success(`Customer ${data.account_status === 'active' ? 'activated' : 'deactivated'} successfully`);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error toggling customer status:', error);
-      toast.error('Failed to update customer status');
+      let errorMessage = 'Failed to update customer status';
+      
+      if (error.message === 'Authentication required') {
+        errorMessage = 'You need to be logged in to update customer status';
+      } else if (error.message?.includes('row-level security policy')) {
+        errorMessage = 'You do not have permission to update customers in this business';
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      toast.error(errorMessage);
     }
   });
 
