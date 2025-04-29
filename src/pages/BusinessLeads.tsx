@@ -14,14 +14,19 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import CustomerList from '@/components/business/CustomerList';
-import AddCustomerForm from '@/components/business/AddCustomerForm';
+import { useToast } from '@/components/ui/use-toast';
+import { useBusinessCustomerMutations } from '@/hooks/useBusinessCustomerMutations';
 
 const BusinessLeads = () => {
   const { business, isLoading, hasPermission } = useBusinessAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newLeadName, setNewLeadName] = useState('');
+  const { toast } = useToast();
+  const { createCustomer } = useBusinessCustomerMutations();
   
   // Simple error boundary state
   const [hasError, setHasError] = React.useState(false);
@@ -133,6 +138,48 @@ const BusinessLeads = () => {
       (lead.business_name && lead.business_name.toLowerCase().includes(lowerCaseQuery))
     );
   }, [leads, searchQuery]);
+  
+  // Function to handle quick lead creation
+  const handleAddLead = async () => {
+    if (!newLeadName.trim() || !business?.id) {
+      toast({
+        title: "Error",
+        description: "Please enter a name for the lead",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Split the name into first and last name
+    const nameParts = newLeadName.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+    try {
+      await createCustomer.mutateAsync({
+        business_id: business.id,
+        first_name: firstName,
+        last_name: lastName,
+        account_status: 'active',
+        is_lead: true
+      });
+      
+      toast({
+        title: "Success",
+        description: "New lead added successfully"
+      });
+      
+      setNewLeadName('');
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error('Error adding new lead:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add new lead",
+        variant: "destructive"
+      });
+    }
+  };
 
   if (isLeadsLoading) {
     return (
@@ -201,19 +248,37 @@ const BusinessLeads = () => {
         />
       </div>
 
-      {/* Add Lead Dialog */}
+      {/* Simplified Add Lead Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Add New Lead</DialogTitle>
             <DialogDescription>
-              Enter the lead details below to add a new potential customer.
+              Enter the lead's name below.
             </DialogDescription>
           </DialogHeader>
-          <AddCustomerForm 
-            businessId={business?.id || ''} 
-            onSuccess={() => setIsAddDialogOpen(false)} 
-          />
+          <div className="py-4">
+            <Input 
+              placeholder="Enter lead name (e.g. John Smith)" 
+              value={newLeadName}
+              onChange={(e) => setNewLeadName(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddLead} disabled={createCustomer.isPending}>
+              {createCustomer.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Lead'
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
