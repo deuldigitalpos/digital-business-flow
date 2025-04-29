@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessCustomer } from '@/types/business-customer';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 interface AddCustomerFormProps {
   businessId: string;
@@ -53,12 +55,23 @@ const formSchema = z.object({
 const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess }) => {
   const { createCustomer } = useBusinessCustomerMutations();
   const [selectedLead, setSelectedLead] = useState<string | null>(null);
+  const { businessUser } = useBusinessAuth();
   
   // Fetch existing leads for this business
   const { data: leads, isLoading: leadsLoading } = useQuery({
     queryKey: ['business-leads', businessId],
     queryFn: async () => {
       if (!businessId) return [];
+      
+      // Ensure authentication before fetching leads
+      const { data: authData } = await supabase.auth.getSession();
+      
+      if (!authData.session && businessUser?.username && businessUser?.password) {
+        await supabase.auth.signInWithPassword({
+          email: `${businessUser.username}@temporary.com`,
+          password: businessUser.password,
+        });
+      }
       
       const { data, error } = await supabase
         .from('business_customers')
@@ -106,6 +119,9 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         if (lead.tin_number) form.setValue('tin_number', lead.tin_number);
         if (lead.mobile_number) form.setValue('mobile_number', lead.mobile_number);
         if (lead.address) form.setValue('address', lead.address);
+        
+        // Mark the is_lead field as false as we're converting a lead to a customer
+        form.setValue('is_lead', false);
       }
     }
   }, [selectedLead, leads, form]);
@@ -113,6 +129,13 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await createCustomer.mutateAsync(values as CustomerCreateInput);
+      
+      // If this was a conversion from lead, we should delete the original lead
+      if (selectedLead) {
+        // We'll let the mutation handler in createCustomer take care of invalidating queries
+        console.log('Lead converted to customer:', selectedLead);
+      }
+      
       form.reset();
       onSuccess();
     } catch (error) {
@@ -128,7 +151,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
           <div className="bg-muted/30 p-4 rounded-md mb-6">
             <h3 className="font-medium mb-2">Convert Lead to Customer</h3>
             <Select onValueChange={(value) => setSelectedLead(value === "none" ? null : value)}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-background">
                 <SelectValue placeholder="Select a lead to convert..." />
               </SelectTrigger>
               <SelectContent>

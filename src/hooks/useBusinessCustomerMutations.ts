@@ -9,30 +9,37 @@ export const useBusinessCustomerMutations = () => {
   const queryClient = useQueryClient();
   const { businessUser } = useBusinessAuth();
 
+  // Helper function to ensure authentication
+  const ensureAuthentication = async () => {
+    // Check if we already have a session
+    const { data: authData } = await supabase.auth.getSession();
+    
+    if (!authData.session) {
+      // No session, try to authenticate with business credentials
+      if (businessUser?.username && businessUser?.password) {
+        console.log("Attempting to authenticate with business credentials");
+        const { error } = await supabase.auth.signInWithPassword({
+          email: `${businessUser.username}@temporary.com`,
+          password: businessUser.password,
+        });
+        
+        if (error) {
+          console.error("Authentication failed:", error);
+          throw new Error("Authentication required to manage customers");
+        }
+        console.log("Authentication successful");
+      } else {
+        throw new Error("Authentication required to manage customers");
+      }
+    }
+    
+    return true;
+  };
+
   const createCustomer = useMutation({
     mutationFn: async (data: CustomerCreateInput) => {
-      // Get the auth token to ensure the RLS policy is satisfied
-      const { data: authData } = await supabase.auth.getSession();
-
-      // Check if user is authenticated before proceeding
-      if (!authData.session) {
-        // Try signing in with the business user credentials
-        // This is a workaround for the business user authentication system
-        if (businessUser?.username && businessUser?.password) {
-          // Create a temporary auth user to get a valid session
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: `${businessUser.username}@temporary.com`,
-            password: businessUser.password,
-          });
-
-          if (signInError) {
-            console.error('Failed to authenticate:', signInError);
-            throw new Error("Authentication required to create customers");
-          }
-        } else {
-          throw new Error("Authentication required to create customers");
-        }
-      }
+      // Ensure authentication before proceeding
+      await ensureAuthentication();
 
       const { data: customer, error } = await supabase
         .from('business_customers')

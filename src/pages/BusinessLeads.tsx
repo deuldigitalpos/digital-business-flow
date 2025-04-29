@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { Loader2, ShieldAlert, UserPlus, Search } from 'lucide-react';
@@ -29,12 +28,36 @@ const BusinessLeads = () => {
   const { createCustomer } = useBusinessCustomerMutations();
   
   // Simple error boundary state
-  const [hasError, setHasError] = React.useState(false);
+  const [hasError, setHasError] = useState(false);
   
   // Reset error state on mount
-  React.useEffect(() => {
+  useEffect(() => {
     setHasError(false);
   }, []);
+
+  // Authentication effect - runs once when component mounts
+  useEffect(() => {
+    const authenticateUser = async () => {
+      if (!business?.id || !businessUser) return;
+      
+      try {
+        // Pre-authenticate to ensure subsequent operations work
+        const { data } = await supabase.auth.getSession();
+        
+        if (!data.session && businessUser.username && businessUser.password) {
+          console.log("Pre-authenticating with business credentials");
+          await supabase.auth.signInWithPassword({
+            email: `${businessUser.username}@temporary.com`,
+            password: businessUser.password,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to authenticate:", error);
+      }
+    };
+    
+    authenticateUser();
+  }, [business?.id, businessUser]);
   
   // Error boundary wrapper
   if (hasError) {
@@ -108,34 +131,35 @@ const BusinessLeads = () => {
     queryFn: async () => {
       if (!business?.id) return [];
       
-      // First ensure we have an authenticated session for Supabase
-      const { data: authData } = await supabase.auth.getSession();
-      
-      if (!authData.session && businessUser?.username && businessUser?.password) {
-        // Try to authenticate with business user credentials
-        try {
+      // Ensure authentication is handled before querying
+      try {
+        const { data: authData } = await supabase.auth.getSession();
+        
+        if (!authData.session && businessUser?.username && businessUser?.password) {
+          console.log("Authenticating before fetching leads");
           await supabase.auth.signInWithPassword({
             email: `${businessUser.username}@temporary.com`,
             password: businessUser.password,
           });
-        } catch (e) {
-          console.warn("Failed to authenticate for fetching leads:", e);
         }
-      }
-      
-      const { data, error } = await supabase
-        .from('business_customers')
-        .select('*')
-        .eq('business_id', business.id)
-        .eq('is_lead', true)
-        .order('created_at', { ascending: false });
         
-      if (error) {
-        console.error("Error fetching leads:", error);
-        throw new Error(error.message);
+        const { data, error } = await supabase
+          .from('business_customers')
+          .select('*')
+          .eq('business_id', business.id)
+          .eq('is_lead', true)
+          .order('created_at', { ascending: false });
+          
+        if (error) {
+          console.error("Error fetching leads:", error);
+          throw new Error(error.message);
+        }
+        
+        return data as BusinessCustomer[];
+      } catch (error) {
+        console.error("Error in leads fetch function:", error);
+        throw error;
       }
-      
-      return data as BusinessCustomer[];
     },
     enabled: !!business?.id
   });
@@ -172,19 +196,13 @@ const BusinessLeads = () => {
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
     try {
-      // Make sure all other fields are explicitly set to null rather than undefined
+      // Create the lead with minimal required fields
       await createCustomer.mutateAsync({
         business_id: business.id,
         first_name: firstName,
         last_name: lastName,
         account_status: 'active',
-        is_lead: true,
-        email: null,
-        business_name: null,
-        address: null,
-        credit_limit: null,
-        mobile_number: null,
-        tin_number: null
+        is_lead: true
       });
       
       toast({
@@ -203,35 +221,6 @@ const BusinessLeads = () => {
       });
     }
   };
-
-  // Ensure we're authenticated for Supabase operations
-  React.useEffect(() => {
-    const ensureAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      
-      // If no session and we have business user credentials, try to sign in
-      if (!data.session && businessUser?.username && businessUser?.password) {
-        try {
-          await supabase.auth.signInWithPassword({
-            email: `${businessUser.username}@temporary.com`,
-            password: businessUser.password,
-          });
-          console.log("Successfully authenticated with business user credentials");
-        } catch (e) {
-          console.warn("Failed to authenticate with business credentials:", e);
-          toast({
-            title: "Authentication Warning",
-            description: "You may encounter issues with lead management due to authentication requirements",
-            variant: "destructive"
-          });
-        }
-      }
-    };
-    
-    if (business?.id) {
-      ensureAuth();
-    }
-  }, [business?.id, businessUser, toast]);
 
   if (isLeadsLoading) {
     return (
