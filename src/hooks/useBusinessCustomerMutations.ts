@@ -9,6 +9,14 @@ export const useBusinessCustomerMutations = () => {
 
   const createCustomer = useMutation({
     mutationFn: async (data: CustomerCreateInput) => {
+      // Get the auth token to ensure the RLS policy is satisfied
+      const { data: authData } = await supabase.auth.getSession();
+
+      // Check if user is authenticated before proceeding
+      if (!authData.session) {
+        throw new Error("Authentication required to create customers");
+      }
+
       const { data: customer, error } = await supabase
         .from('business_customers')
         .insert([data])
@@ -18,13 +26,15 @@ export const useBusinessCustomerMutations = () => {
       if (error) throw error;
       return customer as BusinessCustomer;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['business-customers'] });
+      // Also invalidate the leads query to update the leads list
+      queryClient.invalidateQueries({ queryKey: ['business-leads'] });
       toast.success('Customer created successfully');
     },
     onError: (error) => {
       console.error('Error creating customer:', error);
-      toast.error('Failed to create customer');
+      toast.error(`Failed to create customer: ${error.message}`);
     }
   });
 
@@ -41,12 +51,14 @@ export const useBusinessCustomerMutations = () => {
       return customer as BusinessCustomer;
     },
     onSuccess: () => {
+      // Invalidate both customers and leads queries
       queryClient.invalidateQueries({ queryKey: ['business-customers'] });
+      queryClient.invalidateQueries({ queryKey: ['business-leads'] });
       toast.success('Customer updated successfully');
     },
     onError: (error) => {
       console.error('Error updating customer:', error);
-      toast.error('Failed to update customer');
+      toast.error(`Failed to update customer: ${error.message}`);
     }
   });
 
@@ -61,12 +73,14 @@ export const useBusinessCustomerMutations = () => {
       return id;
     },
     onSuccess: () => {
+      // Invalidate both customers and leads queries
       queryClient.invalidateQueries({ queryKey: ['business-customers'] });
+      queryClient.invalidateQueries({ queryKey: ['business-leads'] });
       toast.success('Customer deleted successfully');
     },
     onError: (error) => {
       console.error('Error deleting customer:', error);
-      toast.error('Failed to delete customer');
+      toast.error(`Failed to delete customer: ${error.message}`);
     }
   });
 
@@ -85,7 +99,9 @@ export const useBusinessCustomerMutations = () => {
       return customer as BusinessCustomer;
     },
     onSuccess: (data) => {
+      // Invalidate both customers and leads queries
       queryClient.invalidateQueries({ queryKey: ['business-customers'] });
+      queryClient.invalidateQueries({ queryKey: ['business-leads'] });
       toast.success(`Customer ${data.account_status === 'active' ? 'activated' : 'deactivated'} successfully`);
     },
     onError: (error) => {

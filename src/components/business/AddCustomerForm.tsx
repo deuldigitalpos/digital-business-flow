@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -25,6 +24,9 @@ import { CustomerCreateInput, AccountStatusOptions, LeadOptions } from '@/types/
 import { useBusinessCustomerMutations } from '@/hooks/useBusinessCustomerMutations';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { BusinessCustomer } from '@/types/business-customer';
 
 interface AddCustomerFormProps {
   businessId: string;
@@ -50,6 +52,30 @@ const formSchema = z.object({
 
 const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess }) => {
   const { createCustomer } = useBusinessCustomerMutations();
+  const [selectedLead, setSelectedLead] = useState<string | null>(null);
+  
+  // Fetch existing leads for this business
+  const { data: leads, isLoading: leadsLoading } = useQuery({
+    queryKey: ['business-leads', businessId],
+    queryFn: async () => {
+      if (!businessId) return [];
+      
+      const { data, error } = await supabase
+        .from('business_customers')
+        .select('*')
+        .eq('business_id', businessId)
+        .eq('is_lead', true)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error('Error fetching leads:', error);
+        throw new Error(error.message);
+      }
+      
+      return data as BusinessCustomer[];
+    },
+    enabled: !!businessId
+  });
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,6 +94,22 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
     },
   });
 
+  // When a lead is selected, populate the form with lead data
+  useEffect(() => {
+    if (selectedLead && leads) {
+      const lead = leads.find(l => l.id === selectedLead);
+      if (lead) {
+        form.setValue('first_name', lead.first_name);
+        form.setValue('last_name', lead.last_name);
+        if (lead.business_name) form.setValue('business_name', lead.business_name);
+        if (lead.email) form.setValue('email', lead.email);
+        if (lead.tin_number) form.setValue('tin_number', lead.tin_number);
+        if (lead.mobile_number) form.setValue('mobile_number', lead.mobile_number);
+        if (lead.address) form.setValue('address', lead.address);
+      }
+    }
+  }, [selectedLead, leads, form]);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await createCustomer.mutateAsync(values as CustomerCreateInput);
@@ -81,6 +123,29 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Lead Selection Option */}
+        {leads && leads.length > 0 && (
+          <div className="bg-muted/30 p-4 rounded-md mb-6">
+            <h3 className="font-medium mb-2">Convert Lead to Customer</h3>
+            <Select onValueChange={(value) => setSelectedLead(value === "none" ? null : value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a lead to convert..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None (Create New Customer)</SelectItem>
+                {leads.map(lead => (
+                  <SelectItem key={lead.id} value={lead.id}>
+                    {lead.first_name} {lead.last_name}{lead.business_name ? ` (${lead.business_name})` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground mt-2">
+              Converting a lead will automatically fill in their information
+            </p>
+          </div>
+        )}
+
         <div className="grid gap-4 md:grid-cols-2">
           <FormField
             control={form.control}

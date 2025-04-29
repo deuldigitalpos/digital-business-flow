@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
@@ -107,6 +108,13 @@ const BusinessLeads = () => {
     queryFn: async () => {
       if (!business?.id) return [];
       
+      // Get auth session to make sure we have permission
+      const { data: authData } = await supabase.auth.getSession();
+      
+      if (!authData.session) {
+        console.warn("No authenticated session found");
+      }
+      
       const { data, error } = await supabase
         .from('business_customers')
         .select('*')
@@ -115,6 +123,7 @@ const BusinessLeads = () => {
         .order('created_at', { ascending: false });
         
       if (error) {
+        console.error("Error fetching leads:", error);
         throw new Error(error.message);
       }
       
@@ -155,12 +164,19 @@ const BusinessLeads = () => {
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
     try {
+      // Make sure all other fields are explicitly set to null rather than undefined
       await createCustomer.mutateAsync({
         business_id: business.id,
         first_name: firstName,
         last_name: lastName,
         account_status: 'active',
-        is_lead: true
+        is_lead: true,
+        email: null,
+        business_name: null,
+        address: null,
+        credit_limit: null,
+        mobile_number: null,
+        tin_number: null
       });
       
       toast({
@@ -170,15 +186,31 @@ const BusinessLeads = () => {
       
       setNewLeadName('');
       setIsAddDialogOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding new lead:', error);
       toast({
         title: "Error",
-        description: "Failed to add new lead",
+        description: `Failed to add new lead: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }
   };
+
+  // Check auth status and show warning if not authenticated
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast({
+          title: "Authentication Required",
+          description: "You must be logged in to manage leads",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    checkAuth();
+  }, [toast]);
 
   if (isLeadsLoading) {
     return (
