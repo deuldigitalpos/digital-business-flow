@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -82,7 +83,7 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
       console.log("Creating supplier with data:", values);
       
       await createSupplier.mutateAsync({
-        // Don't pass business_id here as it will be set in the mutation
+        // business_id will be set in the mutation function
         first_name: values.first_name,
         last_name: values.last_name,
         business_name: values.business_name,

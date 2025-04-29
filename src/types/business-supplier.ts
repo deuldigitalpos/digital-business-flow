@@ -22,7 +22,7 @@ export interface BusinessSupplier {
 }
 
 export type SupplierCreateInput = {
-  business_id: string;
+  business_id?: string; // Make business_id optional since it's set in the mutation
   first_name: string;
   last_name: string;
   account_status: string;
