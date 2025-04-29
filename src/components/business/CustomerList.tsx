@@ -7,12 +7,15 @@ import { BusinessCustomer } from '@/types/business-customer';
 import { useBusinessCustomerMutations } from '@/hooks/useBusinessCustomerMutations';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
+
 interface CustomerListProps {
   customers: BusinessCustomer[];
   businessId: string;
   onViewCustomer: (customer: BusinessCustomer) => void;
   onEditCustomer: (customer: BusinessCustomer) => void;
 }
+
 const CustomerList: React.FC<CustomerListProps> = ({
   customers,
   businessId,
@@ -20,22 +23,26 @@ const CustomerList: React.FC<CustomerListProps> = ({
   onEditCustomer
 }) => {
   const [customerToDelete, setCustomerToDelete] = useState<BusinessCustomer | null>(null);
+  const { hasPermission } = useBusinessAuth();
   const {
     deleteCustomer,
     toggleCustomerStatus
   } = useBusinessCustomerMutations();
+  
   const handleConfirmDelete = async () => {
     if (customerToDelete) {
       await deleteCustomer.mutateAsync(customerToDelete.id);
       setCustomerToDelete(null);
     }
   };
+  
   const handleToggleStatus = async (id: string, currentStatus: string) => {
     await toggleCustomerStatus.mutateAsync({
       id,
       isActive: currentStatus !== 'active'
     });
   };
+  
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -52,6 +59,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
         return <Badge variant="outline">{status}</Badge>;
     }
   };
+  
   if (!customers || customers.length === 0) {
     return <div className="rounded-lg border border-dashed p-8 text-center">
         <h3 className="text-lg font-medium">No customers found</h3>
@@ -60,6 +68,10 @@ const CustomerList: React.FC<CustomerListProps> = ({
         </p>
       </div>;
   }
+  
+  // Check if user has permission to perform actions on customers
+  const canManageCustomers = hasPermission('customers');
+  
   return <>
       <div className="rounded-md border">
         <Table>
@@ -111,27 +123,31 @@ const CustomerList: React.FC<CustomerListProps> = ({
                         View
                       </DropdownMenuItem>
                       
-                      <DropdownMenuItem onClick={() => onEditCustomer(customer)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      
-                      <DropdownMenuSeparator />
-                      
-                      <DropdownMenuItem onClick={() => handleToggleStatus(customer.id, customer.account_status)}>
-                        {customer.account_status === 'active' ? <>
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Deactivate
-                          </> : <>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Activate
-                          </>}
-                      </DropdownMenuItem>
-                      
-                      <DropdownMenuItem onClick={() => setCustomerToDelete(customer)}>
-                        <Trash className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
+                      {canManageCustomers && (
+                        <>
+                          <DropdownMenuItem onClick={() => onEditCustomer(customer)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuSeparator />
+                          
+                          <DropdownMenuItem onClick={() => handleToggleStatus(customer.id, customer.account_status)}>
+                            {customer.account_status === 'active' ? <>
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Deactivate
+                              </> : <>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Activate
+                              </>}
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem onClick={() => setCustomerToDelete(customer)}>
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </>
+                      )}
                       
                       <DropdownMenuSeparator />
                       
@@ -192,4 +208,5 @@ const CustomerList: React.FC<CustomerListProps> = ({
       </AlertDialog>
     </>;
 };
+
 export default CustomerList;

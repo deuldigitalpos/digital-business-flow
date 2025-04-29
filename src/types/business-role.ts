@@ -25,6 +25,6 @@ export interface BusinessRolePermissions {
   reports?: boolean;
   settings?: boolean;
   locations?: boolean;
-  customers?: boolean; // Make sure this is explicitly defined
+  customers?: boolean; // Now explicitly defined
   [key: string]: boolean | undefined;
 }
