@@ -50,8 +50,8 @@ export const useBusinessRoleMutations = () => {
         .from('business_roles')
         .update({
           name,
-          permissions,
-          updated_at: new Date().toISOString() // Add updated_at timestamp
+          permissions
+          // Removed 'updated_at' field that was causing the error
         })
         .eq('id', id)
         .select()
