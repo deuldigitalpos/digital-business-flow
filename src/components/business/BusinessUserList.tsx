@@ -3,18 +3,8 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
-
-interface BusinessUser {
-  id: string;
-  business_id: string;
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  username: string;
-  role: string;
-  created_at: string;
-}
+import { BusinessUser } from '@/types/business-user';
+import { Badge } from '@/components/ui/badge';
 
 interface BusinessUserListProps {
   businessUsers: BusinessUser[];
@@ -50,6 +40,7 @@ const BusinessUserList: React.FC<BusinessUserListProps> = ({
             <TableHead>Username</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
+            <TableHead>Contact</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -59,7 +50,11 @@ const BusinessUserList: React.FC<BusinessUserListProps> = ({
               <TableCell className="font-medium">{`${user.first_name} ${user.last_name}`}</TableCell>
               <TableCell>{user.username}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.role}</TableCell>
+              <TableCell>
+                <Badge variant="outline">{user.role}</Badge>
+                {user.role_id && <Badge className="ml-1" variant="secondary">Custom</Badge>}
+              </TableCell>
+              <TableCell>{user.contact_number || '-'}</TableCell>
               <TableCell className="text-right space-x-2">
                 <Button
                   variant="ghost"

@@ -23,18 +23,26 @@ const BusinessUserManager: React.FC<BusinessUserManagerProps> = ({ business }) =
   const { deleteBusinessUser } = useBusinessUserMutations();
 
   const { data: businessUsers, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ['businessUsers', business.id],
+    queryKey: ['businessUsers', business?.id],
     queryFn: async () => {
+      if (!business?.id) return [];
+      
       const { data, error } = await supabase
         .from('business_users')
-        .select('*')
+        .select(`
+          *,
+          business_locations(name)
+        `)
         .eq('business_id', business.id)
         .order('first_name', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching business users:', error);
+        throw error;
+      }
       return data as BusinessUser[];
     },
-    enabled: !!business.id,
+    enabled: !!business?.id,
   });
 
   const handleBusinessUserSelect = (user: BusinessUser) => {
@@ -48,11 +56,19 @@ const BusinessUserManager: React.FC<BusinessUserManagerProps> = ({ business }) =
     }
   };
 
+  if (!business) {
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <p>No business selected. Please select a business first.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <BusinessDetails business={business} />
       
-      <Card>
+      <Card className="mt-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Users for {business.business_name}</CardTitle>

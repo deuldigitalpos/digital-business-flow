@@ -117,39 +117,66 @@ export type Database = {
       }
       business_users: {
         Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_name: string | null
           business_id: string
+          contact_number: string | null
           created_at: string
+          daily_rate: number | null
+          date_of_birth: string | null
           email: string
           first_name: string
+          gender: string | null
           id: string
           last_name: string
+          marital_status: string | null
           password: string
+          primary_work_location: string | null
           role: string
           role_id: string | null
           user_id: string
           username: string
         }
         Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
           business_id: string
+          contact_number?: string | null
           created_at?: string
+          daily_rate?: number | null
+          date_of_birth?: string | null
           email: string
           first_name: string
+          gender?: string | null
           id?: string
           last_name: string
+          marital_status?: string | null
           password: string
+          primary_work_location?: string | null
           role?: string
           role_id?: string | null
           user_id: string
           username: string
         }
         Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
           business_id?: string
+          contact_number?: string | null
           created_at?: string
+          daily_rate?: number | null
+          date_of_birth?: string | null
           email?: string
           first_name?: string
+          gender?: string | null
           id?: string
           last_name?: string
+          marital_status?: string | null
           password?: string
+          primary_work_location?: string | null
           role?: string
           role_id?: string | null
           user_id?: string
@@ -161,6 +188,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_users_primary_work_location_fkey"
+            columns: ["primary_work_location"]
+            isOneToOne: false
+            referencedRelation: "business_locations"
             referencedColumns: ["id"]
           },
           {
