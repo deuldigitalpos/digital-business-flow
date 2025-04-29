@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface BusinessRoleListProps {
   roles: BusinessRole[];
@@ -40,37 +41,68 @@ const BusinessRoleList: React.FC<BusinessRoleListProps> = ({ roles, onEdit }) =>
   const [roleToDelete, setRoleToDelete] = React.useState<BusinessRole | null>(null);
   const { deleteBusinessRole } = useBusinessRoleMutations();
 
-  const handleEditRole = (role: BusinessRole) => {
+  const handleEditRole = (role: BusinessRole, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     onEdit(role);
   };
 
-  const handleDeleteClick = (role: BusinessRole) => {
+  const handleDeleteClick = (role: BusinessRole, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setRoleToDelete(role);
     setIsDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = () => {
     if (roleToDelete) {
-      deleteBusinessRole.mutate(roleToDelete.id);
-      setIsDeleteDialogOpen(false);
-      setRoleToDelete(null);
+      try {
+        deleteBusinessRole.mutate(roleToDelete.id, {
+          onSuccess: () => {
+            toast.success(`${roleToDelete.name} role deleted successfully`);
+            setIsDeleteDialogOpen(false);
+            setRoleToDelete(null);
+          },
+          onError: (error) => {
+            console.error('Error deleting role:', error);
+            toast.error(`Failed to delete ${roleToDelete.name} role`);
+          }
+        });
+      } catch (error) {
+        console.error('Error in handleConfirmDelete:', error);
+        toast.error('An unexpected error occurred');
+      }
     }
   };
 
   const getPermissionsSummary = (permissions: Record<string, boolean>) => {
-    const enabledPermissions = Object.entries(permissions)
-      .filter(([_, isEnabled]) => isEnabled)
-      .map(([key]) => key);
-    
-    if (enabledPermissions.length === 0) {
-      return 'No permissions';
+    try {
+      const enabledPermissions = Object.entries(permissions)
+        .filter(([_, isEnabled]) => isEnabled)
+        .map(([key]) => key);
+      
+      if (enabledPermissions.length === 0) {
+        return 'No permissions';
+      }
+      
+      if (enabledPermissions.length > 3) {
+        return `${enabledPermissions.slice(0, 3).join(', ')} +${enabledPermissions.length - 3} more`;
+      }
+      
+      return enabledPermissions.join(', ');
+    } catch (error) {
+      console.error('Error in getPermissionsSummary:', error);
+      return 'Error loading permissions';
     }
-    
-    if (enabledPermissions.length > 3) {
-      return `${enabledPermissions.slice(0, 3).join(', ')} +${enabledPermissions.length - 3} more`;
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString);
+      return 'Invalid date';
     }
-    
-    return enabledPermissions.join(', ');
   };
 
   return (
@@ -97,7 +129,7 @@ const BusinessRoleList: React.FC<BusinessRoleListProps> = ({ roles, onEdit }) =>
               <TableRow key={role.id}>
                 <TableCell className="font-medium">{role.name}</TableCell>
                 <TableCell>{getPermissionsSummary(role.permissions)}</TableCell>
-                <TableCell>{format(new Date(role.created_at), 'MMM dd, yyyy')}</TableCell>
+                <TableCell>{formatDate(role.created_at)}</TableCell>
                 <TableCell>
                   {role.is_default && (
                     <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
@@ -108,17 +140,17 @@ const BusinessRoleList: React.FC<BusinessRoleListProps> = ({ roles, onEdit }) =>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" className="focus:ring-2 focus:ring-offset-2">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEditRole(role)}>
+                      <DropdownMenuItem onClick={(e) => handleEditRole(role, e)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
                       {!role.is_default && (
                         <DropdownMenuItem 
-                          onClick={() => handleDeleteClick(role)}
+                          onClick={(e) => handleDeleteClick(role, e)}
                           className="text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" /> Delete

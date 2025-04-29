@@ -11,47 +11,61 @@ import BusinessRoleList from '@/components/business/BusinessRoleList';
 import AddBusinessRoleForm from '@/components/business/AddBusinessRoleForm';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 const BusinessRoleManager = () => {
   const { business } = useBusinessAuth();
   const { toast } = useToast();
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<BusinessRole | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Using staleTime to prevent excessive refetches and improve loading performance
-  const { data: roles, isLoading, error } = useQuery({
+  const { data: roles, isLoading, error, refetch } = useQuery({
     queryKey: ['business-roles', business?.id],
     queryFn: async () => {
       if (!business?.id) return [];
 
       try {
+        console.log('Fetching roles for business ID:', business.id);
+        
         const { data, error } = await supabase
           .from('business_roles')
           .select('*')
           .eq('business_id', business.id)
           .order('created_at', { ascending: true });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching roles:', error);
+          throw error;
+        }
+        
+        console.log('Fetched roles:', data);
         return data as BusinessRole[];
       } catch (err) {
-        console.error('Error fetching roles:', err);
+        console.error('Error in query function:', err);
         throw err;
       }
     },
     enabled: !!business?.id,
-    staleTime: 60000, // 60 seconds stale time to improve performance
-    retry: 1, // Limit retries to avoid excessive API calls
-    refetchOnWindowFocus: false, // Avoid refetching when window regains focus
+    staleTime: 30000, // 30 seconds stale time
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   // Show error toast if fetching fails
   React.useEffect(() => {
     if (error) {
+      const errorMsg = error instanceof Error ? error.message : "Failed to load roles";
       toast({
         title: "Error loading roles",
-        description: error instanceof Error ? error.message : "Failed to load roles",
+        description: errorMsg,
         variant: "destructive"
       });
+      
+      setErrorMessage(errorMsg);
+      setShowErrorDialog(true);
     }
   }, [error, toast]);
 
@@ -63,6 +77,12 @@ const BusinessRoleManager = () => {
   const handleEditRole = (role: BusinessRole) => {
     setSelectedRole(role);
     setShowAddRoleModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowAddRoleModal(false);
+    // Wait a bit before clearing selected role to prevent UI glitches
+    setTimeout(() => setSelectedRole(null), 100);
   };
 
   if (!business) {
@@ -111,15 +131,48 @@ const BusinessRoleManager = () => {
               onEdit={handleEditRole}
             />
           )}
+          
+          {error && !isLoading && (
+            <div className="mt-4 p-3 border border-red-300 bg-red-50 rounded-md">
+              <p className="text-red-600">Failed to load roles. Please try again.</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => refetch()} 
+                className="mt-2"
+              >
+                Retry
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       <AddBusinessRoleForm
         isOpen={showAddRoleModal}
-        onClose={() => setShowAddRoleModal(false)}
+        onClose={handleCloseModal}
         businessId={business.id}
         role={selectedRole}
       />
+
+      <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error Loading Roles</AlertDialogTitle>
+            <AlertDialogDescription>
+              {errorMessage}
+              <div className="mt-4">
+                <Button onClick={() => {
+                  setShowErrorDialog(false);
+                  refetch();
+                }}>
+                  Try Again
+                </Button>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
