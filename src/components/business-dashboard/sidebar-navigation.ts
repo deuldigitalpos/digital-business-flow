@@ -18,7 +18,19 @@ import {
   DollarSign,
   Landmark
 } from "lucide-react";
-import { SidebarNavGroup } from "@/types/sidebar";
+
+export interface SidebarNavItem {
+  title: string;
+  href?: string;
+  icon: React.ElementType;
+  permission?: string;
+  children?: SidebarNavItem[];
+}
+
+export interface SidebarNavGroup {
+  title: string;
+  items: SidebarNavItem[];
+}
 
 export const sidebarNavigation: SidebarNavGroup[] = [
   {
