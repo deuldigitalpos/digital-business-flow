@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useBusinessUnitMutations } from "@/hooks/useBusinessUnitMutations";
-import { BusinessUnit } from "@/types/business-unit";
+import { BusinessUnit, BusinessUnitFormValues } from "@/types/business-unit";
 import { DialogClose } from "@/components/ui/dialog";
 
 const formSchema = z.object({
@@ -45,9 +45,16 @@ const EditUnitForm: React.FC<EditUnitFormProps> = ({ unit, onSuccess }) => {
 
   const onSubmit = async (values: FormValues) => {
     try {
+      // Convert form values to match BusinessUnitFormValues
+      const unitData: BusinessUnitFormValues = {
+        name: values.name,
+        short_name: values.short_name,
+        description: values.description,
+      };
+      
       await updateUnit.mutateAsync({
         id: unit.id,
-        data: values,
+        data: unitData,
       });
       if (onSuccess) onSuccess();
     } catch (error) {
