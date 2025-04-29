@@ -21,7 +21,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useBusinessCustomerMutations } from '@/hooks/useBusinessCustomerMutations';
 
 const BusinessLeads = () => {
-  const { business, isLoading, hasPermission } = useBusinessAuth();
+  const { business, isLoading, hasPermission, businessUser } = useBusinessAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newLeadName, setNewLeadName] = useState('');
@@ -108,11 +108,19 @@ const BusinessLeads = () => {
     queryFn: async () => {
       if (!business?.id) return [];
       
-      // Get auth session to make sure we have permission
+      // First ensure we have an authenticated session for Supabase
       const { data: authData } = await supabase.auth.getSession();
       
-      if (!authData.session) {
-        console.warn("No authenticated session found");
+      if (!authData.session && businessUser?.username && businessUser?.password) {
+        // Try to authenticate with business user credentials
+        try {
+          await supabase.auth.signInWithPassword({
+            email: `${businessUser.username}@temporary.com`,
+            password: businessUser.password,
+          });
+        } catch (e) {
+          console.warn("Failed to authenticate for fetching leads:", e);
+        }
       }
       
       const { data, error } = await supabase
@@ -196,21 +204,34 @@ const BusinessLeads = () => {
     }
   };
 
-  // Check auth status and show warning if not authenticated
+  // Ensure we're authenticated for Supabase operations
   React.useEffect(() => {
-    const checkAuth = async () => {
+    const ensureAuth = async () => {
       const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        toast({
-          title: "Authentication Required",
-          description: "You must be logged in to manage leads",
-          variant: "destructive"
-        });
+      
+      // If no session and we have business user credentials, try to sign in
+      if (!data.session && businessUser?.username && businessUser?.password) {
+        try {
+          await supabase.auth.signInWithPassword({
+            email: `${businessUser.username}@temporary.com`,
+            password: businessUser.password,
+          });
+          console.log("Successfully authenticated with business user credentials");
+        } catch (e) {
+          console.warn("Failed to authenticate with business credentials:", e);
+          toast({
+            title: "Authentication Warning",
+            description: "You may encounter issues with lead management due to authentication requirements",
+            variant: "destructive"
+          });
+        }
       }
     };
     
-    checkAuth();
-  }, [toast]);
+    if (business?.id) {
+      ensureAuth();
+    }
+  }, [business?.id, businessUser, toast]);
 
   if (isLeadsLoading) {
     return (

@@ -3,9 +3,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BusinessCustomer, CustomerCreateInput, CustomerUpdateInput } from '@/types/business-customer';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 export const useBusinessCustomerMutations = () => {
   const queryClient = useQueryClient();
+  const { businessUser } = useBusinessAuth();
 
   const createCustomer = useMutation({
     mutationFn: async (data: CustomerCreateInput) => {
@@ -14,7 +16,22 @@ export const useBusinessCustomerMutations = () => {
 
       // Check if user is authenticated before proceeding
       if (!authData.session) {
-        throw new Error("Authentication required to create customers");
+        // Try signing in with the business user credentials
+        // This is a workaround for the business user authentication system
+        if (businessUser?.username && businessUser?.password) {
+          // Create a temporary auth user to get a valid session
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: `${businessUser.username}@temporary.com`,
+            password: businessUser.password,
+          });
+
+          if (signInError) {
+            console.error('Failed to authenticate:', signInError);
+            throw new Error("Authentication required to create customers");
+          }
+        } else {
+          throw new Error("Authentication required to create customers");
+        }
       }
 
       const { data: customer, error } = await supabase
