@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
@@ -42,7 +41,7 @@ const PermissionGuard: React.FC<PermissionGuardProps> = ({
   }
 
   // Otherwise, redirect to dashboard
-  return <Navigate to="/business-dashboard" replace />;
+  return <Navigate to="/business-dashboard/permission-denied" replace />;
 };
 
 export default PermissionGuard;
