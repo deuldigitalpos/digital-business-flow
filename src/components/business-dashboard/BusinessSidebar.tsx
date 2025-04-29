@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -21,21 +22,27 @@ const BusinessSidebar = () => {
     }));
   };
 
-  // Filter top-level sidebar items based on permissions
-  const visibleNavItems = sidebarNavigation.filter(item => {
-    if (item.permission && !hasPermission(item.permission)) {
-      return false;
-    }
-    
-    // For items with children, include if at least one child is accessible
-    if (item.children) {
-      const hasVisibleChildren = item.children.some(child => 
-        !child.permission || hasPermission(child.permission)
-      );
-      return hasVisibleChildren;
-    }
-    
-    return true;
+  // Filter top-level navigation items based on permissions
+  const visibleNavItems = sidebarNavigation.flatMap(group => {
+    // Filter the items in each group
+    const visibleItems = group.items.filter(item => {
+      if (item.permission && !hasPermission(item.permission)) {
+        return false;
+      }
+      
+      // For items with children, include if at least one child is accessible
+      if (item.children) {
+        const hasVisibleChildren = item.children.some(child => 
+          !child.permission || hasPermission(child.permission)
+        );
+        return hasVisibleChildren;
+      }
+      
+      return true;
+    });
+
+    // Return the filtered items
+    return visibleItems;
   });
 
   return (
