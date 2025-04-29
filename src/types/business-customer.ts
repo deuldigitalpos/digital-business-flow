@@ -22,20 +22,20 @@ export interface BusinessCustomer {
   updated_at: string;
 }
 
-export type CustomerCreateInput = Pick<
-  BusinessCustomer,
-  | 'business_id'
-  | 'business_name'
-  | 'first_name'
-  | 'last_name'
-  | 'email'
-  | 'tin_number'
-  | 'credit_limit'
-  | 'address'
-  | 'mobile_number'
-  | 'account_status'
-  | 'is_lead'
->;
+export type CustomerCreateInput = {
+  business_id: string;
+  first_name: string;
+  last_name: string;
+  account_status: string;
+  is_lead?: boolean | null;
+  // Make these fields optional
+  business_name?: string | null;
+  email?: string | null;
+  tin_number?: string | null;
+  credit_limit?: number | null;
+  address?: string | null;
+  mobile_number?: string | null;
+};
 
 export type CustomerUpdateInput = Partial<CustomerCreateInput>;
 
