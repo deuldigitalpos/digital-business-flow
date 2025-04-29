@@ -24,5 +24,6 @@ export interface BusinessRolePermissions {
   financials?: boolean;
   reports?: boolean;
   settings?: boolean;
+  locations?: boolean;
   [key: string]: boolean | undefined;
 }

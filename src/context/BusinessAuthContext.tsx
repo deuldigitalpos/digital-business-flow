@@ -4,11 +4,15 @@ import { BusinessUser } from '@/types/business-user';
 import { Business } from '@/types/business';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { BusinessRole, BusinessRolePermissions } from '@/types/business-role';
+import { useNavigate } from 'react-router-dom';
 
 type BusinessAuthContextType = {
   businessUser: BusinessUser | null;
   business: Business | null;
   isLoading: boolean;
+  userPermissions: BusinessRolePermissions | null;
+  hasPermission: (permission: string) => boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -27,8 +31,10 @@ export const useBusinessAuth = () => {
 export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [businessUser, setBusinessUser] = useState<BusinessUser | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
+  const [userPermissions, setUserPermissions] = useState<BusinessRolePermissions | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const navigate = useNavigate();
 
   // Fetch business details as a memoized function to avoid recreating it on every render
   const fetchBusinessDetails = useCallback(async (businessId: string) => {
@@ -54,6 +60,46 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
+  // Fetch user role permissions
+  const fetchUserPermissions = useCallback(async (roleId: string | null) => {
+    if (!roleId) {
+      setUserPermissions({
+        dashboard: true, // Default admin permissions if no role is assigned
+        user_management: true,
+        users: true,
+        roles: true
+      });
+      return;
+    }
+
+    try {
+      console.log('Fetching role permissions for role ID:', roleId);
+      const { data, error } = await supabase
+        .from('business_roles')
+        .select('permissions')
+        .eq('id', roleId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching role permissions:', error);
+        setUserPermissions({
+          dashboard: true // Fallback permissions
+        });
+        return;
+      }
+
+      if (data && data.permissions) {
+        console.log('Role permissions fetched successfully:', data.permissions);
+        setUserPermissions(data.permissions as BusinessRolePermissions);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserPermissions:', error);
+      setUserPermissions({
+        dashboard: true // Fallback permissions on error
+      });
+    }
+  }, []);
+
   // Initial session check - runs only once
   useEffect(() => {
     const initializeAuth = async () => {
@@ -73,6 +119,9 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const parsedUser = JSON.parse(storedUser) as BusinessUser;
           setBusinessUser(parsedUser);
           
+          // Fetch user permissions based on role
+          await fetchUserPermissions(parsedUser.role_id);
+          
           // Fetch business details
           await fetchBusinessDetails(parsedUser.business_id);
         } catch (error) {
@@ -88,7 +137,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     initializeAuth();
-  }, [fetchBusinessDetails]);
+  }, [fetchBusinessDetails, fetchUserPermissions]);
 
   // Optimized login function
   const login = async (username: string, password: string): Promise<boolean> => {
@@ -123,6 +172,9 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setBusinessUser(user);
       localStorage.setItem('businessUser', JSON.stringify(user));
       
+      // Fetch user permissions before fetching business details
+      await fetchUserPermissions(user.role_id);
+      
       // Then fetch business details
       await fetchBusinessDetails(user.business_id);
       
@@ -141,18 +193,28 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const logout = useCallback(() => {
     setBusinessUser(null);
     setBusiness(null);
+    setUserPermissions(null);
     localStorage.removeItem('businessUser');
+    navigate('/business-login');
     toast.info('Logged out successfully');
-  }, []);
+  }, [navigate]);
 
   // Derive authentication state from user data
   const isAuthenticated = !!businessUser;
+
+  // Function to check if user has a specific permission
+  const hasPermission = useCallback((permission: string): boolean => {
+    if (!userPermissions) return false;
+    return !!userPermissions[permission];
+  }, [userPermissions]);
 
   return (
     <BusinessAuthContext.Provider 
       value={{ 
         businessUser, 
-        business, 
+        business,
+        userPermissions,
+        hasPermission,
         isLoading: isLoading || !isInitialized, 
         login, 
         logout, 

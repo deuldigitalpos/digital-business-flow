@@ -23,10 +23,14 @@ import BusinessDashboard from "./pages/BusinessDashboard";
 import BusinessRoles from "./pages/BusinessRoles";
 import BusinessLocations from "./pages/BusinessLocations";
 import BusinessUsers from "./pages/BusinessUsers";
+import PermissionDenied from "./pages/PermissionDenied";
 
 // Layout
 import DashboardLayout from "./components/DashboardLayout";
 import BusinessDashboardLayout from "./components/BusinessDashboardLayout";
+
+// Guards
+import PermissionGuard from "./components/business/PermissionGuard";
 
 const queryClient = new QueryClient();
 
@@ -56,11 +60,27 @@ const App = () => (
 
               {/* Business Dashboard Routes */}
               <Route path="/business-dashboard" element={<BusinessDashboardLayout />}>
-                <Route index element={<BusinessDashboard />} />
-                <Route path="roles" element={<BusinessRoles />} />
-                <Route path="locations" element={<BusinessLocations />} />
-                <Route path="users" element={<BusinessUsers />} />
-                {/* More business dashboard routes will be added here as needed */}
+                <Route index element={
+                  <PermissionGuard permission="dashboard">
+                    <BusinessDashboard />
+                  </PermissionGuard>
+                } />
+                <Route path="roles" element={
+                  <PermissionGuard permission="roles">
+                    <BusinessRoles />
+                  </PermissionGuard>
+                } />
+                <Route path="locations" element={
+                  <PermissionGuard permission="locations">
+                    <BusinessLocations />
+                  </PermissionGuard>
+                } />
+                <Route path="users" element={
+                  <PermissionGuard permission="users">
+                    <BusinessUsers />
+                  </PermissionGuard>
+                } />
+                <Route path="permission-denied" element={<PermissionDenied />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

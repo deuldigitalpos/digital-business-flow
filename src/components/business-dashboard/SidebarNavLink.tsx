@@ -2,11 +2,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 interface SidebarNavLinkProps {
   href: string;
   icon: React.ElementType;
   title: string;
+  permission?: string;
   onClick?: () => void;
   isSidebarOpen: boolean;
 }
@@ -15,9 +17,17 @@ const SidebarNavLink: React.FC<SidebarNavLinkProps> = ({
   href,
   icon: Icon,
   title,
+  permission,
   onClick,
   isSidebarOpen
 }) => {
+  const { hasPermission } = useBusinessAuth();
+  
+  // Check if user has permission to see this link
+  if (permission && !hasPermission(permission)) {
+    return null;
+  }
+  
   return (
     <NavLink
       to={href}
