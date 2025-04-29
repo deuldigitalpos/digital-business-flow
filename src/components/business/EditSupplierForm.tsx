@@ -32,12 +32,26 @@ const formSchema = z.object({
   email: z.string().email("Invalid email format").optional().nullable(),
   tin_number: z.string().optional().nullable(),
   credit_limit: z.string().optional().nullable()
-    .transform(val => val ? parseFloat(val) : null),
+    .transform((val) => val ? parseFloat(val) : null),
   address: z.string().optional().nullable(),
   mobile_number: z.string().optional().nullable(),
   account_status: z.string().default("active"),
 });
 
+// Create a type that represents the form values before transformation
+type FormInputValues = {
+  first_name: string;
+  last_name: string;
+  business_name: string | null;
+  email: string | null;
+  tin_number: string | null;
+  credit_limit: string | null; // String for input
+  address: string | null;
+  mobile_number: string | null;
+  account_status: string;
+};
+
+// Use the inferred type from the schema for transformed values
 type FormValues = z.infer<typeof formSchema>;
 
 interface EditSupplierFormProps {
@@ -54,7 +68,7 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
   const { updateSupplier } = useBusinessSupplierMutations();
 
   // Initialize the form with supplier data - convert numbers to strings for form fields
-  const form = useForm<FormValues>({
+  const form = useForm<FormInputValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       first_name: supplier.first_name,
