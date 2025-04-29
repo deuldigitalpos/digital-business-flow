@@ -56,6 +56,8 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
   const { toast } = useToast();
   const [activeTab, setActiveTab] = React.useState("basic-info");
   const { createBusinessUser, updateBusinessUser } = useBusinessUserMutations();
+  // Add isEditing variable based on whether businessUser exists
+  const isEditing = !!businessUser;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -177,7 +179,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
   }, [businessUser, form, isOpen, roles, userLocations]);
 
   const onSubmit = (values: FormValues) => {
-    const isEditing = !!businessUser;
+    // Use the isEditing variable that we defined earlier in the component
     
     if (isEditing) {
       // Prepare data for update, omitting password if unchanged
