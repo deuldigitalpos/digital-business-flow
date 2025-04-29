@@ -17,7 +17,12 @@ import {
   ShoppingCart,
   DollarSign,
   Landmark,
-  Tags
+  Tags,
+  Box,
+  Boxes,
+  Wrench,
+  Tag,
+  FileChart
 } from "lucide-react";
 
 export interface SidebarNavItem {
@@ -116,6 +121,42 @@ export const sidebarNavigation: SidebarNavGroup[] = [
         href: "/business-dashboard/categories",
         icon: Tags,
         permission: "categories",
+      },
+      {
+        title: "Units",
+        href: "/business-dashboard/units",
+        icon: Box,
+        permission: "products",
+      },
+      {
+        title: "Brands",
+        href: "/business-dashboard/brands",
+        icon: Tag,
+        permission: "products",
+      },
+      {
+        title: "Warranties",
+        href: "/business-dashboard/warranties",
+        icon: FileChart,
+        permission: "products",
+      },
+      {
+        title: "Consumables",
+        href: "/business-dashboard/consumables",
+        icon: Boxes,
+        permission: "products",
+      },
+      {
+        title: "Equipment",
+        href: "/business-dashboard/equipment",
+        icon: Wrench,
+        permission: "products",
+      },
+      {
+        title: "Service",
+        href: "/business-dashboard/service",
+        icon: ClipboardList,
+        permission: "products",
       },
       {
         title: "Stock Management",

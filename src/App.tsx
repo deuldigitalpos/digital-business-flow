@@ -73,6 +73,15 @@ function App() {
             <Route path="customers" element={<BusinessCustomers />} />
             <Route path="leads" element={<BusinessLeads />} />
             <Route path="suppliers" element={<BusinessSuppliers />} />
+            <Route path="units" element={<PlaceholderPage />} />
+            <Route path="brands" element={<PlaceholderPage />} />
+            <Route path="warranties" element={<PlaceholderPage />} />
+            <Route path="consumables" element={<PlaceholderPage />} />
+            <Route path="equipment" element={<PlaceholderPage />} />
+            <Route path="service" element={<PlaceholderPage />} />
+            <Route path="products" element={<PlaceholderPage />} />
+            <Route path="stock" element={<PlaceholderPage />} />
+            <Route path="purchases" element={<PlaceholderPage />} />
             <Route path="no-permission" element={<PermissionDenied />} />
             <Route path="*" element={<PlaceholderPage />} />
           </Route>
