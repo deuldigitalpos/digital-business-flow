@@ -349,6 +349,47 @@ export type Database = {
           },
         ]
       }
+      business_units: {
+        Row: {
+          business_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          short_name: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          short_name: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          short_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_units_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_users: {
         Row: {
           bank_account_name: string | null

@@ -27,6 +27,7 @@ import BusinessLeads from '@/pages/BusinessLeads';
 import BusinessSuppliers from '@/pages/BusinessSuppliers';
 import PermissionDenied from '@/pages/PermissionDenied';
 import BusinessCategories from '@/pages/BusinessCategories';
+import BusinessUnits from '@/pages/BusinessUnits';
 import { BusinessAuthProvider } from '@/context/BusinessAuthContext';
 
 const queryClient = new QueryClient();
@@ -73,7 +74,7 @@ function App() {
             <Route path="customers" element={<BusinessCustomers />} />
             <Route path="leads" element={<BusinessLeads />} />
             <Route path="suppliers" element={<BusinessSuppliers />} />
-            <Route path="units" element={<PlaceholderPage />} />
+            <Route path="units" element={<BusinessUnits />} />
             <Route path="brands" element={<PlaceholderPage />} />
             <Route path="warranties" element={<PlaceholderPage />} />
             <Route path="consumables" element={<PlaceholderPage />} />
