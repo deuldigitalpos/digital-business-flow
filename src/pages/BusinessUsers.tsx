@@ -3,9 +3,11 @@ import React, { useEffect } from 'react';
 import BusinessUserManager from '@/components/business/BusinessUserManager';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const BusinessUsers = () => {
   const { business, isLoading } = useBusinessAuth();
+  const { toast } = useToast();
   
   // Simple error boundary state
   const [hasError, setHasError] = React.useState(false);

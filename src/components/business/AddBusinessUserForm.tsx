@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,8 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { BusinessUser } from '@/types/business-user';
@@ -55,9 +54,8 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
   businessUser
 }) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const isEditing = !!businessUser;
   const [activeTab, setActiveTab] = React.useState("basic-info");
+  const { createBusinessUser, updateBusinessUser } = useBusinessUserMutations();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -132,7 +130,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
   // Reset form when business user changes
   useEffect(() => {
     if (isOpen) {
-      if (isEditing && businessUser) {
+      if (businessUser) {
         // For edit mode, populate the form with existing user data
         form.reset({
           first_name: businessUser.first_name || '',
@@ -176,12 +174,12 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
       // Always reset to first tab when opening
       setActiveTab("basic-info");
     }
-  }, [businessUser, form, isEditing, isOpen, roles, userLocations]);
-
-  const { createBusinessUser, updateBusinessUser } = useBusinessUserMutations();
+  }, [businessUser, form, isOpen, roles, userLocations]);
 
   const onSubmit = (values: FormValues) => {
-    if (isEditing && businessUser) {
+    const isEditing = !!businessUser;
+    
+    if (isEditing) {
       // Prepare data for update, omitting password if unchanged
       let updateData: any = { 
         first_name: values.first_name,
@@ -211,19 +209,18 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
         updateData.role = selectedRole.name;
       }
       
-      // Call update mutation
-      const updatePromise = updateBusinessUser.mutateAsync({ 
+      // Call update mutation with all data in one go
+      updateBusinessUser.mutate({ 
         userData: updateData, 
         userId: businessUser.id,
-        businessId 
+        businessId,
+        locationIds: values.location_ids || []
       });
       
-      // Handle location updates after user update
-      updatePromise.then(() => {
-        handleLocationUpdates(businessUser.id, values.location_ids || []);
-      }).catch(error => {
-        console.error("Error updating user:", error);
-      });
+      // Close the form after submission
+      if (!updateBusinessUser.isPending) {
+        onClose();
+      }
     } else {
       // For creating new user
       const userId = crypto.randomUUID(); // Generate a user ID
@@ -251,47 +248,17 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
         daily_rate: values.daily_rate ? parseFloat(values.daily_rate) : null,
       };
       
-      // Call create mutation
-      const createPromise = createBusinessUser.mutateAsync({ userData, businessId });
-      
-      // Handle location assignments after user creation
-      createPromise.then((data) => {
-        if (data && data[0]) {
-          handleLocationUpdates(data[0].id, values.location_ids || []);
-        }
-      }).catch(error => {
-        console.error("Error creating user:", error);
+      // Call create mutation with all data in one go
+      createBusinessUser.mutate({
+        userData, 
+        businessId,
+        locationIds: values.location_ids || []
       });
-    }
-  };
-  
-  // Helper function to handle location assignments
-  const handleLocationUpdates = async (userId: string, locationIds: string[]) => {
-    if (locationIds.length === 0) return;
-    
-    // First delete existing user locations
-    await supabase
-      .from('user_locations')
-      .delete()
-      .eq('user_id', userId);
-    
-    // Then add new user locations
-    const locationInserts = locationIds.map(locationId => ({
-      user_id: userId,
-      location_id: locationId
-    }));
-    
-    const { error: locError } = await supabase
-      .from('user_locations')
-      .insert(locationInserts);
       
-    if (locError) {
-      console.error("Error updating locations:", locError);
-      toast({
-        title: "Warning",
-        description: "User was saved but there was an error updating location assignments.",
-        variant: "destructive"
-      });
+      // Close the form after submission
+      if (!createBusinessUser.isPending) {
+        onClose();
+      }
     }
   };
 
@@ -299,7 +266,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] md:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit User' : 'Add User'}</DialogTitle>
+          <DialogTitle>{businessUser ? 'Edit User' : 'Add User'}</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -679,7 +646,7 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
                 {(createBusinessUser.isPending || updateBusinessUser.isPending) && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {isEditing ? 'Update User' : 'Add User'}
+                {businessUser ? 'Update User' : 'Add User'}
               </Button>
             </DialogFooter>
           </form>

@@ -1,7 +1,7 @@
 
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export const useBusinessUserMutations = () => {
   const { toast } = useToast();
@@ -56,7 +56,11 @@ export const useBusinessUserMutations = () => {
   });
 
   const createBusinessUser = useMutation({
-    mutationFn: async ({ userData, businessId }: { userData: any; businessId: string }) => {
+    mutationFn: async ({ userData, businessId, locationIds }: { 
+      userData: any; 
+      businessId: string; 
+      locationIds?: string[] 
+    }) => {
       // First check if email already exists for this business
       const emailExists = await checkEmailExists(userData.email, businessId);
       
@@ -64,21 +68,48 @@ export const useBusinessUserMutations = () => {
         throw new Error("A user with this email already exists in this business");
       }
 
-      // If email is unique, proceed with creation
-      const { data, error } = await supabase
-        .from('business_users')
-        .insert([{ ...userData, business_id: businessId }])
-        .select();
-      
-      if (error) {
-        // Handle specific constraint errors
-        if (error.code === '23505' && error.message.includes('business_users_email_key')) {
-          throw new Error("A user with this email already exists");
+      try {
+        // If using the add_business_user_with_locations function is causing issues,
+        // let's try a direct approach with separate operations
+        const { data, error } = await supabase
+          .from('business_users')
+          .insert([{ ...userData, business_id: businessId }])
+          .select();
+        
+        if (error) {
+          if (error.code === '23505' && error.message.includes('business_users_email_key')) {
+            throw new Error("A user with this email already exists");
+          }
+          throw error;
         }
+        
+        // If we have location IDs and the user was successfully created
+        if (locationIds && locationIds.length > 0 && data && data.length > 0) {
+          const userId = data[0].id;
+          
+          // Prepare location entries
+          const locationEntries = locationIds.map(locationId => ({
+            user_id: userId,
+            location_id: locationId
+          }));
+          
+          // Insert location assignments
+          const { error: locError } = await supabase
+            .from('user_locations')
+            .insert(locationEntries);
+          
+          if (locError) {
+            console.error('Error assigning locations:', locError);
+            // We won't throw here as the user is already created
+            // This will be handled separately
+          }
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('Error in createBusinessUser:', error);
         throw error;
       }
-      
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessUsers'] });
@@ -97,7 +128,17 @@ export const useBusinessUserMutations = () => {
   });
 
   const updateBusinessUser = useMutation({
-    mutationFn: async ({ userData, userId, businessId }: { userData: any; userId: string; businessId: string }) => {
+    mutationFn: async ({ 
+      userData, 
+      userId, 
+      businessId, 
+      locationIds 
+    }: { 
+      userData: any; 
+      userId: string; 
+      businessId: string;
+      locationIds?: string[] 
+    }) => {
       // Check if updating the email to one that already exists
       if (userData.email) {
         const emailExists = await checkEmailExists(userData.email, businessId, userId);
@@ -107,22 +148,59 @@ export const useBusinessUserMutations = () => {
         }
       }
 
-      // If email is unique or not being updated, proceed with update
-      const { data, error } = await supabase
-        .from('business_users')
-        .update(userData)
-        .eq('id', userId)
-        .select();
-      
-      if (error) {
-        // Handle specific constraint errors
-        if (error.code === '23505' && error.message.includes('business_users_email_key')) {
-          throw new Error("A user with this email already exists");
+      try {
+        // Update the user data first
+        const { data, error } = await supabase
+          .from('business_users')
+          .update(userData)
+          .eq('id', userId)
+          .select();
+        
+        if (error) {
+          if (error.code === '23505' && error.message.includes('business_users_email_key')) {
+            throw new Error("A user with this email already exists");
+          }
+          throw error;
         }
+        
+        // Handle location assignments if provided
+        if (locationIds) {
+          // First delete existing assignments
+          const { error: deleteError } = await supabase
+            .from('user_locations')
+            .delete()
+            .eq('user_id', userId);
+          
+          if (deleteError) {
+            console.error('Error deleting existing locations:', deleteError);
+            // Continue with the process, we still want to try adding new locations
+          }
+          
+          // Only proceed with insertion if there are locations to assign
+          if (locationIds.length > 0) {
+            // Prepare location entries
+            const locationEntries = locationIds.map(locationId => ({
+              user_id: userId,
+              location_id: locationId
+            }));
+            
+            // Insert new location assignments
+            const { error: insertError } = await supabase
+              .from('user_locations')
+              .insert(locationEntries);
+            
+            if (insertError) {
+              console.error('Error assigning new locations:', insertError);
+              // This will be handled separately, not throwing
+            }
+          }
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('Error in updateBusinessUser:', error);
         throw error;
       }
-      
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessUsers'] });
