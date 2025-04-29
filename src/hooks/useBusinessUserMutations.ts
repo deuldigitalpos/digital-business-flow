@@ -16,7 +16,7 @@ export const useBusinessUserMutations = () => {
       
       if (error) throw error;
     },
-    onSuccess: (_, variables, context) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessUsers'] });
       toast({
         title: "User deleted",
