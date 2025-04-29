@@ -42,6 +42,83 @@ export type Database = {
         }
         Relationships: []
       }
+      business_customers: {
+        Row: {
+          account_status: string
+          address: string | null
+          business_id: string
+          business_name: string | null
+          created_at: string
+          credit_limit: number | null
+          customer_id: string | null
+          email: string | null
+          first_name: string
+          id: string
+          is_lead: boolean | null
+          last_name: string
+          mobile_number: string | null
+          tin_number: string | null
+          total_amount_invoices_due: number | null
+          total_invoices: number | null
+          total_invoices_due: number | null
+          total_sale: number | null
+          total_sell_return_due: number | null
+          updated_at: string
+        }
+        Insert: {
+          account_status?: string
+          address?: string | null
+          business_id: string
+          business_name?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          customer_id?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          is_lead?: boolean | null
+          last_name: string
+          mobile_number?: string | null
+          tin_number?: string | null
+          total_amount_invoices_due?: number | null
+          total_invoices?: number | null
+          total_invoices_due?: number | null
+          total_sale?: number | null
+          total_sell_return_due?: number | null
+          updated_at?: string
+        }
+        Update: {
+          account_status?: string
+          address?: string | null
+          business_id?: string
+          business_name?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          customer_id?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          is_lead?: boolean | null
+          last_name?: string
+          mobile_number?: string | null
+          tin_number?: string | null
+          total_amount_invoices_due?: number | null
+          total_invoices?: number | null
+          total_invoices_due?: number | null
+          total_sale?: number | null
+          total_sell_return_due?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_customers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_locations: {
         Row: {
           address: string
