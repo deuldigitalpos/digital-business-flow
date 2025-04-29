@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import CustomerDetails from '@/components/business/CustomerDetails';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 interface BusinessCustomerManagerProps {
   business: Business | null;
@@ -30,6 +31,10 @@ const BusinessCustomerManager: React.FC<BusinessCustomerManagerProps> = ({ busin
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<BusinessCustomer | null>(null);
+  const { hasPermission, isDefaultUser } = useBusinessAuth();
+  
+  // Check if user can add customers
+  const canAddCustomers = isDefaultUser || hasPermission('customers');
   
   // Fetch customers
   const { data: customers, isLoading, error } = useQuery({
@@ -118,14 +123,16 @@ const BusinessCustomerManager: React.FC<BusinessCustomerManagerProps> = ({ busin
           </div>
           
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)} 
-              className="gap-2"
-              variant="default"
-            >
-              <UserPlus className="h-4 w-4" />
-              Add Customer
-            </Button>
+            {canAddCustomers && (
+              <Button 
+                onClick={() => setIsAddDialogOpen(true)} 
+                className="gap-2"
+                variant="default"
+              >
+                <UserPlus className="h-4 w-4" />
+                Add Customer
+              </Button>
+            )}
             <Button variant="outline" className="gap-2">
               <FileText className="h-4 w-4" />
               Export
@@ -153,20 +160,22 @@ const BusinessCustomerManager: React.FC<BusinessCustomerManagerProps> = ({ busin
       </div>
 
       {/* Add Customer Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Add New Customer</DialogTitle>
-            <DialogDescription>
-              Enter the customer details below to add a new customer.
-            </DialogDescription>
-          </DialogHeader>
-          <AddCustomerForm 
-            businessId={business?.id || ''} 
-            onSuccess={() => setIsAddDialogOpen(false)} 
-          />
-        </DialogContent>
-      </Dialog>
+      {canAddCustomers && (
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Add New Customer</DialogTitle>
+              <DialogDescription>
+                Enter the customer details below to add a new customer.
+              </DialogDescription>
+            </DialogHeader>
+            <AddCustomerForm 
+              businessId={business?.id || ''} 
+              onSuccess={() => setIsAddDialogOpen(false)} 
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Edit Customer Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

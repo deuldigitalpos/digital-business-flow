@@ -51,11 +51,13 @@ const formSchema = z.object({
 
 const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess }) => {
   const { createCustomer } = useBusinessCustomerMutations();
-  const { businessUser } = useBusinessAuth();
+  const { businessUser, hasPermission, isDefaultUser } = useBusinessAuth();
   const { useBusinessLeads } = useBusinessLeadsMutations();
   
   console.log("AddCustomerForm - businessId:", businessId);
   console.log("AddCustomerForm - businessUser:", businessUser);
+  console.log("AddCustomerForm - hasCustomersPermission:", hasPermission('customers'));
+  console.log("AddCustomerForm - isDefaultUser:", isDefaultUser);
   
   // Fetch lead sources for this business
   const { data: leads, isLoading: leadsLoading } = useBusinessLeads(businessId);
@@ -73,20 +75,34 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       mobile_number: null,
       address: null,
       account_status: 'active',
-      lead_id: null,
+      lead_id: 'none', // Set a default value to avoid null issues
     },
   });
 
+  // Update business_id when it changes
+  useEffect(() => {
+    if (businessId) {
+      form.setValue('business_id', businessId);
+    }
+  }, [businessId, form]);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      console.log("Submitting customer form:", values);
+      console.log("Submitting customer form with business ID:", businessId);
+      console.log("Form values:", values);
+      
+      // Double check that business_id is set correctly
+      if (!values.business_id && businessUser) {
+        console.log("Setting business_id from businessUser:", businessUser.business_id);
+        values.business_id = businessUser.business_id;
+      }
       
       // Extract the lead_id from the form values
       const { lead_id, ...customerData } = values;
 
       // Create a customer with is_lead=false and the selected lead source if not "none"
       const customerInput: CustomerCreateInput = {
-        business_id: businessId, // Explicitly set business_id as required
+        business_id: values.business_id, // Explicitly set business_id as required
         first_name: values.first_name, // Ensure first_name is explicitly provided
         last_name: values.last_name, // Ensure last_name is explicitly provided
         account_status: values.account_status, // Ensure account_status is explicitly provided

@@ -245,12 +245,19 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const hasPermission = useCallback((permission: string): boolean => {
     // Default users have access to everything
     if (isDefaultUser) {
+      console.log("Default user has ALL permissions, including:", permission);
       return true;
     }
     
     // Otherwise check specific permissions
-    if (!userPermissions) return false;
-    return !!userPermissions[permission];
+    if (!userPermissions) {
+      console.log("No permissions found for user");
+      return false;
+    }
+    
+    const hasSpecificPermission = !!userPermissions[permission];
+    console.log(`Checking permission '${permission}':`, hasSpecificPermission, "Current permissions:", userPermissions);
+    return hasSpecificPermission;
   }, [userPermissions, isDefaultUser]);
 
   return (

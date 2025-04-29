@@ -7,13 +7,19 @@ import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 export const useBusinessCustomerMutations = () => {
   const queryClient = useQueryClient();
-  const { businessUser } = useBusinessAuth();
+  const { businessUser, hasPermission, isDefaultUser } = useBusinessAuth();
 
   // Create customer mutation
   const createCustomer = useMutation({
     mutationFn: async (data: CustomerCreateInput) => {
       if (!businessUser) {
         throw new Error("Authentication required");
+      }
+
+      // Check if user has permission to create customers
+      if (!isDefaultUser && !hasPermission('customers')) {
+        console.error("Permission denied: User doesn't have 'customers' permission");
+        throw new Error("You don't have permission to create customers in this business");
       }
 
       console.log("Creating customer/lead with data:", data);
@@ -74,6 +80,8 @@ export const useBusinessCustomerMutations = () => {
       
       if (error.message === 'Authentication required') {
         errorMessage = 'You need to be logged in to create a customer';
+      } else if (error.message === "You don't have permission to create customers in this business") {
+        errorMessage = "You don't have permission to create customers in this business";
       } else if (error.message?.includes('duplicate key')) {
         errorMessage = 'A customer with this information already exists';
       } else if (error.message?.includes('row-level security policy')) {
