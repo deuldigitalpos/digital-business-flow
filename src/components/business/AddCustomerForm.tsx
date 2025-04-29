@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -65,7 +64,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      business_id: businessId,
+      business_id: businessUser?.business_id || businessId,
       first_name: '',
       last_name: '',
       business_name: null,
@@ -79,40 +78,28 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
     },
   });
 
-  // Update business_id when it changes
+  // Update business_id when it changes or when businessUser is loaded
   useEffect(() => {
-    if (businessId) {
+    if (businessUser?.business_id) {
+      form.setValue('business_id', businessUser.business_id);
+      console.log("Set business_id to businessUser.business_id:", businessUser.business_id);
+    } else if (businessId) {
       form.setValue('business_id', businessId);
-      console.log("Set business_id to:", businessId);
+      console.log("Set business_id to prop businessId:", businessId);
     }
-  }, [businessId, form]);
+  }, [businessId, businessUser, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      console.log("Submitting customer form with business ID:", businessId);
-      console.log("Form values:", values);
+      console.log("Submitting customer form with values:", values);
       
-      // Double check that business_id is set correctly
-      if (!values.business_id && businessUser) {
-        console.log("Setting business_id from businessUser:", businessUser.business_id);
-        values.business_id = businessUser.business_id;
-      }
-      
-      // Create the customer input
+      // Ensure business_id is always set from context for security
       const customerInput: CustomerCreateInput = {
-        business_id: values.business_id, 
-        first_name: values.first_name, 
-        last_name: values.last_name, 
-        account_status: values.account_status,
-        // Optional fields
-        business_name: values.business_name,
-        email: values.email,
-        tin_number: values.tin_number,
-        credit_limit: values.credit_limit,
-        mobile_number: values.mobile_number,
-        address: values.address,
-        lead_source_id: values.lead_source_id,
+        ...values,
+        business_id: businessUser?.business_id || businessId,
       };
+      
+      console.log("Submitting customerInput:", customerInput);
       
       const result = await createCustomer.mutateAsync(customerInput);
       console.log("Customer created:", result);

@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -13,20 +12,20 @@ export const useBusinessCustomerMutations = () => {
   const createCustomer = useMutation({
     mutationFn: async (data: CustomerCreateInput) => {
       if (!businessUser) {
+        console.error("Authentication required: No business user found in context");
         throw new Error("Authentication required");
       }
 
       console.log("Creating customer with data:", data);
       console.log("Current business user:", businessUser);
 
-      // Ensure business_id is set correctly and is a valid UUID
-      if (!data.business_id) {
-        data.business_id = businessUser.business_id;
-        console.log("Setting business_id from context:", data.business_id);
-      }
-
-      // Clean up the data before sending to Supabase
-      const customerData = { ...data };
+      // Always use the business_id from the authenticated user's context
+      const customerData = { 
+        ...data,
+        business_id: businessUser.business_id  // Override with authenticated business ID for security
+      };
+      
+      console.log("Using business_id from authenticated user:", customerData.business_id);
       
       // Process lead_source_id
       if (customerData.lead_source_id === "null") {
@@ -39,13 +38,10 @@ export const useBusinessCustomerMutations = () => {
       try {
         console.log("Inserting customer with data:", customerData);
         
-        // Use the business_id from authenticated user to ensure proper access
+        // Insert the customer record
         const { data: customer, error } = await supabase
           .from('business_customers')
-          .insert([{
-            ...customerData,
-            business_id: businessUser.business_id // Ensure we always use the authenticated user's business_id
-          }])
+          .insert([customerData])
           .select('*')
           .single();
 
@@ -79,7 +75,7 @@ export const useBusinessCustomerMutations = () => {
       } else if (error.message?.includes('duplicate key')) {
         errorMessage = 'A customer with this information already exists';
       } else if (error.message?.includes('row-level security policy')) {
-        errorMessage = 'You do not have permission to add customers to this business';
+        errorMessage = 'Permission error: You do not have permission to add customers to this business';
       } else if (error.message?.includes('lead_source_id')) {
         errorMessage = 'There was an issue with the lead source. Please try with a different lead source.';
       } else if (error.message?.includes('violates foreign key constraint')) {
