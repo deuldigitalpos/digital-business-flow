@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,7 +46,6 @@ const formSchema = z.object({
   mobile_number: z.string().nullable(),
   address: z.string().nullable(),
   account_status: z.string().default('active'),
-  is_lead: z.boolean().default(false),
   lead_source_id: z.string().nullable(),
 });
 
@@ -76,8 +74,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       mobile_number: null,
       address: null,
       account_status: 'active',
-      is_lead: false,
-      lead_source_id: "null",
+      lead_source_id: null,
     },
   });
 
@@ -88,16 +85,6 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       console.log("Set business_id to:", businessId);
     }
   }, [businessId, form]);
-
-  // Update is_lead when lead_source_id changes
-  useEffect(() => {
-    const leadSourceId = form.watch('lead_source_id');
-    if (leadSourceId && leadSourceId !== "null") {
-      form.setValue('is_lead', true);
-    } else {
-      form.setValue('is_lead', false);
-    }
-  }, [form.watch('lead_source_id')]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -123,8 +110,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         credit_limit: values.credit_limit,
         mobile_number: values.mobile_number,
         address: values.address,
-        is_lead: values.lead_source_id !== "null",
-        lead_source_id: values.lead_source_id === "null" ? null : values.lead_source_id,
+        lead_source_id: values.lead_source_id,
       };
       
       const result = await createCustomer.mutateAsync(customerInput);
@@ -149,7 +135,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
               <FormLabel>Lead Source</FormLabel>
               <Select 
                 onValueChange={field.onChange}
-                value={field.value || "null"}
+                value={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -157,7 +143,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="null">Not a lead</SelectItem>
+                  <SelectItem value="">Not a lead</SelectItem>
                   {leadSources?.map((source) => (
                     <SelectItem key={source.id} value={source.id}>
                       {source.name}

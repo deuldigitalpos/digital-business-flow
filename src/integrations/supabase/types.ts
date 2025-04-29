@@ -56,6 +56,7 @@ export type Database = {
           id: string
           is_lead: boolean | null
           last_name: string
+          lead_source_id: string | null
           mobile_number: string | null
           tin_number: string | null
           total_amount_invoices_due: number | null
@@ -78,6 +79,7 @@ export type Database = {
           id?: string
           is_lead?: boolean | null
           last_name: string
+          lead_source_id?: string | null
           mobile_number?: string | null
           tin_number?: string | null
           total_amount_invoices_due?: number | null
@@ -100,6 +102,7 @@ export type Database = {
           id?: string
           is_lead?: boolean | null
           last_name?: string
+          lead_source_id?: string | null
           mobile_number?: string | null
           tin_number?: string | null
           total_amount_invoices_due?: number | null
@@ -115,6 +118,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_customers_lead_source_id_fkey"
+            columns: ["lead_source_id"]
+            isOneToOne: false
+            referencedRelation: "business_leads"
             referencedColumns: ["id"]
           },
         ]

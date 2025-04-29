@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -27,15 +26,6 @@ export const useBusinessCustomerMutations = () => {
 
       // Clean up the data before sending to Supabase
       const customerData = { ...data };
-      
-      // Remove lead_source_id from the data to send to Supabase
-      // We'll handle lead status separately
-      if (customerData.lead_source_id === "null") {
-        delete customerData.lead_source_id;
-        customerData.is_lead = false;
-      } else if (customerData.lead_source_id) {
-        customerData.is_lead = true;
-      }
       
       try {
         console.log("Inserting customer with data:", customerData);
@@ -79,7 +69,9 @@ export const useBusinessCustomerMutations = () => {
       } else if (error.message?.includes('row-level security policy')) {
         errorMessage = 'Permission error. Please refresh and try again.';
       } else if (error.message?.includes('lead_source_id')) {
-        errorMessage = 'There was an issue with the lead source. Please contact your administrator.';
+        errorMessage = 'There was an issue with the lead source. Please try with a different lead source.';
+      } else if (error.message?.includes('violates foreign key constraint')) {
+        errorMessage = 'Invalid reference to a lead source that does not exist.';
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`;
       }
@@ -93,15 +85,6 @@ export const useBusinessCustomerMutations = () => {
       // Clean up the data before sending to Supabase
       const customerData = { ...data };
       
-      // Remove lead_source_id from the data to send to Supabase
-      // We'll handle lead status separately
-      if (customerData.lead_source_id === "null") {
-        delete customerData.lead_source_id;
-        customerData.is_lead = false;
-      } else if (customerData.lead_source_id) {
-        customerData.is_lead = true;
-      }
-      
       const { data: customer, error } = await supabase
         .from('business_customers')
         .update(customerData)
@@ -109,7 +92,10 @@ export const useBusinessCustomerMutations = () => {
         .select('*')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating customer:", error);
+        throw error;
+      }
       return customer as BusinessCustomer;
     },
     onSuccess: () => {
@@ -118,9 +104,19 @@ export const useBusinessCustomerMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['business-leads'] });
       toast.success('Customer updated successfully');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error updating customer:', error);
-      toast.error(`Failed to update customer: ${error.message}`);
+      let errorMessage = 'Failed to update customer';
+      
+      if (error.message?.includes('lead_source_id')) {
+        errorMessage = 'There was an issue with the lead source. Please try with a different lead source.';
+      } else if (error.message?.includes('violates foreign key constraint')) {
+        errorMessage = 'Invalid reference to a lead source that does not exist.';
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      toast.error(errorMessage);
     }
   });
 
