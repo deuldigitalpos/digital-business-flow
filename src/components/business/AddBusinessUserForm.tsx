@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -26,8 +25,7 @@ const formSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters."),
   password: z.string().min(6, "Password must be at least 6 characters."),
   email: z.string().email("Invalid email address."),
-  role: z.string().min(1, "Role is required."),
-  role_id: z.string().optional(),
+  role_id: z.string().min(1, "Role is required."),
   location_ids: z.array(z.string()).optional(),
   date_of_birth: z.string().optional(),
   gender: z.string().optional(),
@@ -68,7 +66,6 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
       username: '',
       password: '',
       email: '',
-      role: 'Staff',
       role_id: '',
       location_ids: [],
       date_of_birth: '',
@@ -142,7 +139,6 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
           username: businessUser.username || '',
           password: '********', // Placeholder for existing password
           email: businessUser.email || '',
-          role: businessUser.role || 'Staff',
           role_id: businessUser.role_id || '',
           location_ids: userLocations || [],
           date_of_birth: businessUser.date_of_birth ? new Date(businessUser.date_of_birth).toISOString().split('T')[0] : '',
@@ -163,7 +159,6 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
           username: '',
           password: '',
           email: '',
-          role: 'Staff',
           role_id: roles && roles.length > 0 ? roles[0].id : '',
           location_ids: [],
           date_of_birth: '',
@@ -186,6 +181,10 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
     mutationFn: async (values: FormValues) => {
       const userId = crypto.randomUUID(); // Generate a user ID
       
+      // Find the selected role to get the role name
+      const selectedRole = roles?.find(r => r.id === values.role_id);
+      const roleName = selectedRole ? selectedRole.name : 'Staff';
+      
       // If editing, update existing user
       if (isEditing && businessUser) {
         let updateData: any = { 
@@ -193,8 +192,8 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
           last_name: values.last_name,
           email: values.email,
           username: values.username,
-          role: values.role,
-          role_id: values.role_id || null,
+          role: roleName, // Use the name from the selected role
+          role_id: values.role_id,
           date_of_birth: values.date_of_birth || null,
           gender: values.gender || null,
           marital_status: values.marital_status || null,
@@ -255,8 +254,8 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
               email: values.email,
               username: values.username,
               password: values.password,
-              role: values.role,
-              role_id: values.role_id || null,
+              role: roleName, // Use the name from the selected role
+              role_id: values.role_id,
               date_of_birth: values.date_of_birth || null,
               gender: values.gender || null,
               marital_status: values.marital_status || null,
@@ -413,63 +412,40 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
                   )}
                 />
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Legacy Role</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Admin">Admin</SelectItem>
-                            <SelectItem value="Manager">Manager</SelectItem>
-                            <SelectItem value="Staff">Staff</SelectItem>
-                            <SelectItem value="Viewer">Viewer</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="role_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Permission Role</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                          value={field.value || ""}
-                          disabled={isLoadingRoles || !roles || roles.length === 0}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a permission role" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {roles?.map((role) => (
-                              <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="role_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        value={field.value}
+                        disabled={isLoadingRoles || !roles || roles.length === 0}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {roles?.map((role) => (
+                            <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {isLoadingRoles ? (
+                        <p className="text-xs text-muted-foreground">Loading roles...</p>
+                      ) : roles?.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          No roles available. Please create roles first.
+                        </p>
+                      ) : null}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {isLoadingLocations ? (
                   <div className="flex items-center justify-center p-4">
