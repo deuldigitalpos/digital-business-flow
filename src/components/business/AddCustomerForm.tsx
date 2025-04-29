@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,14 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CustomerCreateInput, AccountStatusOptions, LeadOptions } from '@/types/business-customer';
+import { CustomerCreateInput, AccountStatusOptions } from '@/types/business-customer';
 import { useBusinessCustomerMutations } from '@/hooks/useBusinessCustomerMutations';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { BusinessCustomer } from '@/types/business-customer';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { useBusinessLeadsMutations } from '@/hooks/useBusinessLeadsMutations';
 
 interface AddCustomerFormProps {
   businessId: string;
@@ -48,62 +47,18 @@ const formSchema = z.object({
   mobile_number: z.string().nullable(),
   address: z.string().nullable(),
   account_status: z.string().default('active'),
-  is_lead: z.boolean().default(false),
+  lead_id: z.string().nullable(),
 });
 
 const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess }) => {
   const { createCustomer } = useBusinessCustomerMutations();
-  const [selectedLead, setSelectedLead] = useState<string | null>(null);
   const { businessUser } = useBusinessAuth();
+  const { useBusinessLeads } = useBusinessLeadsMutations();
   
   console.log("AddCustomerForm - businessId:", businessId);
   
-  // Fetch existing leads for this business
-  const { data: leads, isLoading: leadsLoading } = useQuery({
-    queryKey: ['business-leads', businessId],
-    queryFn: async () => {
-      if (!businessId) {
-        console.log("No business ID provided");
-        return [];
-      }
-      
-      try {
-        // Ensure authentication before fetching leads
-        if (businessUser?.username && businessUser?.password) {
-          console.log("Checking auth in AddCustomerForm");
-          const { data: authData } = await supabase.auth.getSession();
-          
-          if (!authData.session) {
-            console.log("No active session, authenticating in AddCustomerForm");
-            await supabase.auth.signInWithPassword({
-              email: `${businessUser.username}@temporary.com`,
-              password: businessUser.password,
-            });
-          }
-        }
-        
-        console.log("Fetching leads for dropdown");
-        const { data, error } = await supabase
-          .from('business_customers')
-          .select('*')
-          .eq('business_id', businessId)
-          .eq('is_lead', true)
-          .order('created_at', { ascending: false });
-          
-        if (error) {
-          console.error('Error fetching leads for dropdown:', error);
-          throw new Error(error.message);
-        }
-        
-        console.log("Leads fetched for dropdown:", data?.length);
-        return data as BusinessCustomer[];
-      } catch (error) {
-        console.error('Error in leads fetch for dropdown:', error);
-        throw error;
-      }
-    },
-    enabled: !!businessId && !!businessUser
-  });
+  // Fetch lead sources for this business
+  const { data: leads, isLoading: leadsLoading } = useBusinessLeads(businessId);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -118,43 +73,27 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       mobile_number: null,
       address: null,
       account_status: 'active',
-      is_lead: false
+      lead_id: null,
     },
   });
-
-  // When a lead is selected, populate the form with lead data
-  useEffect(() => {
-    if (selectedLead && leads) {
-      console.log("Lead selected:", selectedLead);
-      const lead = leads.find(l => l.id === selectedLead);
-      if (lead) {
-        console.log("Populating form with lead data:", lead);
-        form.setValue('first_name', lead.first_name);
-        form.setValue('last_name', lead.last_name);
-        if (lead.business_name) form.setValue('business_name', lead.business_name);
-        if (lead.email) form.setValue('email', lead.email);
-        if (lead.tin_number) form.setValue('tin_number', lead.tin_number);
-        if (lead.mobile_number) form.setValue('mobile_number', lead.mobile_number);
-        if (lead.address) form.setValue('address', lead.address);
-        
-        // Mark the is_lead field as false as we're converting a lead to a customer
-        form.setValue('is_lead', false);
-      }
-    }
-  }, [selectedLead, leads, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       console.log("Submitting customer form:", values);
       
-      const result = await createCustomer.mutateAsync(values as CustomerCreateInput);
-      console.log("Customer created:", result);
+      // Extract the lead_id from the form values
+      const { lead_id, ...customerData } = values;
+
+      // Create a customer with is_lead=false and the selected lead source
+      const customerInput: CustomerCreateInput = {
+        ...customerData,
+        is_lead: false,
+        // Store the lead ID in custom fields
+        lead_source_id: lead_id || null
+      };
       
-      // Handle lead conversion logic
-      if (selectedLead) {
-        console.log("Lead converted to customer, original lead:", selectedLead);
-        // In a complete implementation, you would delete the original lead or mark it as converted
-      }
+      const result = await createCustomer.mutateAsync(customerInput);
+      console.log("Customer created:", result);
       
       form.reset();
       onSuccess();
@@ -166,36 +105,47 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Lead Selection Option */}
-        <div className="bg-muted/30 p-4 rounded-md mb-6">
-          <h3 className="font-medium mb-2">Convert Lead to Customer</h3>
-          <Select onValueChange={(value) => setSelectedLead(value === "none" ? null : value)}>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Select a lead to convert..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">None (Create New Customer)</SelectItem>
-              {leads && leads.length > 0 ? (
-                leads.map(lead => (
-                  <SelectItem key={lead.id} value={lead.id}>
-                    {lead.first_name} {lead.last_name}{lead.business_name ? ` (${lead.business_name})` : ''}
-                  </SelectItem>
-                ))
-              ) : leadsLoading ? (
-                <SelectItem value="loading" disabled>
-                  Loading leads...
-                </SelectItem>
-              ) : (
-                <SelectItem value="no-leads" disabled>
-                  No leads available
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-          <p className="text-sm text-muted-foreground mt-2">
-            Converting a lead will automatically fill in their information
-          </p>
-        </div>
+        {/* Lead Source Selection Option */}
+        <FormField
+          control={form.control}
+          name="lead_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Lead Source</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                value={field.value || undefined}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a lead source" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {leads && leads.length > 0 ? (
+                    leads.map(lead => (
+                      <SelectItem key={lead.id} value={lead.id}>
+                        {lead.name}
+                      </SelectItem>
+                    ))
+                  ) : leadsLoading ? (
+                    <SelectItem value="loading" disabled>
+                      Loading lead sources...
+                    </SelectItem>
+                  ) : (
+                    <SelectItem value="no-leads" disabled>
+                      No lead sources available
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Select where this customer came from
+              </FormDescription>
+            </FormItem>
+          )}
+        />
 
         <div className="grid gap-4 md:grid-cols-2">
           <FormField
@@ -348,59 +298,30 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
           )}
         />
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="account_status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Account Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {AccountStatusOptions.map(status => (
-                      <SelectItem key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="is_lead"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Lead Status</FormLabel>
-                <Select 
-                  onValueChange={(value) => field.onChange(value === "true")} 
-                  defaultValue={field.value ? "true" : "false"}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select lead status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {LeadOptions.map(option => (
-                      <SelectItem key={option.label} value={String(option.value)}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="account_status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Account Status</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {AccountStatusOptions.map(status => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="flex justify-end gap-4 pt-4">
           <Button type="button" variant="outline" onClick={onSuccess}>

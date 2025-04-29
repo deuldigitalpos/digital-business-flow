@@ -1,11 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { Loader2, ShieldAlert, UserPlus, Search } from 'lucide-react';
+import { Loader2, ShieldAlert, UserPlus, Search, Trash2, Edit, Check } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { BusinessCustomer } from '@/types/business-customer';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { 
@@ -16,17 +13,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import CustomerList from '@/components/business/CustomerList';
 import { useToast } from '@/components/ui/use-toast';
-import { useBusinessCustomerMutations } from '@/hooks/useBusinessCustomerMutations';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { useBusinessLeadsMutations, BusinessLead } from '@/hooks/useBusinessLeadsMutations';
+import { format } from 'date-fns';
 
 const BusinessLeads = () => {
   const { business, isLoading, hasPermission, businessUser } = useBusinessAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newLeadName, setNewLeadName] = useState('');
+  const [selectedLead, setSelectedLead] = useState<BusinessLead | null>(null);
   const { toast } = useToast();
-  const { createCustomer } = useBusinessCustomerMutations();
   
   // Simple error boundary state
   const [hasError, setHasError] = useState(false);
@@ -36,30 +36,22 @@ const BusinessLeads = () => {
     setHasError(false);
   }, []);
 
-  // Authentication effect - runs once when component mounts
-  useEffect(() => {
-    const authenticateUser = async () => {
-      if (!business?.id || !businessUser) return;
-      
-      try {
-        // Pre-authenticate to ensure subsequent operations work
-        const { data } = await supabase.auth.getSession();
-        
-        if (!data.session && businessUser.username && businessUser.password) {
-          console.log("Pre-authenticating with business credentials");
-          await supabase.auth.signInWithPassword({
-            email: `${businessUser.username}@temporary.com`,
-            password: businessUser.password,
-          });
-          console.log("Authentication status:", !!data.session);
-        }
-      } catch (error) {
-        console.error("Failed to authenticate:", error);
-      }
-    };
+  // Get our lead mutations and query
+  const { createLead, updateLead, deleteLead, useBusinessLeads } = useBusinessLeadsMutations();
+  
+  // Fetch leads
+  const { data: leads, isLoading: isLeadsLoading, error } = useBusinessLeads(business?.id);
+
+  // Filter leads based on search query
+  const filteredLeads = React.useMemo(() => {
+    if (!leads) return [];
+    if (!searchQuery.trim()) return leads;
     
-    authenticateUser();
-  }, [business?.id, businessUser]);
+    const lowerCaseQuery = searchQuery.toLowerCase().trim();
+    return leads.filter(lead => 
+      lead.name.toLowerCase().includes(lowerCaseQuery)
+    );
+  }, [leads, searchQuery]);
   
   // Error boundary wrapper
   if (hasError) {
@@ -127,68 +119,33 @@ const BusinessLeads = () => {
     );
   }
   
-  // Fetch leads (customers with is_lead=true)
-  const { data: leads, isLoading: isLeadsLoading, error } = useQuery({
-    queryKey: ['business-leads', business?.id],
-    queryFn: async () => {
-      if (!business?.id) return [];
-      
-      try {
-        // Ensure authentication is handled before querying
-        if (businessUser?.username && businessUser?.password) {
-          console.log("Checking authentication before fetching leads");
-          const { data: authData } = await supabase.auth.getSession();
-          
-          if (!authData.session) {
-            console.log("No session found, authenticating");
-            await supabase.auth.signInWithPassword({
-              email: `${businessUser.username}@temporary.com`,
-              password: businessUser.password,
-            });
-          }
-        }
-        
-        console.log("Fetching leads for business:", business.id);
-        const { data, error } = await supabase
-          .from('business_customers')
-          .select('*')
-          .eq('business_id', business.id)
-          .eq('is_lead', true)
-          .order('created_at', { ascending: false });
-          
-        if (error) {
-          console.error("Error fetching leads:", error);
-          throw new Error(error.message);
-        }
-        
-        console.log("Leads fetched:", data?.length);
-        return data as BusinessCustomer[];
-      } catch (error) {
-        console.error("Error in leads fetch function:", error);
-        throw error;
-      }
-    },
-    enabled: !!business?.id && !!businessUser
-  });
-
-  // Filter leads based on search query
-  const filteredLeads = React.useMemo(() => {
-    if (!leads) return [];
-    if (!searchQuery.trim()) return leads;
-    
-    const lowerCaseQuery = searchQuery.toLowerCase().trim();
-    return leads.filter(lead => 
-      lead.first_name.toLowerCase().includes(lowerCaseQuery) ||
-      lead.last_name.toLowerCase().includes(lowerCaseQuery) ||
-      (lead.customer_id && lead.customer_id.toLowerCase().includes(lowerCaseQuery)) ||
-      (lead.email && lead.email.toLowerCase().includes(lowerCaseQuery)) ||
-      (lead.business_name && lead.business_name.toLowerCase().includes(lowerCaseQuery))
-    );
-  }, [leads, searchQuery]);
-  
-  // Function to handle quick lead creation
+  // Function to handle adding a new lead
   const handleAddLead = async () => {
     if (!newLeadName.trim() || !business?.id) {
+      toast({
+        title: "Error",
+        description: "Please enter a name for the lead source",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await createLead.mutateAsync({
+        business_id: business.id,
+        name: newLeadName.trim()
+      });
+      
+      setNewLeadName('');
+      setIsAddDialogOpen(false);
+    } catch (error: any) {
+      console.error('Error adding new lead:', error);
+    }
+  };
+
+  // Function to handle updating a lead
+  const handleEditLead = async () => {
+    if (!selectedLead || !newLeadName.trim()) {
       toast({
         title: "Error",
         description: "Please enter a name for the lead",
@@ -197,37 +154,35 @@ const BusinessLeads = () => {
       return;
     }
 
-    // Split the name into first and last name
-    const nameParts = newLeadName.trim().split(' ');
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-
     try {
-      console.log("Adding new lead:", firstName, lastName);
-      
-      // Create the lead with minimal required fields
-      await createCustomer.mutateAsync({
-        business_id: business.id,
-        first_name: firstName,
-        last_name: lastName,
-        account_status: 'active',
-        is_lead: true
-      });
-      
-      toast({
-        title: "Success",
-        description: "New lead added successfully"
+      await updateLead.mutateAsync({
+        id: selectedLead.id,
+        name: newLeadName.trim()
       });
       
       setNewLeadName('');
-      setIsAddDialogOpen(false);
+      setSelectedLead(null);
+      setIsEditDialogOpen(false);
     } catch (error: any) {
-      console.error('Error adding new lead:', error);
-      toast({
-        title: "Error",
-        description: `Failed to add new lead: ${error.message || 'Unknown error'}`,
-        variant: "destructive"
-      });
+      console.error('Error updating lead:', error);
+    }
+  };
+
+  // Function to handle editing a lead
+  const handleOpenEditDialog = (lead: BusinessLead) => {
+    setSelectedLead(lead);
+    setNewLeadName(lead.name);
+    setIsEditDialogOpen(true);
+  };
+
+  // Function to handle deleting a lead
+  const handleDeleteLead = async (id: string) => {
+    if (confirm("Are you sure you want to delete this lead? This action cannot be undone.")) {
+      try {
+        await deleteLead.mutateAsync(id);
+      } catch (error: any) {
+        console.error('Error deleting lead:', error);
+      }
     }
   };
 
@@ -263,9 +218,9 @@ const BusinessLeads = () => {
       <div className="space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Lead Sources</h1>
             <p className="text-muted-foreground">
-              Manage your business leads and track their activities.
+              Manage your business lead sources and track where customers come from.
             </p>
           </div>
           
@@ -275,14 +230,14 @@ const BusinessLeads = () => {
             variant="default"
           >
             <UserPlus className="h-4 w-4" />
-            Add New Lead
+            Add New Lead Source
           </Button>
         </div>
 
         <div className="flex items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search leads..."
+            placeholder="Search lead sources..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm"
@@ -290,26 +245,72 @@ const BusinessLeads = () => {
         </div>
 
         {/* Lead List */}
-        <CustomerList 
-          customers={filteredLeads} 
-          businessId={business?.id || ''}
-          onViewCustomer={() => {}}
-          onEditCustomer={() => {}}
-        />
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Lead Source</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredLeads.length > 0 ? (
+                  filteredLeads.map((lead) => (
+                    <TableRow key={lead.id}>
+                      <TableCell>
+                        <div className="font-medium">{lead.name}</div>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(lead.created_at), 'MMM d, yyyy')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={() => handleOpenEditDialog(lead)}
+                            variant="ghost"
+                            size="icon"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteLead(lead.id)}
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                      No leads found. Add your first lead source!
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Simplified Add Lead Dialog */}
+      {/* Add Lead Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Add New Lead</DialogTitle>
+            <DialogTitle>Add New Lead Source</DialogTitle>
             <DialogDescription>
-              Enter the lead's name below.
+              Enter the lead source name below (e.g. Facebook, Referral, Website).
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input 
-              placeholder="Enter lead name (e.g. John Smith)" 
+              placeholder="Enter lead source name" 
               value={newLeadName}
               onChange={(e) => setNewLeadName(e.target.value)}
             />
@@ -318,14 +319,48 @@ const BusinessLeads = () => {
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddLead} disabled={createCustomer.isPending}>
-              {createCustomer.isPending ? (
+            <Button onClick={handleAddLead} disabled={createLead.isPending}>
+              {createLead.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Adding...
                 </>
               ) : (
-                'Add Lead'
+                'Add Lead Source'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Lead Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Edit Lead Source</DialogTitle>
+            <DialogDescription>
+              Update the lead source name.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input 
+              placeholder="Enter lead source name" 
+              value={newLeadName}
+              onChange={(e) => setNewLeadName(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditLead} disabled={updateLead.isPending}>
+              {updateLead.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Save Changes'
               )}
             </Button>
           </DialogFooter>

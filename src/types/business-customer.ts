@@ -20,6 +20,10 @@ export interface BusinessCustomer {
   is_lead: boolean | null;
   created_at: string;
   updated_at: string;
+  custom_data?: {
+    lead_source_id?: string;
+    [key: string]: any;
+  };
 }
 
 export type CustomerCreateInput = {
@@ -35,6 +39,12 @@ export type CustomerCreateInput = {
   credit_limit?: number | null;
   address?: string | null;
   mobile_number?: string | null;
+  // Lead source reference
+  lead_source_id?: string | null;
+  // Custom data
+  custom_data?: {
+    [key: string]: any;
+  };
 };
 
 export type CustomerUpdateInput = Partial<CustomerCreateInput>;
