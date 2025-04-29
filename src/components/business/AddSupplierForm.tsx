@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -74,11 +73,6 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
   });
 
   const onSubmit = async (values: FormValues) => {
-    if (!businessUser?.business_id) {
-      console.error("No business ID available");
-      return;
-    }
-
     try {
       console.log("Creating supplier with data:", values);
       
