@@ -33,7 +33,7 @@ export function useBusinessCategories() {
         throw error;
       }
 
-      return data || [];
+      return data as BusinessCategory[];
     },
     enabled: !!businessId,
   });

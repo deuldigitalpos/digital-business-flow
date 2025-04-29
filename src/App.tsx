@@ -1,125 +1,76 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext";
-import { BusinessAuthProvider } from "@/context/BusinessAuthContext";
-
-// Pages
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import BusinessLogin from "./pages/BusinessLogin";
-import NotFound from "./pages/NotFound";
-import Dashboard from "./pages/Dashboard";
-import UserManagement from "./pages/UserManagement";
-import BusinessManagement from "./pages/BusinessManagement";
-import PackageManagement from "./pages/PackageManagement";
-import DiscountManagement from "./pages/DiscountManagement";
-import ReferralManagement from "./pages/ReferralManagement";
-import Settings from "./pages/Settings";
-import BusinessDashboard from "./pages/BusinessDashboard";
-import BusinessRoles from "./pages/BusinessRoles";
-import BusinessLocations from "./pages/BusinessLocations";
-import BusinessUsers from "./pages/BusinessUsers";
-import BusinessExpenses from "./pages/BusinessExpenses";
-import BusinessCustomers from "./pages/BusinessCustomers";
-import BusinessLeads from "./pages/BusinessLeads";
-import BusinessSuppliers from "./pages/BusinessSuppliers";
-import BusinessCategories from "./pages/BusinessCategories";
-import PermissionDenied from "./pages/PermissionDenied";
-
-// Layout
-import DashboardLayout from "./components/DashboardLayout";
-import BusinessDashboardLayout from "./components/BusinessDashboardLayout";
-
-// Guards
-import PermissionGuard from "./components/business/PermissionGuard";
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import Index from '@/pages/Index';
+import Login from '@/pages/Login';
+import DashboardLayout from '@/components/DashboardLayout';
+import Dashboard from '@/pages/Dashboard';
+import UserManagement from '@/pages/UserManagement';
+import Settings from '@/pages/Settings';
+import PackageManagement from '@/pages/PackageManagement';
+import DiscountManagement from '@/pages/DiscountManagement';
+import ReferralManagement from '@/pages/ReferralManagement';
+import BusinessManagement from '@/pages/BusinessManagement';
+import NotFound from '@/pages/NotFound';
+import PlaceholderPage from '@/pages/PlaceholderPage';
+import BusinessLogin from '@/pages/BusinessLogin';
+import BusinessDashboardLayout from '@/components/BusinessDashboardLayout';
+import BusinessDashboard from '@/pages/BusinessDashboard';
+import BusinessUsers from '@/pages/BusinessUsers';
+import BusinessRoles from '@/pages/BusinessRoles';
+import BusinessLocations from '@/pages/BusinessLocations';
+import BusinessExpenses from '@/pages/BusinessExpenses';
+import BusinessCustomers from '@/pages/BusinessCustomers';
+import BusinessLeads from '@/pages/BusinessLeads';
+import BusinessSuppliers from '@/pages/BusinessSuppliers';
+import PermissionDenied from '@/pages/PermissionDenied';
+import BusinessCategories from '@/pages/BusinessCategories';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <BusinessAuthProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/business-login" element={<BusinessLogin />} />
-              
-              {/* Admin Dashboard Routes */}
-              <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="business" element={<BusinessManagement />} />
-                <Route path="packages" element={<PackageManagement />} />
-                <Route path="discounts" element={<DiscountManagement />} />
-                <Route path="referrals" element={<ReferralManagement />} />
-                <Route path="settings" element={<Settings />} />
-              </Route>
+        <Toaster />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
 
-              {/* Business Dashboard Routes */}
-              <Route path="/business-dashboard" element={<BusinessDashboardLayout />}>
-                <Route index element={
-                  <PermissionGuard permission="dashboard">
-                    <BusinessDashboard />
-                  </PermissionGuard>
-                } />
-                <Route path="roles" element={
-                  <PermissionGuard permission="roles">
-                    <BusinessRoles />
-                  </PermissionGuard>
-                } />
-                <Route path="locations" element={
-                  <PermissionGuard permission="locations">
-                    <BusinessLocations />
-                  </PermissionGuard>
-                } />
-                <Route path="users" element={
-                  <PermissionGuard permission="users">
-                    <BusinessUsers />
-                  </PermissionGuard>
-                } />
-                <Route path="expenses" element={
-                  <PermissionGuard permission="expenses">
-                    <BusinessExpenses />
-                  </PermissionGuard>
-                } />
-                <Route path="customers" element={
-                  <PermissionGuard permission="customers">
-                    <BusinessCustomers />
-                  </PermissionGuard>
-                } />
-                <Route path="leads" element={
-                  <PermissionGuard permission="customers">
-                    <BusinessLeads />
-                  </PermissionGuard>
-                } />
-                <Route path="suppliers" element={
-                  <PermissionGuard permission="suppliers">
-                    <BusinessSuppliers />
-                  </PermissionGuard>
-                } />
-                <Route path="categories" element={
-                  <PermissionGuard permission="categories">
-                    <BusinessCategories />
-                  </PermissionGuard>
-                } />
-                <Route path="permission-denied" element={<PermissionDenied />} />
-              </Route>
+          {/* Dashboard Routes */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="packages" element={<PackageManagement />} />
+            <Route path="discounts" element={<DiscountManagement />} />
+            <Route path="referrals" element={<ReferralManagement />} />
+            <Route path="businesses" element={<BusinessManagement />} />
+            <Route path="*" element={<PlaceholderPage />} />
+          </Route>
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BusinessAuthProvider>
-        </AuthProvider>
+          {/* Business Dashboard Routes */}
+          <Route path="/business-login" element={<BusinessLogin />} />
+          <Route path="/business-dashboard" element={<BusinessDashboardLayout />}>
+            <Route index element={<BusinessDashboard />} />
+            <Route path="users" element={<BusinessUsers />} />
+            <Route path="roles" element={<BusinessRoles />} />
+            <Route path="locations" element={<BusinessLocations />} />
+            <Route path="categories" element={<BusinessCategories />} />
+            <Route path="expenses" element={<BusinessExpenses />} />
+            <Route path="customers" element={<BusinessCustomers />} />
+            <Route path="leads" element={<BusinessLeads />} />
+            <Route path="suppliers" element={<BusinessSuppliers />} />
+            <Route path="no-permission" element={<PermissionDenied />} />
+            <Route path="*" element={<PlaceholderPage />} />
+          </Route>
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;

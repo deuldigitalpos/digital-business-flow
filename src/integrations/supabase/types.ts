@@ -42,6 +42,47 @@ export type Database = {
         }
         Relationships: []
       }
+      business_categories: {
+        Row: {
+          business_id: string
+          created_at: string
+          description: string | null
+          id: string
+          monthly_sales: number | null
+          name: string
+          total_sales: number | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          monthly_sales?: number | null
+          name: string
+          total_sales?: number | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          monthly_sales?: number | null
+          name?: string
+          total_sales?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_categories_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_customers: {
         Row: {
           account_status: string

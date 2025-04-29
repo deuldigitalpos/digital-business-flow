@@ -72,12 +72,6 @@ export const sidebarNavigation: SidebarNavGroup[] = [
         permission: "locations",
       },
       {
-        title: "Categories",
-        href: "/business-dashboard/categories",
-        icon: Tags,
-        permission: "categories",
-      },
-      {
         title: "Taxes",
         href: "/business-dashboard/taxes",
         icon: DollarSign,
@@ -116,6 +110,12 @@ export const sidebarNavigation: SidebarNavGroup[] = [
         href: "/business-dashboard/products",
         icon: Package,
         permission: "products",
+      },
+      {
+        title: "Categories",
+        href: "/business-dashboard/categories",
+        icon: Tags,
+        permission: "categories",
       },
       {
         title: "Stock Management",
