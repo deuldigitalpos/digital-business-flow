@@ -27,6 +27,7 @@ import BusinessExpenses from "./pages/BusinessExpenses";
 import BusinessCustomers from "./pages/BusinessCustomers";
 import BusinessLeads from "./pages/BusinessLeads";
 import BusinessSuppliers from "./pages/BusinessSuppliers";
+import BusinessCategories from "./pages/BusinessCategories";
 import PermissionDenied from "./pages/PermissionDenied";
 
 // Layout
@@ -102,6 +103,11 @@ const App = () => (
                 <Route path="suppliers" element={
                   <PermissionGuard permission="suppliers">
                     <BusinessSuppliers />
+                  </PermissionGuard>
+                } />
+                <Route path="categories" element={
+                  <PermissionGuard permission="categories">
+                    <BusinessCategories />
                   </PermissionGuard>
                 } />
                 <Route path="permission-denied" element={<PermissionDenied />} />

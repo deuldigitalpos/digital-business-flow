@@ -16,7 +16,8 @@ import {
   UserPlus, 
   ShoppingCart,
   DollarSign,
-  Landmark
+  Landmark,
+  Tags
 } from "lucide-react";
 
 export interface SidebarNavItem {
@@ -73,7 +74,7 @@ export const sidebarNavigation: SidebarNavGroup[] = [
       {
         title: "Categories",
         href: "/business-dashboard/categories",
-        icon: ClipboardList,
+        icon: Tags,
         permission: "categories",
       },
       {
