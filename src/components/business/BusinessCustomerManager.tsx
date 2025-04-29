@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -152,7 +153,7 @@ const BusinessCustomerManager: React.FC<BusinessCustomerManagerProps> = ({ busin
         />
       </div>
 
-      {/* Add Customer Dialog - Now available to all users who can access this page */}
+      {/* Add Customer Dialog - Available to all users who can access this page */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>

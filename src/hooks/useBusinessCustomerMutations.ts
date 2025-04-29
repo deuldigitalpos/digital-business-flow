@@ -24,14 +24,7 @@ export const useBusinessCustomerMutations = () => {
         console.log("Setting business_id from context:", data.business_id);
       }
 
-      // Extract the lead_source_id if it exists
-      let leadSourceId = null;
-      if (data.lead_source_id) {
-        leadSourceId = data.lead_source_id;
-        delete data.lead_source_id; // Remove from main data before insert
-      }
-
-      // Create customer data
+      // Create customer data without extracting lead_source_id
       const customerData = {
         ...data
       };
@@ -39,7 +32,7 @@ export const useBusinessCustomerMutations = () => {
       try {
         console.log("Inserting customer with data:", customerData);
         
-        // Use the authenticated client with explicit RLS bypass if needed
+        // Use the authenticated client for the insert operation
         const { data: customer, error } = await supabase
           .from('business_customers')
           .insert([customerData])
@@ -76,7 +69,7 @@ export const useBusinessCustomerMutations = () => {
       } else if (error.message?.includes('duplicate key')) {
         errorMessage = 'A customer with this information already exists';
       } else if (error.message?.includes('row-level security policy')) {
-        errorMessage = 'You don\'t have permission to create customers in this business';
+        errorMessage = 'There was a permission error. Please refresh and try again.';
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`;
       }

@@ -51,15 +51,13 @@ const formSchema = z.object({
 
 const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess }) => {
   const { createCustomer } = useBusinessCustomerMutations();
-  const { businessUser, hasPermission, isDefaultUser } = useBusinessAuth();
+  const { businessUser } = useBusinessAuth();
   const { useBusinessLeads } = useBusinessLeadsMutations();
   
   console.log("AddCustomerForm - businessId:", businessId);
   console.log("AddCustomerForm - businessUser:", businessUser);
-  console.log("AddCustomerForm - hasCustomersPermission:", hasPermission('customers'));
-  console.log("AddCustomerForm - isDefaultUser:", isDefaultUser);
   
-  // Fetch lead sources for this business
+  // Fetch lead sources for this business - keep this as optional
   const { data: leads, isLoading: leadsLoading } = useBusinessLeads(businessId);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -75,7 +73,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       mobile_number: null,
       address: null,
       account_status: 'active',
-      lead_id: 'none', // Set a default value to avoid null issues
+      lead_id: null, // Default to null to make it optional
     },
   });
 
@@ -97,25 +95,20 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         values.business_id = businessUser.business_id;
       }
       
-      // Extract the lead_id from the form values
-      const { lead_id, ...customerData } = values;
-
-      // Create a customer with is_lead=false and the selected lead source if not "none"
+      // Create the customer input - lead source is now optional
       const customerInput: CustomerCreateInput = {
         business_id: values.business_id, // Explicitly set business_id as required
-        first_name: values.first_name, // Ensure first_name is explicitly provided
-        last_name: values.last_name, // Ensure last_name is explicitly provided
-        account_status: values.account_status, // Ensure account_status is explicitly provided
+        first_name: values.first_name, 
+        last_name: values.last_name, 
+        account_status: values.account_status,
         is_lead: false,
         // Optional fields
-        business_name: customerData.business_name,
-        email: customerData.email,
-        tin_number: customerData.tin_number,
-        credit_limit: customerData.credit_limit,
-        mobile_number: customerData.mobile_number,
-        address: customerData.address,
-        // Lead source - only include if not null and not "none"
-        lead_source_id: (lead_id && lead_id !== "none") ? lead_id : null
+        business_name: values.business_name,
+        email: values.email,
+        tin_number: values.tin_number,
+        credit_limit: values.credit_limit,
+        mobile_number: values.mobile_number,
+        address: values.address,
       };
       
       const result = await createCustomer.mutateAsync(customerInput);
@@ -131,25 +124,24 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Lead Source Selection Option */}
+        {/* Lead Source Selection - Now clearly optional */}
         <FormField
           control={form.control}
           name="lead_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Lead Source</FormLabel>
+              <FormLabel>Lead Source (Optional)</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                value={field.value || "none"}
-                defaultValue="none"
+                value={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a lead source" />
+                    <SelectValue placeholder="Select a lead source (optional)" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="">None</SelectItem>
                   {leads && leads.length > 0 ? (
                     leads.map(lead => (
                       <SelectItem key={lead.id} value={lead.id}>
@@ -168,7 +160,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
                 </SelectContent>
               </Select>
               <FormDescription>
-                Select where this customer came from
+                Optional: Select where this customer came from
               </FormDescription>
             </FormItem>
           )}
