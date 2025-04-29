@@ -86,10 +86,19 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
 
       // Create a customer with is_lead=false and the selected lead source
       const customerInput: CustomerCreateInput = {
-        ...customerData,
         business_id: businessId, // Explicitly set business_id as required
+        first_name: values.first_name, // Ensure first_name is explicitly provided
+        last_name: values.last_name, // Ensure last_name is explicitly provided
+        account_status: values.account_status, // Ensure account_status is explicitly provided
         is_lead: false,
-        // Store the lead ID in custom fields
+        // Optional fields
+        business_name: customerData.business_name,
+        email: customerData.email,
+        tin_number: customerData.tin_number,
+        credit_limit: customerData.credit_limit,
+        mobile_number: customerData.mobile_number,
+        address: customerData.address,
+        // Lead source
         lead_source_id: lead_id || null
       };
       
