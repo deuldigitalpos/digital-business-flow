@@ -18,7 +18,7 @@ export interface BusinessCustomer {
   total_sell_return_due: number | null;
   account_status: string;
   is_lead: boolean | null;
-  lead_source_id: string | null; // Added lead_source_id field
+  lead_source_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -29,7 +29,7 @@ export type CustomerCreateInput = {
   last_name: string;
   account_status: string;
   is_lead?: boolean | null;
-  lead_source_id?: string | null; // Added lead_source_id field
+  lead_source_id?: string | null;
   // Make these fields optional
   business_name?: string | null;
   email?: string | null;

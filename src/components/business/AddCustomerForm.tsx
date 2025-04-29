@@ -77,7 +77,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       address: null,
       account_status: 'active',
       is_lead: false,
-      lead_source_id: null,
+      lead_source_id: "null",
     },
   });
 
@@ -92,7 +92,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   // Update is_lead when lead_source_id changes
   useEffect(() => {
     const leadSourceId = form.watch('lead_source_id');
-    if (leadSourceId) {
+    if (leadSourceId && leadSourceId !== "null") {
       form.setValue('is_lead', true);
     } else {
       form.setValue('is_lead', false);
@@ -116,8 +116,6 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         first_name: values.first_name, 
         last_name: values.last_name, 
         account_status: values.account_status,
-        is_lead: values.lead_source_id ? true : false,
-        lead_source_id: values.lead_source_id,
         // Optional fields
         business_name: values.business_name,
         email: values.email,
@@ -125,6 +123,8 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         credit_limit: values.credit_limit,
         mobile_number: values.mobile_number,
         address: values.address,
+        is_lead: values.lead_source_id !== "null",
+        lead_source_id: values.lead_source_id === "null" ? null : values.lead_source_id,
       };
       
       const result = await createCustomer.mutateAsync(customerInput);

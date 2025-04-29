@@ -25,16 +25,17 @@ export const useBusinessCustomerMutations = () => {
         console.log("Setting business_id from context:", data.business_id);
       }
 
-      // Process lead_source_id
-      if (data.lead_source_id === "null") {
-        data.lead_source_id = null;
-        data.is_lead = false;
-      } else if (data.lead_source_id) {
-        data.is_lead = true;
-      }
-
       // Clean up the data before sending to Supabase
       const customerData = { ...data };
+      
+      // Remove lead_source_id from the data to send to Supabase
+      // We'll handle lead status separately
+      if (customerData.lead_source_id === "null") {
+        delete customerData.lead_source_id;
+        customerData.is_lead = false;
+      } else if (customerData.lead_source_id) {
+        customerData.is_lead = true;
+      }
       
       try {
         console.log("Inserting customer with data:", customerData);
@@ -77,6 +78,8 @@ export const useBusinessCustomerMutations = () => {
         errorMessage = 'A customer with this information already exists';
       } else if (error.message?.includes('row-level security policy')) {
         errorMessage = 'Permission error. Please refresh and try again.';
+      } else if (error.message?.includes('lead_source_id')) {
+        errorMessage = 'There was an issue with the lead source. Please contact your administrator.';
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`;
       }
@@ -87,9 +90,21 @@ export const useBusinessCustomerMutations = () => {
 
   const updateCustomer = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: CustomerUpdateInput }) => {
+      // Clean up the data before sending to Supabase
+      const customerData = { ...data };
+      
+      // Remove lead_source_id from the data to send to Supabase
+      // We'll handle lead status separately
+      if (customerData.lead_source_id === "null") {
+        delete customerData.lead_source_id;
+        customerData.is_lead = false;
+      } else if (customerData.lead_source_id) {
+        customerData.is_lead = true;
+      }
+      
       const { data: customer, error } = await supabase
         .from('business_customers')
-        .update(data)
+        .update(customerData)
         .eq('id', id)
         .select('*')
         .single();

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -69,7 +68,7 @@ const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onSuccess
       address: customer.address,
       account_status: customer.account_status,
       is_lead: customer.is_lead || false,
-      lead_source_id: customer.lead_source_id
+      lead_source_id: customer.is_lead ? (customer.lead_source_id || null) : "null"
     },
   });
 
@@ -86,7 +85,7 @@ const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onSuccess
       address: customer.address,
       account_status: customer.account_status,
       is_lead: customer.is_lead || false,
-      lead_source_id: customer.lead_source_id
+      lead_source_id: customer.is_lead ? (customer.lead_source_id || null) : "null"
     });
   }, [customer, form]);
 
@@ -103,16 +102,15 @@ const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onSuccess
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       // Process lead_source_id
-      if (values.lead_source_id === "null") {
-        values.lead_source_id = null;
-        values.is_lead = false;
-      } else if (values.lead_source_id) {
-        values.is_lead = true;
-      }
+      const customerData: CustomerUpdateInput = {
+        ...values,
+        is_lead: values.lead_source_id !== "null",
+        lead_source_id: values.lead_source_id === "null" ? null : values.lead_source_id,
+      };
       
       await updateCustomer.mutateAsync({
         id: customer.id,
-        data: values as CustomerUpdateInput
+        data: customerData
       });
       onSuccess();
     } catch (error) {
