@@ -78,7 +78,7 @@ const BusinessSidebar = () => {
           </nav>
         </ScrollArea>
 
-        <div className="mt-auto p-4 border-t border-white/10">
+        <div className="mt-auto p-4 border-t border-white/10 bg-[#072536]">
           <Button variant="ghost" className={cn("w-full justify-start text-white hover:bg-[#f99b23] hover:text-[#1A1F2C]", !isSidebarOpen && "md:justify-center")} onClick={logout}>
             <LogOut className="h-5 w-5 mr-2" />
             <span className={cn(!isSidebarOpen && "md:hidden")}>Logout</span>
