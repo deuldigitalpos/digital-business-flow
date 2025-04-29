@@ -34,7 +34,7 @@ export const useBusinessSupplierMutations = () => {
         const { data: supplier, error } = await supabase
           .rpc('create_business_supplier', {
             supplier_data: supplierData
-          });
+          }) as { data: BusinessSupplier | null, error: any };
 
         if (error) {
           console.error("Error from Supabase:", error);
@@ -85,7 +85,7 @@ export const useBusinessSupplierMutations = () => {
             ...data,
             business_id: businessUser.business_id // Ensure business_id stays correct
           }
-        });
+        }) as { data: BusinessSupplier | null, error: any };
 
       if (error) {
         console.error("Error updating supplier:", error);
@@ -124,7 +124,7 @@ export const useBusinessSupplierMutations = () => {
         .rpc('delete_business_supplier', {
           supplier_id: id,
           business_id: businessUser.business_id
-        });
+        }) as { data: any, error: any };
 
       if (error) throw error;
       return id;
@@ -163,7 +163,7 @@ export const useBusinessSupplierMutations = () => {
           supplier_id: id,
           business_id: businessUser.business_id,
           status: status
-        });
+        }) as { data: BusinessSupplier | null, error: any };
 
       if (error) throw error;
       return supplier as BusinessSupplier;

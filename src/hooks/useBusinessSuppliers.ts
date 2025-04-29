@@ -17,7 +17,7 @@ export const useBusinessSuppliers = () => {
       const { data, error } = await supabase
         .rpc('get_business_suppliers', {
           business_id_param: businessUser.business_id
-        });
+        }) as { data: BusinessSupplier[] | null, error: any };
       
       if (error) {
         console.error("Error fetching suppliers:", error);
