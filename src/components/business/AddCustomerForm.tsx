@@ -84,7 +84,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       // Extract the lead_id from the form values
       const { lead_id, ...customerData } = values;
 
-      // Create a customer with is_lead=false and the selected lead source
+      // Create a customer with is_lead=false and the selected lead source if not "none"
       const customerInput: CustomerCreateInput = {
         business_id: businessId, // Explicitly set business_id as required
         first_name: values.first_name, // Ensure first_name is explicitly provided
@@ -98,8 +98,8 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         credit_limit: customerData.credit_limit,
         mobile_number: customerData.mobile_number,
         address: customerData.address,
-        // Lead source
-        lead_source_id: lead_id || null
+        // Lead source - only include if not "none"
+        lead_source_id: (lead_id && lead_id !== "none") ? lead_id : null
       };
       
       const result = await createCustomer.mutateAsync(customerInput);
@@ -132,7 +132,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {leads && leads.length > 0 ? (
                     leads.map(lead => (
                       <SelectItem key={lead.id} value={lead.id}>
