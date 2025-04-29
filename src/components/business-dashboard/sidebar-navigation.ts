@@ -171,3 +171,9 @@ export const sidebarNavigation: SidebarNavGroup[] = [
     ],
   },
 ];
+
+// Export this for use in BusinessSidebar.tsx
+export const sidebarNavItems = sidebarNavigation.flatMap(group => group.items);
+
+// Re-export the SidebarNavItem type from the types file
+export type { SidebarNavItem } from '@/types/sidebar';

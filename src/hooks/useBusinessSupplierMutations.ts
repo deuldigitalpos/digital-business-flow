@@ -31,12 +31,9 @@ export const useBusinessSupplierMutations = () => {
       try {
         console.log("Inserting supplier with data:", supplierData);
         
-        // Insert the supplier record
+        // Use RPC function as a workaround for missing table
         const { data: supplier, error } = await supabase
-          .from('business_suppliers')
-          .insert([supplierData])
-          .select('*')
-          .single();
+          .rpc('create_business_supplier', supplierData);
 
         if (error) {
           console.error("Error from Supabase:", error);
@@ -80,16 +77,15 @@ export const useBusinessSupplierMutations = () => {
         throw new Error("Authentication required");
       }
       
+      // Use RPC function as a workaround for missing table
       const { data: supplier, error } = await supabase
-        .from('business_suppliers')
-        .update({
-          ...data,
-          business_id: businessUser.business_id // Ensure business_id stays correct
-        })
-        .eq('id', id)
-        .eq('business_id', businessUser.business_id) // Add this line to ensure we only update suppliers from our business
-        .select('*')
-        .single();
+        .rpc('update_business_supplier', {
+          supplier_id: id,
+          supplier_data: {
+            ...data,
+            business_id: businessUser.business_id // Ensure business_id stays correct
+          }
+        });
 
       if (error) {
         console.error("Error updating supplier:", error);
@@ -124,11 +120,12 @@ export const useBusinessSupplierMutations = () => {
         throw new Error("Authentication required");
       }
       
+      // Use RPC function as a workaround for missing table
       const { error } = await supabase
-        .from('business_suppliers')
-        .delete()
-        .eq('id', id)
-        .eq('business_id', businessUser.business_id); // Add this line to ensure we only delete suppliers from our business
+        .rpc('delete_business_supplier', {
+          supplier_id: id,
+          business_id: businessUser.business_id
+        });
 
       if (error) throw error;
       return id;
@@ -162,13 +159,13 @@ export const useBusinessSupplierMutations = () => {
       
       const status = isActive ? 'active' : 'inactive';
       
+      // Use RPC function as a workaround for missing table
       const { data: supplier, error } = await supabase
-        .from('business_suppliers')
-        .update({ account_status: status })
-        .eq('id', id)
-        .eq('business_id', businessUser.business_id) // Add this line to ensure we only update suppliers from our business
-        .select('*')
-        .single();
+        .rpc('update_business_supplier_status', {
+          supplier_id: id,
+          business_id: businessUser.business_id,
+          status: status
+        });
 
       if (error) throw error;
       return supplier as BusinessSupplier;

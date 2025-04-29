@@ -14,18 +14,18 @@ export const useBusinessSuppliers = () => {
         throw new Error("Authentication required");
       }
       
+      // Use a direct SQL query as a workaround for the missing table
       const { data, error } = await supabase
-        .from('business_suppliers')
-        .select('*')
-        .eq('business_id', businessUser.business_id)
-        .order('created_at', { ascending: false });
+        .rpc('get_business_suppliers', {
+          business_id_param: businessUser.business_id
+        });
       
       if (error) {
         console.error("Error fetching suppliers:", error);
         throw error;
       }
       
-      return data as BusinessSupplier[];
+      return (data || []) as BusinessSupplier[];
     },
     enabled: !!businessUser?.business_id
   });

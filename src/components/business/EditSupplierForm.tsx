@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -53,7 +52,7 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
 }) => {
   const { updateSupplier } = useBusinessSupplierMutations();
 
-  // Initialize the form with supplier data
+  // Initialize the form with supplier data - convert numbers to strings for form fields
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,7 +61,7 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
       business_name: supplier.business_name,
       email: supplier.email,
       tin_number: supplier.tin_number,
-      credit_limit: supplier.credit_limit?.toString() || null,
+      credit_limit: supplier.credit_limit !== null ? supplier.credit_limit.toString() : null,
       address: supplier.address,
       mobile_number: supplier.mobile_number,
       account_status: supplier.account_status,
@@ -77,7 +76,7 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
       business_name: supplier.business_name,
       email: supplier.email,
       tin_number: supplier.tin_number,
-      credit_limit: supplier.credit_limit?.toString() || null,
+      credit_limit: supplier.credit_limit !== null ? supplier.credit_limit.toString() : null,
       address: supplier.address,
       mobile_number: supplier.mobile_number,
       account_status: supplier.account_status,
