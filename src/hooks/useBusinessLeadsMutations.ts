@@ -27,25 +27,14 @@ export const useBusinessLeadsMutations = () => {
       // Check if we already have a session
       const { data: authData } = await supabase.auth.getSession();
       
-      if (!authData.session) {
-        // No session, try to authenticate with business credentials
-        if (businessUser?.username && businessUser?.password) {
-          console.log("Attempting to authenticate with business credentials");
-          const { error } = await supabase.auth.signInWithPassword({
-            email: `${businessUser.username}@temporary.com`,
-            password: businessUser.password,
-          });
-          
-          if (error) {
-            console.error("Authentication failed:", error);
-            throw new Error("Authentication required to manage leads");
-          }
-          console.log("Authentication successful");
-        } else {
-          throw new Error("Authentication required to manage leads");
-        }
+      // For business users, we don't rely on Supabase auth directly
+      // Instead, we check if we have a valid business user in context
+      if (!businessUser) {
+        console.error("No business user found in context");
+        throw new Error("Authentication required to manage leads");
       }
       
+      console.log("Business user authenticated:", businessUser.id);
       return true;
     } catch (error) {
       console.error("Authentication error:", error);
@@ -137,18 +126,33 @@ export const useBusinessLeadsMutations = () => {
       queryFn: async () => {
         if (!businessId) return [];
         
-        await ensureAuthentication();
-        
-        const { data, error } = await supabase
-          .from('business_leads')
-          .select('*')
-          .eq('business_id', businessId)
-          .order('created_at', { ascending: false });
+        try {
+          // We don't need to call ensureAuthentication() here
+          // as we're relying on Row Level Security in Supabase
           
-        if (error) throw error;
-        return data as BusinessLead[];
+          console.log("Fetching leads for business ID:", businessId);
+          
+          const { data, error } = await supabase
+            .from('business_leads')
+            .select('*')
+            .eq('business_id', businessId)
+            .order('created_at', { ascending: false });
+            
+          if (error) {
+            console.error("Error fetching leads:", error);
+            throw error;
+          }
+          
+          console.log("Fetched leads successfully:", data?.length);
+          return data as BusinessLead[];
+        } catch (error) {
+          console.error("Error in useBusinessLeads:", error);
+          throw error;
+        }
       },
-      enabled: !!businessId && !!businessUser
+      enabled: !!businessId && !!businessUser,
+      retry: 1,
+      retryDelay: 1000
     });
   };
 

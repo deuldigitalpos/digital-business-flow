@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { Loader2, ShieldAlert, UserPlus, Search, Trash2, Edit, Check } from 'lucide-react';
+import { Loader2, ShieldAlert, UserPlus, Search, Trash2, Edit, RefreshCw } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,9 +12,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useBusinessLeadsMutations, BusinessLead } from '@/hooks/useBusinessLeadsMutations';
 import { format } from 'date-fns';
 
@@ -26,10 +25,10 @@ const BusinessLeads = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newLeadName, setNewLeadName] = useState('');
   const [selectedLead, setSelectedLead] = useState<BusinessLead | null>(null);
-  const { toast } = useToast();
   
   // Simple error boundary state
   const [hasError, setHasError] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   
   // Reset error state on mount
   useEffect(() => {
@@ -40,7 +39,27 @@ const BusinessLeads = () => {
   const { createLead, updateLead, deleteLead, useBusinessLeads } = useBusinessLeadsMutations();
   
   // Fetch leads
-  const { data: leads, isLoading: isLeadsLoading, error } = useBusinessLeads(business?.id);
+  const { 
+    data: leads, 
+    isLoading: isLeadsLoading, 
+    error,
+    refetch 
+  } = useBusinessLeads(business?.id);
+
+  // Function to handle retry
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      await refetch();
+      setHasError(false); // Reset error state if refetch succeeds
+    } catch (e) {
+      console.error("Error during retry:", e);
+      setHasError(true);
+      toast.error("Failed to reload leads. Please try again later.");
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
   // Filter leads based on search query
   const filteredLeads = React.useMemo(() => {
@@ -122,11 +141,7 @@ const BusinessLeads = () => {
   // Function to handle adding a new lead
   const handleAddLead = async () => {
     if (!newLeadName.trim() || !business?.id) {
-      toast({
-        title: "Error",
-        description: "Please enter a name for the lead source",
-        variant: "destructive"
-      });
+      toast.error("Please enter a name for the lead source");
       return;
     }
 
@@ -146,11 +161,7 @@ const BusinessLeads = () => {
   // Function to handle updating a lead
   const handleEditLead = async () => {
     if (!selectedLead || !newLeadName.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a name for the lead",
-        variant: "destructive"
-      });
+      toast.error("Please enter a name for the lead");
       return;
     }
 
@@ -195,18 +206,34 @@ const BusinessLeads = () => {
     );
   }
 
+  // If there's an error, show a specific error message with retry option
   if (error) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-red-500 font-medium">Error loading leads:</div>
-          <div className="mt-2">{error.message}</div>
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle>Error loading leads:</AlertTitle>
+            <AlertDescription>
+              Authentication failed. Please try again.
+            </AlertDescription>
+          </Alert>
           <Button 
-            onClick={() => window.location.reload()} 
+            onClick={handleRetry} 
             className="mt-4"
-            variant="outline"
+            variant="default"
+            disabled={isRetrying}
           >
-            Try Again
+            {isRetrying ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Retrying...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
