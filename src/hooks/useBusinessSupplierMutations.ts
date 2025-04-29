@@ -18,8 +18,7 @@ export const useBusinessSupplierMutations = () => {
       }
 
       console.log("Creating supplier with data:", data);
-      console.log("Current business user:", businessUser);
-
+      
       // Always use the business_id from the authenticated user's context
       const supplierData = { 
         ...data,
@@ -29,8 +28,6 @@ export const useBusinessSupplierMutations = () => {
       console.log("Using business_id from authenticated user:", supplierData.business_id);
       
       try {
-        console.log("Inserting supplier with data:", supplierData);
-        
         // Insert the supplier record
         const { data: supplier, error } = await supabase
           .from('business_suppliers')
