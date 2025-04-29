@@ -25,7 +25,8 @@ import {
   Calendar, 
   Clock, 
   Settings,
-  Building
+  Building,
+  UserPlus
 } from 'lucide-react';
 
 export type SidebarNavItem = {
@@ -76,6 +77,12 @@ export const sidebarNavItems: SidebarNavItem[] = [
         title: "Customers",
         icon: UserCircle,
         href: "/business-dashboard/customers",
+        permission: "customers"
+      },
+      {
+        title: "Leads",
+        icon: UserPlus,
+        href: "/business-dashboard/leads",
         permission: "customers"
       },
       {

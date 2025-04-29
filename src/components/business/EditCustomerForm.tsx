@@ -21,8 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { BusinessCustomer, CustomerUpdateInput, AccountStatusOptions } from '@/types/business-customer';
+import { BusinessCustomer, CustomerUpdateInput, AccountStatusOptions, LeadOptions } from '@/types/business-customer';
 import { useBusinessCustomerMutations } from '@/hooks/useBusinessCustomerMutations';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
@@ -284,16 +283,26 @@ const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onSuccess
             control={form.control}
             name="is_lead"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 space-y-0 mt-8">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value || false}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="text-sm font-normal">
-                  This customer is a lead
-                </FormLabel>
+              <FormItem>
+                <FormLabel>Lead Status</FormLabel>
+                <Select 
+                  onValueChange={(value) => field.onChange(value === "true")} 
+                  defaultValue={field.value ? "true" : "false"}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select lead status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {LeadOptions.map(option => (
+                      <SelectItem key={option.label} value={String(option.value)}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
               </FormItem>
             )}
           />

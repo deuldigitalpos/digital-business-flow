@@ -46,3 +46,8 @@ export const AccountStatusOptions = [
   'suspended',
   'blocked'
 ];
+
+export const LeadOptions = [
+  { value: true, label: 'Yes' },
+  { value: false, label: 'No' }
+];
