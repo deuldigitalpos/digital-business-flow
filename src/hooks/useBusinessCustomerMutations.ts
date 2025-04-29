@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -16,6 +17,13 @@ export const useBusinessCustomerMutations = () => {
       }
 
       console.log("Creating customer/lead with data:", data);
+      console.log("Current business user:", businessUser);
+
+      // Ensure business_id is set correctly
+      if (!data.business_id) {
+        data.business_id = businessUser.business_id;
+        console.log("Setting business_id from context:", data.business_id);
+      }
 
       // Extract the lead_source_id if it exists
       let leadSourceId = null;
@@ -24,13 +32,15 @@ export const useBusinessCustomerMutations = () => {
         delete data.lead_source_id; // Remove from main data before insert
       }
 
-      // Create customer data without custom_data field
+      // Create customer data
       const customerData = {
         ...data
       };
 
       try {
-        // We need to use the authenticated client
+        console.log("Inserting customer with data:", customerData);
+        
+        // Use the authenticated client with explicit RLS bypass if needed
         const { data: customer, error } = await supabase
           .from('business_customers')
           .insert([customerData])

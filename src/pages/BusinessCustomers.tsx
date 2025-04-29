@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import BusinessCustomerManager from '@/components/business/BusinessCustomerManager';
 
 const BusinessCustomers = () => {
-  const { business, isLoading, hasPermission } = useBusinessAuth();
+  const { business, isLoading, hasPermission, isDefaultUser } = useBusinessAuth();
   
   // Simple error boundary state
   const [hasError, setHasError] = React.useState(false);
@@ -48,7 +48,7 @@ const BusinessCustomers = () => {
   }
   
   // Check for view permission but still show the page with limited content
-  const canViewCustomers = hasPermission('customers');
+  const canViewCustomers = isDefaultUser || hasPermission('customers');
   
   if (!canViewCustomers) {
     return (

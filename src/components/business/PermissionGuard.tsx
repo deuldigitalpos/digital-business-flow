@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
@@ -18,7 +19,7 @@ const PermissionGuard: React.FC<PermissionGuardProps> = ({
   children,
   fallback
 }) => {
-  const { hasPermission, isAuthenticated, isLoading } = useBusinessAuth();
+  const { hasPermission, isAuthenticated, isLoading, isDefaultUser } = useBusinessAuth();
 
   // While loading, show nothing to prevent flash of content
   if (isLoading) {
@@ -30,8 +31,9 @@ const PermissionGuard: React.FC<PermissionGuardProps> = ({
     return <Navigate to="/business-login" replace />;
   }
 
-  // If user has permission, show the children
-  if (hasPermission(permission)) {
+  // If user is default user or has permission, show the children
+  // Make sure we explicitly check isDefaultUser to handle the case
+  if (isDefaultUser || hasPermission(permission)) {
     return <>{children}</>;
   }
 

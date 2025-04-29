@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,6 +55,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   const { useBusinessLeads } = useBusinessLeadsMutations();
   
   console.log("AddCustomerForm - businessId:", businessId);
+  console.log("AddCustomerForm - businessUser:", businessUser);
   
   // Fetch lead sources for this business
   const { data: leads, isLoading: leadsLoading } = useBusinessLeads(businessId);
@@ -125,6 +125,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
               <Select 
                 onValueChange={field.onChange} 
                 value={field.value || "none"}
+                defaultValue="none"
               >
                 <FormControl>
                   <SelectTrigger>
