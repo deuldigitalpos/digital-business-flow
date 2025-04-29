@@ -12,7 +12,7 @@ import SidebarCollapsibleSection from './SidebarCollapsibleSection';
 
 const BusinessSidebar = () => {
   const { isSidebarOpen, toggleSidebar, closeSidebar } = useSidebar();
-  const { businessUser, logout } = useBusinessAuth();
+  const { businessUser, logout, hasPermission } = useBusinessAuth();
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
 
   const toggleSection = (section: string) => {
@@ -21,6 +21,23 @@ const BusinessSidebar = () => {
       [section]: !prev[section]
     }));
   };
+
+  // Filter top-level sidebar items based on permissions
+  const visibleNavItems = sidebarNavItems.filter(item => {
+    if (item.permission && !hasPermission(item.permission)) {
+      return false;
+    }
+    
+    // For items with children, include if at least one child is accessible
+    if (item.children) {
+      const hasVisibleChildren = item.children.some(child => 
+        !child.permission || hasPermission(child.permission)
+      );
+      return hasVisibleChildren;
+    }
+    
+    return true;
+  });
 
   return (
     <>
@@ -64,7 +81,7 @@ const BusinessSidebar = () => {
         
         <ScrollArea className="flex-1 py-4">
           <nav className="grid gap-1 px-2">
-            {sidebarNavItems.map((item) => (
+            {visibleNavItems.map((item) => (
               item.children ? (
                 <SidebarCollapsibleSection
                   key={item.title}
@@ -80,6 +97,7 @@ const BusinessSidebar = () => {
                   href={item.href || "#"}
                   icon={item.icon}
                   title={item.title}
+                  permission={item.permission}
                   onClick={closeSidebar}
                   isSidebarOpen={isSidebarOpen}
                 />

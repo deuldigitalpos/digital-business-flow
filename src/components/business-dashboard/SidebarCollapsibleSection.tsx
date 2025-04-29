@@ -10,6 +10,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { SidebarNavItem } from './sidebar-navigation';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 interface SidebarCollapsibleSectionProps {
   item: SidebarNavItem;
@@ -26,6 +27,20 @@ const SidebarCollapsibleSection: React.FC<SidebarCollapsibleSectionProps> = ({
   isSidebarOpen,
   onNavClick
 }) => {
+  const { hasPermission } = useBusinessAuth();
+  
+  // Filter child items based on permissions
+  const visibleChildren = item.children?.filter(child => {
+    // Extract permission string from href if it exists
+    const permission = child.permission || child.href?.split('/').pop();
+    return !permission || hasPermission(permission);
+  });
+  
+  // Don't render the section at all if there are no visible children
+  if (visibleChildren && visibleChildren.length === 0) {
+    return null;
+  }
+  
   return (
     <Collapsible 
       open={isOpen}
@@ -61,7 +76,7 @@ const SidebarCollapsibleSection: React.FC<SidebarCollapsibleSectionProps> = ({
       </CollapsibleTrigger>
       <CollapsibleContent className={cn(!isSidebarOpen && "md:hidden")}>
         <div className="ml-6 mt-1 flex flex-col gap-1 border-l-2 border-primary-foreground/10 pl-2">
-          {item.children?.map((child) => (
+          {visibleChildren?.map((child) => (
             <NavLink
               key={child.href}
               to={child.href || "#"}

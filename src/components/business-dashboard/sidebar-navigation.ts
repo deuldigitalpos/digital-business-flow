@@ -1,4 +1,3 @@
-
 import { 
   LayoutDashboard,
   Users, 
@@ -32,6 +31,7 @@ export type SidebarNavItem = {
   title: string;
   icon: React.ElementType;
   href?: string;
+  permission?: string;
   children?: SidebarNavItem[];
 };
 
@@ -40,40 +40,48 @@ export const sidebarNavItems: SidebarNavItem[] = [
     title: "Dashboard",
     icon: LayoutDashboard,
     href: "/business-dashboard",
+    permission: "dashboard"
   },
   {
     title: "User Management",
     icon: Users,
+    permission: "user_management",
     children: [
       {
         title: "Users",
         icon: UserCircle2,
         href: "/business-dashboard/users",
+        permission: "users"
       },
       {
         title: "Roles",
         icon: UserCircle2,
         href: "/business-dashboard/roles",
+        permission: "roles"
       },
       {
         title: "Locations",
         icon: Building,
         href: "/business-dashboard/locations",
+        permission: "locations"
       },
       {
         title: "Contacts",
         icon: UserCircle,
         href: "/business-dashboard/contacts",
+        permission: "contacts"
       },
       {
         title: "Customers",
         icon: UserCircle,
         href: "/business-dashboard/customers",
+        permission: "customers"
       },
       {
         title: "Suppliers",
         icon: Truck,
         href: "/business-dashboard/suppliers",
+        permission: "suppliers"
       },
     ],
   },
