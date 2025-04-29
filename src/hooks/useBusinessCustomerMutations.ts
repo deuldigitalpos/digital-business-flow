@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -22,6 +23,14 @@ export const useBusinessCustomerMutations = () => {
       if (!data.business_id) {
         data.business_id = businessUser.business_id;
         console.log("Setting business_id from context:", data.business_id);
+      }
+
+      // Process lead_source_id
+      if (data.lead_source_id === "null") {
+        data.lead_source_id = null;
+        data.is_lead = false;
+      } else if (data.lead_source_id) {
+        data.is_lead = true;
       }
 
       // Clean up the data before sending to Supabase

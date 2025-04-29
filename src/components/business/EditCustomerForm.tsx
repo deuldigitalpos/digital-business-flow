@@ -25,6 +25,7 @@ import { BusinessCustomer, CustomerUpdateInput, AccountStatusOptions, LeadOption
 import { useBusinessCustomerMutations } from '@/hooks/useBusinessCustomerMutations';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { useBusinessLeadsMutations } from '@/hooks/useBusinessLeadsMutations';
 
 interface EditCustomerFormProps {
   customer: BusinessCustomer;
@@ -45,10 +46,15 @@ const formSchema = z.object({
   address: z.string().nullable(),
   account_status: z.string(),
   is_lead: z.boolean().default(false),
+  lead_source_id: z.string().nullable(),
 });
 
 const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onSuccess }) => {
   const { updateCustomer } = useBusinessCustomerMutations();
+  const { useBusinessLeads } = useBusinessLeadsMutations();
+  
+  // Fetch lead sources
+  const { data: leadSources } = useBusinessLeads(customer.business_id);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -62,7 +68,8 @@ const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onSuccess
       mobile_number: customer.mobile_number,
       address: customer.address,
       account_status: customer.account_status,
-      is_lead: customer.is_lead || false
+      is_lead: customer.is_lead || false,
+      lead_source_id: customer.lead_source_id
     },
   });
 
@@ -78,12 +85,31 @@ const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onSuccess
       mobile_number: customer.mobile_number,
       address: customer.address,
       account_status: customer.account_status,
-      is_lead: customer.is_lead || false
+      is_lead: customer.is_lead || false,
+      lead_source_id: customer.lead_source_id
     });
   }, [customer, form]);
 
+  // Update is_lead when lead_source_id changes
+  useEffect(() => {
+    const leadSourceId = form.watch('lead_source_id');
+    if (leadSourceId && leadSourceId !== "null") {
+      form.setValue('is_lead', true);
+    } else {
+      form.setValue('is_lead', false);
+    }
+  }, [form.watch('lead_source_id')]);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      // Process lead_source_id
+      if (values.lead_source_id === "null") {
+        values.lead_source_id = null;
+        values.is_lead = false;
+      } else if (values.lead_source_id) {
+        values.is_lead = true;
+      }
+      
       await updateCustomer.mutateAsync({
         id: customer.id,
         data: values as CustomerUpdateInput
@@ -102,6 +128,38 @@ const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onSuccess
             <span className="font-medium">Customer ID:</span> {customer.customer_id}
           </div>
         )}
+        
+        {/* Lead Source */}
+        <FormField
+          control={form.control}
+          name="lead_source_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Lead Source</FormLabel>
+              <Select 
+                onValueChange={field.onChange}
+                value={field.value || "null"}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select lead source or none" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="null">Not a lead</SelectItem>
+                  {leadSources?.map((source) => (
+                    <SelectItem key={source.id} value={source.id}>
+                      {source.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Select a lead source if this is a lead, or "Not a lead" for regular customers
+              </FormDescription>
+            </FormItem>
+          )}
+        />
         
         <div className="grid gap-4 md:grid-cols-2">
           <FormField
@@ -254,59 +312,30 @@ const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onSuccess
           )}
         />
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="account_status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Account Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {AccountStatusOptions.map(status => (
-                      <SelectItem key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="is_lead"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Lead Status</FormLabel>
-                <Select 
-                  onValueChange={(value) => field.onChange(value === "true")} 
-                  defaultValue={field.value ? "true" : "false"}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select lead status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {LeadOptions.map(option => (
-                      <SelectItem key={option.label} value={String(option.value)}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="account_status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Account Status</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {AccountStatusOptions.map(status => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="flex justify-end gap-4 pt-4">
           <Button type="button" variant="outline" onClick={onSuccess}>
