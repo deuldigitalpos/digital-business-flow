@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,37 +56,53 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   const [selectedLead, setSelectedLead] = useState<string | null>(null);
   const { businessUser } = useBusinessAuth();
   
+  console.log("AddCustomerForm - businessId:", businessId);
+  
   // Fetch existing leads for this business
   const { data: leads, isLoading: leadsLoading } = useQuery({
     queryKey: ['business-leads', businessId],
     queryFn: async () => {
-      if (!businessId) return [];
-      
-      // Ensure authentication before fetching leads
-      const { data: authData } = await supabase.auth.getSession();
-      
-      if (!authData.session && businessUser?.username && businessUser?.password) {
-        await supabase.auth.signInWithPassword({
-          email: `${businessUser.username}@temporary.com`,
-          password: businessUser.password,
-        });
+      if (!businessId) {
+        console.log("No business ID provided");
+        return [];
       }
       
-      const { data, error } = await supabase
-        .from('business_customers')
-        .select('*')
-        .eq('business_id', businessId)
-        .eq('is_lead', true)
-        .order('created_at', { ascending: false });
+      try {
+        // Ensure authentication before fetching leads
+        if (businessUser?.username && businessUser?.password) {
+          console.log("Checking auth in AddCustomerForm");
+          const { data: authData } = await supabase.auth.getSession();
+          
+          if (!authData.session) {
+            console.log("No active session, authenticating in AddCustomerForm");
+            await supabase.auth.signInWithPassword({
+              email: `${businessUser.username}@temporary.com`,
+              password: businessUser.password,
+            });
+          }
+        }
         
-      if (error) {
-        console.error('Error fetching leads:', error);
-        throw new Error(error.message);
+        console.log("Fetching leads for dropdown");
+        const { data, error } = await supabase
+          .from('business_customers')
+          .select('*')
+          .eq('business_id', businessId)
+          .eq('is_lead', true)
+          .order('created_at', { ascending: false });
+          
+        if (error) {
+          console.error('Error fetching leads for dropdown:', error);
+          throw new Error(error.message);
+        }
+        
+        console.log("Leads fetched for dropdown:", data?.length);
+        return data as BusinessCustomer[];
+      } catch (error) {
+        console.error('Error in leads fetch for dropdown:', error);
+        throw error;
       }
-      
-      return data as BusinessCustomer[];
     },
-    enabled: !!businessId
+    enabled: !!businessId && !!businessUser
   });
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -110,8 +125,10 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   // When a lead is selected, populate the form with lead data
   useEffect(() => {
     if (selectedLead && leads) {
+      console.log("Lead selected:", selectedLead);
       const lead = leads.find(l => l.id === selectedLead);
       if (lead) {
+        console.log("Populating form with lead data:", lead);
         form.setValue('first_name', lead.first_name);
         form.setValue('last_name', lead.last_name);
         if (lead.business_name) form.setValue('business_name', lead.business_name);
@@ -128,12 +145,15 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await createCustomer.mutateAsync(values as CustomerCreateInput);
+      console.log("Submitting customer form:", values);
       
-      // If this was a conversion from lead, we should delete the original lead
+      const result = await createCustomer.mutateAsync(values as CustomerCreateInput);
+      console.log("Customer created:", result);
+      
+      // Handle lead conversion logic
       if (selectedLead) {
-        // We'll let the mutation handler in createCustomer take care of invalidating queries
-        console.log('Lead converted to customer:', selectedLead);
+        console.log("Lead converted to customer, original lead:", selectedLead);
+        // In a complete implementation, you would delete the original lead or mark it as converted
       }
       
       form.reset();
@@ -147,27 +167,35 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* Lead Selection Option */}
-        {leads && leads.length > 0 && (
-          <div className="bg-muted/30 p-4 rounded-md mb-6">
-            <h3 className="font-medium mb-2">Convert Lead to Customer</h3>
-            <Select onValueChange={(value) => setSelectedLead(value === "none" ? null : value)}>
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="Select a lead to convert..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">None (Create New Customer)</SelectItem>
-                {leads.map(lead => (
+        <div className="bg-muted/30 p-4 rounded-md mb-6">
+          <h3 className="font-medium mb-2">Convert Lead to Customer</h3>
+          <Select onValueChange={(value) => setSelectedLead(value === "none" ? null : value)}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Select a lead to convert..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None (Create New Customer)</SelectItem>
+              {leads && leads.length > 0 ? (
+                leads.map(lead => (
                   <SelectItem key={lead.id} value={lead.id}>
                     {lead.first_name} {lead.last_name}{lead.business_name ? ` (${lead.business_name})` : ''}
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-muted-foreground mt-2">
-              Converting a lead will automatically fill in their information
-            </p>
-          </div>
-        )}
+                ))
+              ) : leadsLoading ? (
+                <SelectItem value="loading" disabled>
+                  Loading leads...
+                </SelectItem>
+              ) : (
+                <SelectItem value="no-leads" disabled>
+                  No leads available
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-muted-foreground mt-2">
+            Converting a lead will automatically fill in their information
+          </p>
+        </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <FormField

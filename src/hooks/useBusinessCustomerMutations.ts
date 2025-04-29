@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -11,29 +10,34 @@ export const useBusinessCustomerMutations = () => {
 
   // Helper function to ensure authentication
   const ensureAuthentication = async () => {
-    // Check if we already have a session
-    const { data: authData } = await supabase.auth.getSession();
-    
-    if (!authData.session) {
-      // No session, try to authenticate with business credentials
-      if (businessUser?.username && businessUser?.password) {
-        console.log("Attempting to authenticate with business credentials");
-        const { error } = await supabase.auth.signInWithPassword({
-          email: `${businessUser.username}@temporary.com`,
-          password: businessUser.password,
-        });
-        
-        if (error) {
-          console.error("Authentication failed:", error);
+    try {
+      // Check if we already have a session
+      const { data: authData } = await supabase.auth.getSession();
+      
+      if (!authData.session) {
+        // No session, try to authenticate with business credentials
+        if (businessUser?.username && businessUser?.password) {
+          console.log("Attempting to authenticate with business credentials");
+          const { error } = await supabase.auth.signInWithPassword({
+            email: `${businessUser.username}@temporary.com`,
+            password: businessUser.password,
+          });
+          
+          if (error) {
+            console.error("Authentication failed:", error);
+            throw new Error("Authentication required to manage customers");
+          }
+          console.log("Authentication successful");
+        } else {
           throw new Error("Authentication required to manage customers");
         }
-        console.log("Authentication successful");
-      } else {
-        throw new Error("Authentication required to manage customers");
       }
+      
+      return true;
+    } catch (error) {
+      console.error("Authentication error:", error);
+      throw new Error("Authentication failed. Please try again.");
     }
-    
-    return true;
   };
 
   const createCustomer = useMutation({
@@ -41,24 +45,33 @@ export const useBusinessCustomerMutations = () => {
       // Ensure authentication before proceeding
       await ensureAuthentication();
 
+      console.log("Creating customer/lead with data:", data);
+
       const { data: customer, error } = await supabase
         .from('business_customers')
         .insert([data])
         .select('*')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error from Supabase:", error);
+        throw error;
+      }
+      
+      console.log("Created customer/lead successfully:", customer);
       return customer as BusinessCustomer;
     },
     onSuccess: (data) => {
+      // Invalidate both queries to ensure data is refreshed
       queryClient.invalidateQueries({ queryKey: ['business-customers'] });
-      // Also invalidate the leads query to update the leads list
       queryClient.invalidateQueries({ queryKey: ['business-leads'] });
-      toast.success('Customer created successfully');
+      
+      const entityType = data.is_lead ? 'Lead' : 'Customer';
+      toast.success(`${entityType} created successfully`);
     },
     onError: (error) => {
-      console.error('Error creating customer:', error);
-      toast.error(`Failed to create customer: ${error.message}`);
+      console.error('Error creating customer/lead:', error);
+      toast.error(`Failed to create: ${error.message}`);
     }
   });
 

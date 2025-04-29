@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
@@ -50,6 +51,7 @@ const BusinessLeads = () => {
             email: `${businessUser.username}@temporary.com`,
             password: businessUser.password,
           });
+          console.log("Authentication status:", !!data.session);
         }
       } catch (error) {
         console.error("Failed to authenticate:", error);
@@ -131,18 +133,22 @@ const BusinessLeads = () => {
     queryFn: async () => {
       if (!business?.id) return [];
       
-      // Ensure authentication is handled before querying
       try {
-        const { data: authData } = await supabase.auth.getSession();
-        
-        if (!authData.session && businessUser?.username && businessUser?.password) {
-          console.log("Authenticating before fetching leads");
-          await supabase.auth.signInWithPassword({
-            email: `${businessUser.username}@temporary.com`,
-            password: businessUser.password,
-          });
+        // Ensure authentication is handled before querying
+        if (businessUser?.username && businessUser?.password) {
+          console.log("Checking authentication before fetching leads");
+          const { data: authData } = await supabase.auth.getSession();
+          
+          if (!authData.session) {
+            console.log("No session found, authenticating");
+            await supabase.auth.signInWithPassword({
+              email: `${businessUser.username}@temporary.com`,
+              password: businessUser.password,
+            });
+          }
         }
         
+        console.log("Fetching leads for business:", business.id);
         const { data, error } = await supabase
           .from('business_customers')
           .select('*')
@@ -155,13 +161,14 @@ const BusinessLeads = () => {
           throw new Error(error.message);
         }
         
+        console.log("Leads fetched:", data?.length);
         return data as BusinessCustomer[];
       } catch (error) {
         console.error("Error in leads fetch function:", error);
         throw error;
       }
     },
-    enabled: !!business?.id
+    enabled: !!business?.id && !!businessUser
   });
 
   // Filter leads based on search query
@@ -196,6 +203,8 @@ const BusinessLeads = () => {
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
     try {
+      console.log("Adding new lead:", firstName, lastName);
+      
       // Create the lead with minimal required fields
       await createCustomer.mutateAsync({
         business_id: business.id,
