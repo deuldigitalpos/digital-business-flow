@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BusinessUser } from '@/types/business-user';
 import { Business } from '@/types/business';
@@ -16,6 +15,7 @@ type BusinessAuthContextType = {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  isDefaultUser: boolean;
 };
 
 const BusinessAuthContext = createContext<BusinessAuthContextType | undefined>(undefined);
@@ -34,6 +34,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [userPermissions, setUserPermissions] = useState<BusinessRolePermissions | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isDefaultUser, setIsDefaultUser] = useState(false);
   const navigate = useNavigate();
 
   // Fetch business details as a memoized function to avoid recreating it on every render
@@ -57,6 +58,37 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     } catch (error) {
       console.error('Error in fetchBusinessDetails:', error);
+    }
+  }, []);
+
+  // Check if this user is the default user for the business
+  const checkIfDefaultUser = useCallback(async (userId: string, businessId: string) => {
+    try {
+      console.log('Checking if user is default user');
+      
+      // Query to find the first user created for this business
+      const { data, error } = await supabase
+        .from('business_users')
+        .select('id')
+        .eq('business_id', businessId)
+        .order('created_at', { ascending: true })
+        .limit(1);
+      
+      if (error) {
+        console.error('Error checking default user:', error);
+        setIsDefaultUser(false);
+        return;
+      }
+      
+      // If this user's ID matches the first user created for this business, they're the default
+      if (data && data.length > 0) {
+        const isDefault = data[0].id === userId;
+        console.log('Is default user:', isDefault);
+        setIsDefaultUser(isDefault);
+      }
+    } catch (error) {
+      console.error('Error in checkIfDefaultUser:', error);
+      setIsDefaultUser(false);
     }
   }, []);
 
@@ -119,6 +151,9 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const parsedUser = JSON.parse(storedUser) as BusinessUser;
           setBusinessUser(parsedUser);
           
+          // Check if this is the default user for the business
+          await checkIfDefaultUser(parsedUser.id, parsedUser.business_id);
+          
           // Fetch user permissions based on role
           await fetchUserPermissions(parsedUser.role_id);
           
@@ -137,7 +172,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     initializeAuth();
-  }, [fetchBusinessDetails, fetchUserPermissions]);
+  }, [fetchBusinessDetails, fetchUserPermissions, checkIfDefaultUser]);
 
   // Optimized login function
   const login = async (username: string, password: string): Promise<boolean> => {
@@ -172,6 +207,9 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setBusinessUser(user);
       localStorage.setItem('businessUser', JSON.stringify(user));
       
+      // Check if this is the default user for the business
+      await checkIfDefaultUser(user.id, user.business_id);
+      
       // Fetch user permissions before fetching business details
       await fetchUserPermissions(user.role_id);
       
@@ -194,6 +232,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setBusinessUser(null);
     setBusiness(null);
     setUserPermissions(null);
+    setIsDefaultUser(false);
     localStorage.removeItem('businessUser');
     navigate('/business-login');
     toast.info('Logged out successfully');
@@ -204,9 +243,15 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Function to check if user has a specific permission
   const hasPermission = useCallback((permission: string): boolean => {
+    // Default users have access to everything
+    if (isDefaultUser) {
+      return true;
+    }
+    
+    // Otherwise check specific permissions
     if (!userPermissions) return false;
     return !!userPermissions[permission];
-  }, [userPermissions]);
+  }, [userPermissions, isDefaultUser]);
 
   return (
     <BusinessAuthContext.Provider 
@@ -218,7 +263,8 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         isLoading: isLoading || !isInitialized, 
         login, 
         logout, 
-        isAuthenticated
+        isAuthenticated,
+        isDefaultUser
       }}
     >
       {children}
