@@ -35,8 +35,7 @@ export type CustomerCreateInput = {
   credit_limit?: number | null;
   address?: string | null;
   mobile_number?: string | null;
-  // Lead source reference
-  lead_id?: string | null;
+  // Remove lead_id reference as it doesn't exist in the database schema
 };
 
 export type CustomerUpdateInput = Partial<CustomerCreateInput>;

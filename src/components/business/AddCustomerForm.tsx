@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,19 +46,15 @@ const formSchema = z.object({
   mobile_number: z.string().nullable(),
   address: z.string().nullable(),
   account_status: z.string().default('active'),
-  lead_id: z.string().nullable(),
+  is_lead: z.boolean().optional().default(false),
 });
 
 const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess }) => {
   const { createCustomer } = useBusinessCustomerMutations();
   const { businessUser } = useBusinessAuth();
-  const { useBusinessLeads } = useBusinessLeadsMutations();
   
   console.log("AddCustomerForm - businessId:", businessId);
   console.log("AddCustomerForm - businessUser:", businessUser);
-  
-  // Fetch lead sources for this business - keep this as optional
-  const { data: leads, isLoading: leadsLoading } = useBusinessLeads(businessId);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,7 +69,7 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
       mobile_number: null,
       address: null,
       account_status: 'active',
-      lead_id: null, // Default to null to make it optional
+      is_lead: false,
     },
   });
 
@@ -97,13 +92,13 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         values.business_id = businessUser.business_id;
       }
       
-      // Create the customer input - lead source is now optional
+      // Create the customer input
       const customerInput: CustomerCreateInput = {
-        business_id: values.business_id, // Explicitly set business_id as required
+        business_id: values.business_id, 
         first_name: values.first_name, 
         last_name: values.last_name, 
         account_status: values.account_status,
-        is_lead: false,
+        is_lead: values.is_lead || false,
         // Optional fields
         business_name: values.business_name,
         email: values.email,
@@ -111,8 +106,6 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
         credit_limit: values.credit_limit,
         mobile_number: values.mobile_number,
         address: values.address,
-        // Only include lead_id if it's not "none"
-        lead_id: values.lead_id !== "none" ? values.lead_id : null,
       };
       
       const result = await createCustomer.mutateAsync(customerInput);
@@ -128,44 +121,29 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Lead Source Selection - Now clearly optional */}
+        {/* Lead Status */}
         <FormField
           control={form.control}
-          name="lead_id"
+          name="is_lead"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Lead Source (Optional)</FormLabel>
+              <FormLabel>Is this a Lead?</FormLabel>
               <Select 
-                onValueChange={field.onChange} 
-                value={field.value || "none"}
+                onValueChange={(value) => field.onChange(value === 'true')} 
+                defaultValue={field.value ? 'true' : 'false'}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a lead source (optional)" />
+                    <SelectValue placeholder="Is this contact a lead?" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {/* Fixed: Using "none" instead of empty string */}
-                  <SelectItem value="none">None</SelectItem>
-                  {leads && leads.length > 0 ? (
-                    leads.map(lead => (
-                      <SelectItem key={lead.id} value={lead.id}>
-                        {lead.name}
-                      </SelectItem>
-                    ))
-                  ) : leadsLoading ? (
-                    <SelectItem value="loading" disabled>
-                      Loading lead sources...
-                    </SelectItem>
-                  ) : (
-                    <SelectItem value="no-leads" disabled>
-                      No lead sources available
-                    </SelectItem>
-                  )}
+                  <SelectItem value="false">No</SelectItem>
+                  <SelectItem value="true">Yes</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>
-                Optional: Select where this customer came from
+                Leads are potential customers that haven't made a purchase yet
               </FormDescription>
             </FormItem>
           )}
