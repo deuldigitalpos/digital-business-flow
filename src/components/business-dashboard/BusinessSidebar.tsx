@@ -33,7 +33,7 @@ const BusinessSidebar = () => {
       {isSidebarOpen && <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden" onClick={closeSidebar} />}
       
       <div className={cn("fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#1A1F2C] text-white shadow-lg transition-transform duration-300 md:sticky md:top-0", isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-16")}>
-        <div className="flex h-16 items-center justify-between px-4 py-4 border-b border-white/10">
+        <div className="flex h-16 items-center justify-between px-4 py-4 border-b border-white/10 bg-[#072536]">
           <div className={cn("flex items-center gap-2", !isSidebarOpen && "md:hidden")}>
             <img src="/lovable-uploads/1df1545d-8aea-4a95-8a04-a342cff67de7.png" alt="Logo" className="h-8 w-auto" />
             <span className="font-bold text-lg">DeulDigital</span>
