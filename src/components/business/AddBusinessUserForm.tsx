@@ -177,138 +177,121 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
     }
   }, [businessUser, form, isEditing, isOpen, roles, userLocations]);
 
-  const saveBusinessUser = useMutation({
-    mutationFn: async (values: FormValues) => {
-      const userId = crypto.randomUUID(); // Generate a user ID
+  const { createBusinessUser, updateBusinessUser } = useBusinessUserMutations();
+
+  const onSubmit = (values: FormValues) => {
+    if (isEditing && businessUser) {
+      // Prepare data for update, omitting password if unchanged
+      let updateData: any = { 
+        first_name: values.first_name,
+        last_name: values.last_name,
+        email: values.email,
+        username: values.username,
+        role_id: values.role_id,
+        date_of_birth: values.date_of_birth || null,
+        gender: values.gender || null,
+        marital_status: values.marital_status || null,
+        contact_number: values.contact_number || null,
+        bank_name: values.bank_name || null,
+        bank_account_name: values.bank_account_name || null,
+        bank_account_number: values.bank_account_number || null,
+        primary_work_location: values.primary_work_location || null,
+        daily_rate: values.daily_rate ? parseFloat(values.daily_rate) : null,
+      };
+      
+      // Only update password if it was changed
+      if (values.password !== '********') {
+        updateData.password = values.password;
+      }
       
       // Find the selected role to get the role name
       const selectedRole = roles?.find(r => r.id === values.role_id);
+      if (selectedRole) {
+        updateData.role = selectedRole.name;
+      }
+      
+      // Call update mutation
+      const updatePromise = updateBusinessUser.mutateAsync({ 
+        userData: updateData, 
+        userId: businessUser.id,
+        businessId 
+      });
+      
+      // Handle location updates after user update
+      updatePromise.then(() => {
+        handleLocationUpdates(businessUser.id, values.location_ids || []);
+      }).catch(error => {
+        console.error("Error updating user:", error);
+      });
+    } else {
+      // For creating new user
+      const userId = crypto.randomUUID(); // Generate a user ID
+      const selectedRole = roles?.find(r => r.id === values.role_id);
       const roleName = selectedRole ? selectedRole.name : 'Staff';
       
-      // If editing, update existing user
-      if (isEditing && businessUser) {
-        let updateData: any = { 
-          first_name: values.first_name,
-          last_name: values.last_name,
-          email: values.email,
-          username: values.username,
-          role: roleName, // Use the name from the selected role
-          role_id: values.role_id,
-          date_of_birth: values.date_of_birth || null,
-          gender: values.gender || null,
-          marital_status: values.marital_status || null,
-          contact_number: values.contact_number || null,
-          bank_name: values.bank_name || null,
-          bank_account_name: values.bank_account_name || null,
-          bank_account_number: values.bank_account_number || null,
-          primary_work_location: values.primary_work_location || null,
-          daily_rate: values.daily_rate ? parseFloat(values.daily_rate) : null,
-        };
-        
-        // Only update password if it was changed
-        if (values.password !== '********') {
-          updateData.password = values.password;
+      // Prepare user data
+      const userData = {
+        user_id: userId,
+        first_name: values.first_name,
+        last_name: values.last_name,
+        email: values.email,
+        username: values.username,
+        password: values.password,
+        role: roleName,
+        role_id: values.role_id,
+        date_of_birth: values.date_of_birth || null,
+        gender: values.gender || null,
+        marital_status: values.marital_status || null,
+        contact_number: values.contact_number || null,
+        bank_name: values.bank_name || null,
+        bank_account_name: values.bank_account_name || null,
+        bank_account_number: values.bank_account_number || null,
+        primary_work_location: values.primary_work_location || null,
+        daily_rate: values.daily_rate ? parseFloat(values.daily_rate) : null,
+      };
+      
+      // Call create mutation
+      const createPromise = createBusinessUser.mutateAsync({ userData, businessId });
+      
+      // Handle location assignments after user creation
+      createPromise.then((data) => {
+        if (data && data[0]) {
+          handleLocationUpdates(data[0].id, values.location_ids || []);
         }
-        
-        // Update user data
-        const { data, error } = await supabase
-          .from('business_users')
-          .update(updateData)
-          .eq('id', businessUser.id)
-          .select();
-        
-        if (error) throw error;
-
-        // Handle user locations
-        if (values.location_ids && values.location_ids.length > 0) {
-          // First delete existing user locations
-          await supabase
-            .from('user_locations')
-            .delete()
-            .eq('user_id', businessUser.id);
-
-          // Then add new user locations
-          const locationInserts = values.location_ids.map(locationId => ({
-            user_id: businessUser.id,
-            location_id: locationId
-          }));
-
-          const { error: locError } = await supabase
-            .from('user_locations')
-            .insert(locationInserts);
-            
-          if (locError) throw locError;
-        }
-        
-        return data;
-      } else {
-        // Create new user
-        const { data, error } = await supabase
-          .from('business_users')
-          .insert([
-            {
-              business_id: businessId,
-              user_id: userId,
-              first_name: values.first_name,
-              last_name: values.last_name,
-              email: values.email,
-              username: values.username,
-              password: values.password,
-              role: roleName, // Use the name from the selected role
-              role_id: values.role_id,
-              date_of_birth: values.date_of_birth || null,
-              gender: values.gender || null,
-              marital_status: values.marital_status || null,
-              contact_number: values.contact_number || null,
-              bank_name: values.bank_name || null,
-              bank_account_name: values.bank_account_name || null,
-              bank_account_number: values.bank_account_number || null,
-              primary_work_location: values.primary_work_location || null,
-              daily_rate: values.daily_rate ? parseFloat(values.daily_rate) : null,
-            }
-          ])
-          .select();
-        
-        if (error) throw error;
-
-        // Handle user locations if any are selected
-        if (values.location_ids && values.location_ids.length > 0 && data && data[0]) {
-          const locationInserts = values.location_ids.map(locationId => ({
-            user_id: data[0].id,
-            location_id: locationId
-          }));
-
-          const { error: locError } = await supabase
-            .from('user_locations')
-            .insert(locationInserts);
-            
-          if (locError) throw locError;
-        }
-        
-        return data;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['businessUsers', businessId] });
-      toast({
-        title: isEditing ? "User Updated" : "User Added",
-        description: isEditing
-          ? "The user has been successfully updated."
-          : "The user has been successfully added to this business."
+      }).catch(error => {
+        console.error("Error creating user:", error);
       });
-      onClose();
-    },
-    onError: (error) => {
+    }
+  };
+  
+  // Helper function to handle location assignments
+  const handleLocationUpdates = async (userId: string, locationIds: string[]) => {
+    if (locationIds.length === 0) return;
+    
+    // First delete existing user locations
+    await supabase
+      .from('user_locations')
+      .delete()
+      .eq('user_id', userId);
+    
+    // Then add new user locations
+    const locationInserts = locationIds.map(locationId => ({
+      user_id: userId,
+      location_id: locationId
+    }));
+    
+    const { error: locError } = await supabase
+      .from('user_locations')
+      .insert(locationInserts);
+      
+    if (locError) {
+      console.error("Error updating locations:", locError);
       toast({
-        title: "Error",
-        description: `Failed to ${isEditing ? 'update' : 'add'} user: ${error.message}`,
+        title: "Warning",
+        description: "User was saved but there was an error updating location assignments.",
         variant: "destructive"
       });
     }
-  });
-
-  const onSubmit = (values: FormValues) => {
-    saveBusinessUser.mutate(values);
   };
 
   return (
@@ -690,9 +673,9 @@ const AddBusinessUserForm: React.FC<AddBusinessUserFormProps> = ({
               <Button variant="outline" type="button" onClick={onClose}>Cancel</Button>
               <Button 
                 type="submit"
-                disabled={saveBusinessUser.isPending}
+                disabled={createBusinessUser.isPending || updateBusinessUser.isPending}
               >
-                {saveBusinessUser.isPending && (
+                {(createBusinessUser.isPending || updateBusinessUser.isPending) && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 {isEditing ? 'Update User' : 'Add User'}
