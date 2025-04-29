@@ -1,18 +1,11 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-
 const Index = () => {
-  return (
-    <div className="flex min-h-screen flex-col">
+  return <div className="flex min-h-screen flex-col">
       <header className="flex h-16 items-center border-b px-4 md:px-6">
         <div className="flex gap-2 items-center">
-          <img 
-            src="/lovable-uploads/1df1545d-8aea-4a95-8a04-a342cff67de7.png" 
-            alt="DeulDigital Logo" 
-            className="h-8 w-auto" 
-          />
+          <img src="/lovable-uploads/1df1545d-8aea-4a95-8a04-a342cff67de7.png" alt="DeulDigital Logo" className="h-8 w-auto" />
           <span className="text-xl font-bold">DeulDigital POS</span>
         </div>
         <nav className="ml-auto flex gap-2">
@@ -44,21 +37,13 @@ const Index = () => {
             </div>
           </div>
           <div className="flex justify-center">
-            <img
-              alt="Dashboard Preview"
-              className="rounded-lg object-cover object-center sm:w-full"
-              height={400}
-              src="/placeholder.svg"
-              width={600}
-            />
+            <img alt="Dashboard Preview" className="rounded-lg object-cover object-center sm:w-full" height={400} width={600} src="/lovable-uploads/213a37fc-f8db-4c01-ac6b-7543f8087abf.png" />
           </div>
         </div>
       </main>
       <footer className="border-t p-6 text-center text-sm text-muted-foreground">
         &copy; {new Date().getFullYear()} DeulDigital POS. All rights reserved.
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
