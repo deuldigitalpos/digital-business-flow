@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSidebar } from '@/hooks/useSidebar';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
-import { sidebarNavigation } from './sidebar-navigation';
+import { sidebarNavItems } from './sidebar-navigation';
 import SidebarNavLink from './SidebarNavLink';
 import SidebarCollapsibleSection from './SidebarCollapsibleSection';
 
@@ -22,27 +22,21 @@ const BusinessSidebar = () => {
     }));
   };
 
-  // Filter top-level navigation items based on permissions
-  const visibleNavItems = sidebarNavigation.flatMap(group => {
-    // Filter the items in each group
-    const visibleItems = group.items.filter(item => {
-      if (item.permission && !hasPermission(item.permission)) {
-        return false;
-      }
-      
-      // For items with children, include if at least one child is accessible
-      if (item.children) {
-        const hasVisibleChildren = item.children.some(child => 
-          !child.permission || hasPermission(child.permission)
-        );
-        return hasVisibleChildren;
-      }
-      
-      return true;
-    });
-
-    // Return the filtered items
-    return visibleItems;
+  // Filter top-level sidebar items based on permissions
+  const visibleNavItems = sidebarNavItems.filter(item => {
+    if (item.permission && !hasPermission(item.permission)) {
+      return false;
+    }
+    
+    // For items with children, include if at least one child is accessible
+    if (item.children) {
+      const hasVisibleChildren = item.children.some(child => 
+        !child.permission || hasPermission(child.permission)
+      );
+      return hasVisibleChildren;
+    }
+    
+    return true;
   });
 
   return (

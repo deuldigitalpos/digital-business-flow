@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { NavLink } from 'react-router-dom';
@@ -8,7 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { SidebarNavItem } from '@/types/sidebar';
+import { SidebarNavItem } from './sidebar-navigation';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 interface SidebarCollapsibleSectionProps {

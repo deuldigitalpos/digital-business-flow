@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/select';
 import { AccountStatusOptions } from '@/types/business-supplier';
 import { useBusinessSupplierMutations } from '@/hooks/useBusinessSupplierMutations';
-import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 // Define the form schema with validation
 const formSchema = z.object({
@@ -51,7 +50,6 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
   onCancel,
 }) => {
   const { createSupplier } = useBusinessSupplierMutations();
-  const { businessUser } = useBusinessAuth();
 
   // Initialize the form with default values
   const form = useForm<FormValues>({
@@ -71,12 +69,7 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
 
   const onSubmit = async (values: FormValues) => {
     try {
-      if (!businessUser?.business_id) {
-        throw new Error("Authentication required");
-      }
-      
       await createSupplier.mutateAsync({
-        business_id: businessUser.business_id,
         first_name: values.first_name,
         last_name: values.last_name,
         business_name: values.business_name,

@@ -3,25 +3,22 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessSupplier } from '@/types/business-supplier';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { ExtendedDatabase } from '@/types/supabase-extensions';
-
-// Type assertion to use our extended database type
-const extendedSupabase = supabase as unknown as ReturnType<typeof import('@supabase/supabase-js').createClient<ExtendedDatabase>>;
 
 export const useBusinessSuppliers = () => {
   const { businessUser } = useBusinessAuth();
   
   return useQuery({
-    queryKey: ['business-suppliers', businessUser?.business_id],
+    queryKey: ['business-suppliers'],
     queryFn: async (): Promise<BusinessSupplier[]> => {
       if (!businessUser?.business_id) {
         throw new Error("Authentication required");
       }
       
-      const { data, error } = await extendedSupabase
-        .rpc('get_business_suppliers', {
-          business_id_param: businessUser.business_id
-        });
+      const { data, error } = await supabase
+        .from('business_suppliers')
+        .select('*')
+        .eq('business_id', businessUser.business_id)
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error("Error fetching suppliers:", error);

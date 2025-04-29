@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -31,27 +32,12 @@ const formSchema = z.object({
   business_name: z.string().optional().nullable(),
   email: z.string().email("Invalid email format").optional().nullable(),
   tin_number: z.string().optional().nullable(),
-  credit_limit: z.string().optional().nullable()
-    .transform((val) => val ? parseFloat(val) : null),
+  credit_limit: z.string().optional().nullable().transform(val => val ? Number(val) : null),
   address: z.string().optional().nullable(),
   mobile_number: z.string().optional().nullable(),
   account_status: z.string().default("active"),
 });
 
-// Create a type that represents the form values before transformation
-type FormInputValues = {
-  first_name: string;
-  last_name: string;
-  business_name: string | null;
-  email: string | null;
-  tin_number: string | null;
-  credit_limit: string | null; // String for input
-  address: string | null;
-  mobile_number: string | null;
-  account_status: string;
-};
-
-// Use the inferred type from the schema for transformed values
 type FormValues = z.infer<typeof formSchema>;
 
 interface EditSupplierFormProps {
@@ -67,8 +53,8 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
 }) => {
   const { updateSupplier } = useBusinessSupplierMutations();
 
-  // Initialize the form with supplier data - convert numbers to strings for form fields
-  const form = useForm<FormInputValues>({
+  // Initialize the form with supplier data
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       first_name: supplier.first_name,
@@ -76,7 +62,7 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
       business_name: supplier.business_name,
       email: supplier.email,
       tin_number: supplier.tin_number,
-      credit_limit: supplier.credit_limit !== null ? String(supplier.credit_limit) : null,
+      credit_limit: supplier.credit_limit?.toString() || null,
       address: supplier.address,
       mobile_number: supplier.mobile_number,
       account_status: supplier.account_status,
@@ -91,7 +77,7 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
       business_name: supplier.business_name,
       email: supplier.email,
       tin_number: supplier.tin_number,
-      credit_limit: supplier.credit_limit !== null ? String(supplier.credit_limit) : null,
+      credit_limit: supplier.credit_limit?.toString() || null,
       address: supplier.address,
       mobile_number: supplier.mobile_number,
       account_status: supplier.account_status,
@@ -108,7 +94,7 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
           business_name: values.business_name,
           email: values.email,
           tin_number: values.tin_number,
-          credit_limit: values.credit_limit, // This is transformed to number by zod
+          credit_limit: values.credit_limit ? Number(values.credit_limit) : null,
           address: values.address,
           mobile_number: values.mobile_number,
           account_status: values.account_status,
