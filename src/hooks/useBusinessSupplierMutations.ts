@@ -4,6 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BusinessSupplier, SupplierCreateInput, SupplierUpdateInput } from '@/types/business-supplier';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { ExtendedDatabase } from '@/types/supabase-extensions';
+
+// Type assertion to use our extended database type
+const extendedSupabase = supabase as unknown as ReturnType<typeof import('@supabase/supabase-js').createClient<ExtendedDatabase>>;
 
 export const useBusinessSupplierMutations = () => {
   const queryClient = useQueryClient();
@@ -31,10 +35,10 @@ export const useBusinessSupplierMutations = () => {
       try {
         console.log("Inserting supplier with data:", supplierData);
         
-        const { data: supplier, error } = await supabase
+        const { data: supplier, error } = await extendedSupabase
           .rpc('create_business_supplier', {
             supplier_data: supplierData
-          }) as { data: BusinessSupplier | null, error: any };
+          });
 
         if (error) {
           console.error("Error from Supabase:", error);
@@ -78,14 +82,14 @@ export const useBusinessSupplierMutations = () => {
         throw new Error("Authentication required");
       }
       
-      const { data: supplier, error } = await supabase
+      const { data: supplier, error } = await extendedSupabase
         .rpc('update_business_supplier', {
           supplier_id: id,
           supplier_data: {
             ...data,
             business_id: businessUser.business_id // Ensure business_id stays correct
           }
-        }) as { data: BusinessSupplier | null, error: any };
+        });
 
       if (error) {
         console.error("Error updating supplier:", error);
@@ -120,11 +124,11 @@ export const useBusinessSupplierMutations = () => {
         throw new Error("Authentication required");
       }
       
-      const { error } = await supabase
+      const { error } = await extendedSupabase
         .rpc('delete_business_supplier', {
           supplier_id: id,
           business_id: businessUser.business_id
-        }) as { data: any, error: any };
+        });
 
       if (error) throw error;
       return id;
@@ -158,12 +162,12 @@ export const useBusinessSupplierMutations = () => {
       
       const status = isActive ? 'active' : 'inactive';
       
-      const { data: supplier, error } = await supabase
+      const { data: supplier, error } = await extendedSupabase
         .rpc('update_business_supplier_status', {
           supplier_id: id,
           business_id: businessUser.business_id,
           status: status
-        }) as { data: BusinessSupplier | null, error: any };
+        });
 
       if (error) throw error;
       return supplier as BusinessSupplier;
