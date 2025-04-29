@@ -93,10 +93,20 @@ const AddCustomerForm: React.FC<AddCustomerFormProps> = ({ businessId, onSuccess
     try {
       console.log("Submitting customer form with values:", values);
       
-      // Ensure business_id is always set from context for security
+      // Ensure first_name and last_name are explicitly non-optional when creating the customer input
       const customerInput: CustomerCreateInput = {
-        ...values,
         business_id: businessUser?.business_id || businessId,
+        first_name: values.first_name, // This is required
+        last_name: values.last_name,   // This is required
+        account_status: values.account_status,
+        // Optional fields
+        business_name: values.business_name,
+        email: values.email,
+        tin_number: values.tin_number,
+        credit_limit: values.credit_limit,
+        address: values.address,
+        mobile_number: values.mobile_number,
+        lead_source_id: values.lead_source_id
       };
       
       console.log("Submitting customerInput:", customerInput);
