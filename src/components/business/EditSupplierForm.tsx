@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -63,7 +62,6 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
       business_name: supplier.business_name,
       email: supplier.email,
       tin_number: supplier.tin_number,
-      // Convert the number to string for the form field
       credit_limit: supplier.credit_limit !== null ? String(supplier.credit_limit) : null,
       address: supplier.address,
       mobile_number: supplier.mobile_number,
@@ -79,7 +77,6 @@ const EditSupplierForm: React.FC<EditSupplierFormProps> = ({
       business_name: supplier.business_name,
       email: supplier.email,
       tin_number: supplier.tin_number,
-      // Convert the number to string for the form field
       credit_limit: supplier.credit_limit !== null ? String(supplier.credit_limit) : null,
       address: supplier.address,
       mobile_number: supplier.mobile_number,
