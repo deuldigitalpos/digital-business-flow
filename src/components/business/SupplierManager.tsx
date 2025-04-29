@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, Search } from 'lucide-react';
 import AddSupplierForm from './AddSupplierForm';
 import EditSupplierForm from './EditSupplierForm';
 import SupplierList from './SupplierList';
@@ -21,11 +22,26 @@ const SupplierManager = () => {
   const [selectedSupplier, setSelectedSupplier] = useState<BusinessSupplier | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   
   const { data: suppliers, isLoading, isError } = useBusinessSuppliers();
   
-  const activeSuppliers = suppliers?.filter(supplier => supplier.account_status === 'active') || [];
-  const inactiveSuppliers = suppliers?.filter(supplier => supplier.account_status === 'inactive') || [];
+  // Filter suppliers based on search term
+  const filteredSuppliers = suppliers?.filter(supplier => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      supplier.first_name.toLowerCase().includes(searchLower) ||
+      supplier.last_name.toLowerCase().includes(searchLower) ||
+      (supplier.business_name && supplier.business_name.toLowerCase().includes(searchLower)) ||
+      (supplier.email && supplier.email.toLowerCase().includes(searchLower)) ||
+      (supplier.mobile_number && supplier.mobile_number.toLowerCase().includes(searchLower))
+    );
+  }) || [];
+  
+  const activeSuppliers = filteredSuppliers.filter(supplier => supplier.account_status === 'active');
+  const inactiveSuppliers = filteredSuppliers.filter(supplier => supplier.account_status === 'inactive');
   
   const handleAddSupplier = () => {
     setShowAddDialog(true);
@@ -77,12 +93,26 @@ const SupplierManager = () => {
           Add Supplier
         </Button>
       </div>
+
+      {/* Search and filter */}
+      <div className="flex gap-4 items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search suppliers..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
       
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <div className="flex justify-between items-center">
           <TabsList>
             <TabsTrigger value="all">
-              All Suppliers ({suppliers?.length || 0})
+              All Suppliers ({filteredSuppliers.length})
             </TabsTrigger>
             <TabsTrigger value="active">
               Active ({activeSuppliers.length})
@@ -95,7 +125,7 @@ const SupplierManager = () => {
         
         <TabsContent value="all" className="pt-4">
           <SupplierList 
-            suppliers={suppliers || []} 
+            suppliers={filteredSuppliers} 
             businessId={businessUser?.business_id || ''}
             onViewSupplier={handleViewSupplier}
             onEditSupplier={handleEditSupplier}

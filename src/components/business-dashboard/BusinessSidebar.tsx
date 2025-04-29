@@ -7,22 +7,13 @@ import { useSidebar } from '@/hooks/useSidebar';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { sidebarNavigation } from './sidebar-navigation';
-import SidebarNavLink from './SidebarNavLink';
-import SidebarCollapsibleSection from './SidebarCollapsibleSection';
+import { NavLink } from 'react-router-dom';
 
 const BusinessSidebar = () => {
   const { isSidebarOpen, toggleSidebar, closeSidebar } = useSidebar();
   const { businessUser, logout, hasPermission } = useBusinessAuth();
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
 
-  const toggleSection = (section: string) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
-  // Filter top-level sidebar items based on permissions
+  // Filter sidebar items based on permissions
   const visibleNavItems = sidebarNavigation.flatMap(group => group.items).filter(item => {
     if (item.permission && !hasPermission(item.permission)) {
       return false;
@@ -51,11 +42,11 @@ const BusinessSidebar = () => {
       
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-primary text-primary-foreground shadow-lg transition-transform duration-300 md:sticky md:top-0",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#1A1F2C] text-white shadow-lg transition-transform duration-300 md:sticky md:top-0",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-16"
         )}
       >
-        <div className="flex h-16 items-center justify-between px-4 py-4 border-b border-primary-foreground/10">
+        <div className="flex h-16 items-center justify-between px-4 py-4 border-b border-white/10">
           <div className={cn("flex items-center gap-2", !isSidebarOpen && "md:hidden")}>
             <img 
               src="/lovable-uploads/1df1545d-8aea-4a95-8a04-a342cff67de7.png" 
@@ -69,7 +60,7 @@ const BusinessSidebar = () => {
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar}
-            className="hidden md:flex text-primary-foreground hover:bg-primary-foreground/10"
+            className="hidden md:flex text-white hover:bg-white/10"
           >
             {isSidebarOpen ? (
               <ChevronLeft className="h-5 w-5" />
@@ -83,34 +74,58 @@ const BusinessSidebar = () => {
           <nav className="grid gap-1 px-2">
             {visibleNavItems.map((item) => (
               item.children ? (
-                <SidebarCollapsibleSection
-                  key={item.title}
-                  item={item}
-                  isOpen={!!openSections[item.title]}
-                  onToggle={() => toggleSection(item.title)}
-                  isSidebarOpen={isSidebarOpen}
-                  onNavClick={closeSidebar}
-                />
+                // Render flat menu items instead of collapsible sections
+                item.children.map(child => {
+                  if (child.permission && !hasPermission(child.permission)) {
+                    return null;
+                  }
+                  
+                  return (
+                    <NavLink
+                      key={`${item.title}-${child.title}`}
+                      to={child.href || "#"}
+                      onClick={closeSidebar}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2 text-white hover:bg-[#f99b23] hover:text-[#1A1F2C] transition-colors",
+                          isActive && "bg-white/10 font-medium"
+                        )
+                      }
+                    >
+                      {child.icon && <child.icon className="h-5 w-5 shrink-0" />}
+                      <span className={cn("text-sm", !isSidebarOpen && "md:hidden")}>
+                        {child.title}
+                      </span>
+                    </NavLink>
+                  );
+                })
               ) : (
-                <SidebarNavLink
+                <NavLink
                   key={item.title}
-                  href={item.href || "#"}
-                  icon={item.icon}
-                  title={item.title}
-                  permission={item.permission}
+                  to={item.href || "#"}
                   onClick={closeSidebar}
-                  isSidebarOpen={isSidebarOpen}
-                />
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-white hover:bg-[#f99b23] hover:text-[#1A1F2C] transition-colors",
+                      isActive && "bg-white/10 font-medium"
+                    )
+                  }
+                >
+                  {item.icon && <item.icon className="h-5 w-5 shrink-0" />}
+                  <span className={cn("text-sm", !isSidebarOpen && "md:hidden")}>
+                    {item.title}
+                  </span>
+                </NavLink>
               )
             ))}
           </nav>
         </ScrollArea>
 
-        <div className="mt-auto p-4 border-t border-primary-foreground/10">
+        <div className="mt-auto p-4 border-t border-white/10">
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start text-primary-foreground hover:bg-[#f99b23] hover:text-primary",
+              "w-full justify-start text-white hover:bg-[#f99b23] hover:text-[#1A1F2C]",
               !isSidebarOpen && "md:justify-center"
             )}
             onClick={logout}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -24,6 +25,7 @@ import {
 import { AccountStatusOptions } from '@/types/business-supplier';
 import { useBusinessSupplierMutations } from '@/hooks/useBusinessSupplierMutations';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { Loader2 } from 'lucide-react';
 
 // Define the form schema with validation
 const formSchema = z.object({
@@ -32,7 +34,10 @@ const formSchema = z.object({
   business_name: z.string().optional().nullable(),
   email: z.string().email("Invalid email format").optional().nullable(),
   tin_number: z.string().optional().nullable(),
-  credit_limit: z.string().optional().nullable().transform(val => val ? Number(val) : null),
+  credit_limit: z.union([
+    z.number().nonnegative('Credit limit must be a non-negative number'),
+    z.string().transform(v => (v === '' ? null : parseFloat(v))).nullable()
+  ]),
   address: z.string().optional().nullable(),
   mobile_number: z.string().optional().nullable(),
   account_status: z.string().default("active"),
@@ -75,6 +80,8 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
     }
 
     try {
+      console.log("Creating supplier with data:", values);
+      
       await createSupplier.mutateAsync({
         business_id: businessUser.business_id,
         first_name: values.first_name,
@@ -82,7 +89,7 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
         business_name: values.business_name,
         email: values.email,
         tin_number: values.tin_number,
-        credit_limit: values.credit_limit ? Number(values.credit_limit) : null,
+        credit_limit: values.credit_limit,
         address: values.address,
         mobile_number: values.mobile_number,
         account_status: values.account_status,
@@ -99,14 +106,14 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="first_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>First Name</FormLabel>
+                <FormLabel>First Name *</FormLabel>
                 <FormControl>
                   <Input placeholder="First name" {...field} />
                 </FormControl>
@@ -120,7 +127,7 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
             name="last_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Last Name</FormLabel>
+                <FormLabel>Last Name *</FormLabel>
                 <FormControl>
                   <Input placeholder="Last name" {...field} />
                 </FormControl>
@@ -128,29 +135,31 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
               </FormItem>
             )}
           />
-          
-          <FormField
-            control={form.control}
-            name="business_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Name (optional)</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Business name" 
-                    {...field} 
-                    value={field.value || ""} 
-                    onChange={(e) => field.onChange(e.target.value || null)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  If the supplier is a business, enter the name here
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
+        </div>
+        
+        <FormField
+          control={form.control}
+          name="business_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Business Name (optional)</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Business name" 
+                  {...field} 
+                  value={field.value || ""} 
+                  onChange={(e) => field.onChange(e.target.value || null)}
+                />
+              </FormControl>
+              <FormDescription>
+                If the supplier is a business, enter the name here
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <div className="grid gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="email"
@@ -189,7 +198,9 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
               </FormItem>
             )}
           />
-          
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="tin_number"
@@ -220,38 +231,10 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
                     type="number" 
                     placeholder="Credit limit" 
                     {...field} 
-                    value={field.value || ""} 
-                    onChange={(e) => field.onChange(e.target.value || null)}
+                    value={field.value === null ? '' : field.value}
+                    onChange={(e) => field.onChange(e.target.value === '' ? null : parseFloat(e.target.value))}
                   />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="account_status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {AccountStatusOptions.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -278,14 +261,49 @@ const AddSupplierForm: React.FC<AddSupplierFormProps> = ({
           )}
         />
         
-        <div className="flex justify-end space-x-2">
+        <FormField
+          control={form.control}
+          name="account_status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {AccountStatusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <div className="flex justify-end space-x-2 pt-4">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
           )}
           <Button type="submit" disabled={createSupplier.isPending}>
-            {createSupplier.isPending ? "Creating..." : "Create Supplier"}
+            {createSupplier.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              'Create Supplier'
+            )}
           </Button>
         </div>
       </form>
