@@ -22,7 +22,7 @@ import {
   Boxes,
   Wrench,
   Tag,
-  FileChart
+  FileCheck
 } from "lucide-react";
 
 export interface SidebarNavItem {
@@ -137,7 +137,7 @@ export const sidebarNavigation: SidebarNavGroup[] = [
       {
         title: "Warranties",
         href: "/business-dashboard/warranties",
-        icon: FileChart,
+        icon: FileCheck,
         permission: "products",
       },
       {
