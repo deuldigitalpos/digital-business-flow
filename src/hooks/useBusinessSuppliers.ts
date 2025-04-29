@@ -8,13 +8,12 @@ export const useBusinessSuppliers = () => {
   const { businessUser } = useBusinessAuth();
   
   return useQuery({
-    queryKey: ['business-suppliers'],
+    queryKey: ['business-suppliers', businessUser?.business_id],
     queryFn: async (): Promise<BusinessSupplier[]> => {
       if (!businessUser?.business_id) {
         throw new Error("Authentication required");
       }
       
-      // Use a direct SQL query as a workaround for the missing table
       const { data, error } = await supabase
         .rpc('get_business_suppliers', {
           business_id_param: businessUser.business_id
@@ -25,7 +24,7 @@ export const useBusinessSuppliers = () => {
         throw error;
       }
       
-      return (data || []) as BusinessSupplier[];
+      return data as BusinessSupplier[];
     },
     enabled: !!businessUser?.business_id
   });

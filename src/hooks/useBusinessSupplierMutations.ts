@@ -31,9 +31,10 @@ export const useBusinessSupplierMutations = () => {
       try {
         console.log("Inserting supplier with data:", supplierData);
         
-        // Use RPC function as a workaround for missing table
         const { data: supplier, error } = await supabase
-          .rpc('create_business_supplier', supplierData);
+          .rpc('create_business_supplier', {
+            supplier_data: supplierData
+          });
 
         if (error) {
           console.error("Error from Supabase:", error);
@@ -77,7 +78,6 @@ export const useBusinessSupplierMutations = () => {
         throw new Error("Authentication required");
       }
       
-      // Use RPC function as a workaround for missing table
       const { data: supplier, error } = await supabase
         .rpc('update_business_supplier', {
           supplier_id: id,
@@ -120,7 +120,6 @@ export const useBusinessSupplierMutations = () => {
         throw new Error("Authentication required");
       }
       
-      // Use RPC function as a workaround for missing table
       const { error } = await supabase
         .rpc('delete_business_supplier', {
           supplier_id: id,
@@ -159,7 +158,6 @@ export const useBusinessSupplierMutations = () => {
       
       const status = isActive ? 'active' : 'inactive';
       
-      // Use RPC function as a workaround for missing table
       const { data: supplier, error } = await supabase
         .rpc('update_business_supplier_status', {
           supplier_id: id,
