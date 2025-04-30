@@ -24,8 +24,8 @@ export function useBusinessConsumableMutations() {
           unit_id: consumableData.unit_id || null,
           unit_price: consumableData.unit_price,
           quantity_available: consumableData.quantity_available,
-          status: getConsumableStatus(consumableData.quantity_available),
-          total_cost: consumableData.unit_price * consumableData.quantity_available
+          status: getConsumableStatus(consumableData.quantity_available)
+          // Removed total_cost as it's likely calculated by the database
         })
         .select()
         .single();
@@ -54,8 +54,8 @@ export function useBusinessConsumableMutations() {
           description: data.description || null,
           unit_id: data.unit_id || null,
           unit_price: data.unit_price,
-          status: getConsumableStatus(data.quantity_available || 0),
-          total_cost: data.unit_price * (data.quantity_available || 0)
+          status: getConsumableStatus(data.quantity_available || 0)
+          // Removed total_cost as it's likely calculated by the database
           // Note: quantity_available is typically updated via stock transactions
         })
         .eq('id', id)
