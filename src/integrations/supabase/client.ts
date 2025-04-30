@@ -37,7 +37,8 @@ export const setSupabaseBusinessAuth = (businessUserId: string) => {
       
       console.log('Intercepted Supabase request:', { 
         url, 
-        headers: { ...init.headers, Authorization: '[REDACTED]' } 
+        businessUserId,
+        hasHeaders: !!init.headers
       });
     }
     
@@ -63,3 +64,4 @@ export const clearSupabaseBusinessAuth = () => {
     console.log('Fetch interceptor cleared');
   }
 };
+

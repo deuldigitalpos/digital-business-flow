@@ -45,7 +45,7 @@ interface AddConsumableFormProps {
 const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   const { createConsumable } = useBusinessConsumableMutations();
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
-  const { businessUser, business } = useBusinessAuth();
+  const { businessUser, business, isAuthenticated } = useBusinessAuth();
   const [errorDetails, setErrorDetails] = React.useState<string | null>(null);
   
   const form = useForm<ConsumableFormValues>({
@@ -58,11 +58,26 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
     }
   });
 
+  // Add check for auth state
+  React.useEffect(() => {
+    console.log("Authentication state:", { 
+      isAuthenticated, 
+      hasBusinessUser: !!businessUser, 
+      hasBusiness: !!business 
+    });
+  }, [isAuthenticated, businessUser, business]);
+
   const onSubmit = async (data: ConsumableFormValues) => {
     setErrorDetails(null);
     console.log('Submitting form with data:', data);
     console.log('Current business user:', businessUser);
     console.log('Current business:', business);
+    
+    // Validate business data is available
+    if (!business?.id) {
+      setErrorDetails('Business information is not available. Please try logging in again.');
+      return;
+    }
     
     try {
       await createConsumable.mutateAsync({
@@ -94,6 +109,16 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
                 <summary>Error Details</summary>
                 <pre className="whitespace-pre-wrap">{errorDetails}</pre>
               </details>
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Show auth status warning if needed */}
+        {!isAuthenticated && (
+          <Alert variant="warning" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              You may not be properly authenticated. Try logging in again if you encounter issues.
             </AlertDescription>
           </Alert>
         )}
