@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -28,6 +27,7 @@ import BusinessSuppliers from '@/pages/BusinessSuppliers';
 import PermissionDenied from '@/pages/PermissionDenied';
 import BusinessCategories from '@/pages/BusinessCategories';
 import BusinessUnits from '@/pages/BusinessUnits';
+import BusinessBrands from '@/pages/BusinessBrands';
 import { BusinessAuthProvider } from '@/context/BusinessAuthContext';
 
 const queryClient = new QueryClient();
@@ -75,7 +75,7 @@ function App() {
             <Route path="leads" element={<BusinessLeads />} />
             <Route path="suppliers" element={<BusinessSuppliers />} />
             <Route path="units" element={<BusinessUnits />} />
-            <Route path="brands" element={<PlaceholderPage />} />
+            <Route path="brands" element={<BusinessBrands />} />
             <Route path="warranties" element={<PlaceholderPage />} />
             <Route path="consumables" element={<PlaceholderPage />} />
             <Route path="equipment" element={<PlaceholderPage />} />
