@@ -41,10 +41,12 @@ const ConsumableManager: React.FC = () => {
 
   const handleAddSuccess = () => {
     setIsAddSheetOpen(false);
+    toast.success('Consumable added successfully');
   };
 
   const handleEditSuccess = () => {
     setIsEditSheetOpen(false);
+    toast.success('Consumable updated successfully');
   };
 
   const handleDelete = async () => {
@@ -52,6 +54,7 @@ const ConsumableManager: React.FC = () => {
       try {
         await deleteConsumable.mutateAsync(selectedConsumable.id);
         setIsDeleteDialogOpen(false);
+        setSelectedConsumable(null);
       } catch (error) {
         toast.error('Failed to delete consumable');
       }

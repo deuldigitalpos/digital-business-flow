@@ -20,10 +20,11 @@ export function useBusinessConsumableMutations() {
         .insert({
           business_id: business.id,
           name: consumableData.name,
-          description: consumableData.description,
-          unit_id: consumableData.unit_id,
+          description: consumableData.description || null,
+          unit_id: consumableData.unit_id || null,
           unit_price: consumableData.unit_price,
-          quantity_available: consumableData.quantity_available
+          quantity_available: consumableData.quantity_available,
+          status: getConsumableStatus(consumableData.quantity_available)
         })
         .select()
         .single();
@@ -51,9 +52,10 @@ export function useBusinessConsumableMutations() {
         .from('business_consumables')
         .update({
           name: data.name,
-          description: data.description,
-          unit_id: data.unit_id,
-          unit_price: data.unit_price
+          description: data.description || null,
+          unit_id: data.unit_id || null,
+          unit_price: data.unit_price,
+          status: getConsumableStatus(data.quantity_available || 0)
           // Note: quantity_available is typically updated via stock transactions
         })
         .eq('id', id)
@@ -101,6 +103,13 @@ export function useBusinessConsumableMutations() {
       toast.error('Failed to delete consumable');
     }
   });
+
+  // Helper function to determine consumable status based on quantity
+  const getConsumableStatus = (quantity: number): string => {
+    if (quantity <= 0) return 'Out of Stock';
+    if (quantity <= 10) return 'Low Stock';
+    return 'In Stock';
+  };
 
   return {
     createConsumable,

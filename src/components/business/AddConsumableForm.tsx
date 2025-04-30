@@ -54,8 +54,10 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   });
 
   const onSubmit = async (data: ConsumableFormValues) => {
+    console.log('Submitting form with data:', data);
     try {
       await createConsumable.mutateAsync(data);
+      console.log('Consumable created successfully');
       form.reset();
       if (onSuccess) onSuccess();
     } catch (error) {
