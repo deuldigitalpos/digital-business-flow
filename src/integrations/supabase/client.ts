@@ -10,3 +10,19 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+// Function to set custom auth for business users
+export const setSupabaseBusinessAuth = (businessUserId: string) => {
+  // Use a custom JWT to authenticate with Supabase
+  // This JWT is not a real Supabase JWT, but we'll use it to identify the business user
+  const customToken = `business_user_${businessUserId}`;
+  
+  // Set custom headers for all Supabase requests
+  supabase.rest.headers.append('business-user-id', businessUserId);
+};
+
+// Function to clear custom auth
+export const clearSupabaseBusinessAuth = () => {
+  // Remove custom headers
+  supabase.rest.headers.delete('business-user-id');
+};

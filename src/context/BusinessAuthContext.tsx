@@ -1,7 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BusinessUser } from '@/types/business-user';
 import { Business } from '@/types/business';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, setSupabaseBusinessAuth, clearSupabaseBusinessAuth } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BusinessRole, BusinessRolePermissions } from '@/types/business-role';
 import { useNavigate } from 'react-router-dom';
@@ -151,6 +152,9 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const parsedUser = JSON.parse(storedUser) as BusinessUser;
           setBusinessUser(parsedUser);
           
+          // Set Supabase auth for the business user
+          setSupabaseBusinessAuth(parsedUser.id);
+          
           // Check if this is the default user for the business
           await checkIfDefaultUser(parsedUser.id, parsedUser.business_id);
           
@@ -162,6 +166,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         } catch (error) {
           console.error('Failed to parse stored business user:', error);
           localStorage.removeItem('businessUser');
+          clearSupabaseBusinessAuth(); // Ensure Supabase auth is cleared on error
         }
       } catch (error) {
         console.error('Error during initialization:', error);
@@ -207,6 +212,10 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setBusinessUser(user);
       localStorage.setItem('businessUser', JSON.stringify(user));
       
+      // Set Supabase auth for the business user
+      setSupabaseBusinessAuth(user.id);
+      console.log('Supabase auth set for business user');
+      
       // Check if this is the default user for the business
       await checkIfDefaultUser(user.id, user.business_id);
       
@@ -234,6 +243,11 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setUserPermissions(null);
     setIsDefaultUser(false);
     localStorage.removeItem('businessUser');
+    
+    // Clear Supabase auth on logout
+    clearSupabaseBusinessAuth();
+    console.log('Supabase auth cleared on logout');
+    
     navigate('/business-login');
     toast.info('Logged out successfully');
   }, [navigate]);
