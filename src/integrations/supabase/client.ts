@@ -64,4 +64,3 @@ export const clearSupabaseBusinessAuth = () => {
     console.log('Fetch interceptor cleared');
   }
 };
-

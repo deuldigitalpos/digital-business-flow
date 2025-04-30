@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -29,6 +28,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { setSupabaseBusinessAuth } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -65,6 +65,11 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
       hasBusinessUser: !!businessUser, 
       hasBusiness: !!business 
     });
+    
+    // Ensure business user authentication is set up
+    if (businessUser?.id) {
+      setSupabaseBusinessAuth(businessUser.id);
+    }
   }, [isAuthenticated, businessUser, business]);
 
   const onSubmit = async (data: ConsumableFormValues) => {
