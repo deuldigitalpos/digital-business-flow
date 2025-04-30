@@ -3,6 +3,36 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessWarranty, BusinessWarrantyProduct } from '@/types/business-warranty';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { addDays, format } from 'date-fns';
+
+// Helper function to calculate expiration date from duration and unit
+const calculateExpirationDate = (warranty: any): BusinessWarranty => {
+  let daysToAdd = 0;
+  
+  switch (warranty.duration_unit) {
+    case 'days':
+      daysToAdd = warranty.duration;
+      break;
+    case 'weeks':
+      daysToAdd = warranty.duration * 7;
+      break;
+    case 'months':
+      daysToAdd = warranty.duration * 30; // approximate
+      break;
+    case 'years':
+      daysToAdd = warranty.duration * 365; // approximate
+      break;
+    default:
+      daysToAdd = warranty.duration;
+  }
+  
+  const expirationDate = addDays(new Date(), daysToAdd);
+  
+  return {
+    ...warranty,
+    expiration_date: format(expirationDate, 'yyyy-MM-dd')
+  };
+};
 
 export function useBusinessWarranties() {
   const { business } = useBusinessAuth();
@@ -25,7 +55,8 @@ export function useBusinessWarranties() {
         throw error;
       }
       
-      return data as BusinessWarranty[];
+      // Transform the data to include calculated expiration_date
+      return data.map(warranty => calculateExpirationDate(warranty)) as BusinessWarranty[];
     },
     enabled: !!business?.id,
   });
@@ -56,7 +87,8 @@ export function useBusinessWarranty(id: string | undefined) {
         throw error;
       }
       
-      return data as BusinessWarranty;
+      // Transform the data to include calculated expiration_date
+      return calculateExpirationDate(data);
     },
     enabled: !!id && !!business?.id,
   });

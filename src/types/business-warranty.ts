@@ -4,10 +4,12 @@ export interface BusinessWarranty {
   business_id: string;
   name: string;
   description: string | null;
-  expiration_date: string;
+  duration: number;
+  duration_unit: string;
   is_active: boolean | null;
   created_at: string;
   updated_at: string;
+  expiration_date?: string; // Added as a calculated field
 }
 
 export type BusinessWarrantyFormValues = {
