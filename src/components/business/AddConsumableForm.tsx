@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -120,7 +121,7 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
         
         {/* Show auth status warning if needed */}
         {!isAuthenticated && (
-          <Alert variant="warning" className="mb-4">
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               You may not be properly authenticated. Try logging in again if you encounter issues.

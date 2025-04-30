@@ -6,10 +6,23 @@ import BusinessDashboardHeader from '@/components/business-dashboard/BusinessDas
 import BusinessSidebar from '@/components/business-dashboard/BusinessSidebar';
 import { SidebarProvider } from '@/hooks/useSidebar';
 import { Loader2 } from 'lucide-react';
+import { setSupabaseBusinessAuth, clearSupabaseBusinessAuth } from '@/integrations/supabase/client';
 
 const BusinessDashboardLayout = () => {
-  const { isAuthenticated, isLoading } = useBusinessAuth();
+  const { isAuthenticated, isLoading, businessUser } = useBusinessAuth();
   const location = useLocation();
+  
+  // Set up business user authentication for Supabase
+  useEffect(() => {
+    if (businessUser?.id) {
+      console.log('Setting up business user authentication in Dashboard layout');
+      setSupabaseBusinessAuth(businessUser.id);
+    }
+    
+    return () => {
+      clearSupabaseBusinessAuth();
+    };
+  }, [businessUser]);
   
   // Scroll to top on route change
   useEffect(() => {
