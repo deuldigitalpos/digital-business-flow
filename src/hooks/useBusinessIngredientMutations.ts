@@ -1,6 +1,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase, getCurrentBusinessUserId } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { IngredientFormValues } from '@/types/business-ingredient';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { toast } from 'sonner';
@@ -21,9 +21,6 @@ export function useBusinessIngredientMutations() {
 
       console.log('Creating ingredient with business user ID:', businessUser.id);
 
-      // We need to use the fetch interceptor in client.ts instead of direct headers
-      // The interceptor will add the businessUser.id to all Supabase requests
-      // Make sure the businessUser.id is set in the global variable
       const { data, error } = await supabase
         .from('business_ingredients')
         .insert({
@@ -33,7 +30,6 @@ export function useBusinessIngredientMutations() {
           unit_id: ingredientData.unit_id,
           unit_price: ingredientData.unit_price,
           quantity_available: ingredientData.quantity_available
-          // The database trigger will extract the business user ID from request headers
         })
         .select()
         .single();
@@ -63,7 +59,6 @@ export function useBusinessIngredientMutations() {
 
       console.log('Updating ingredient with business user ID:', businessUser.id);
 
-      // Using the fetch interceptor in client.ts for business user ID
       const { data: updatedIngredient, error } = await supabase
         .from('business_ingredients')
         .update({
@@ -71,8 +66,6 @@ export function useBusinessIngredientMutations() {
           description: data.description,
           unit_id: data.unit_id,
           unit_price: data.unit_price
-          // Note: quantity_available is typically updated via stock transactions
-          // The database trigger will extract the business user ID from request headers
         })
         .eq('id', id)
         .select()
@@ -104,7 +97,6 @@ export function useBusinessIngredientMutations() {
 
       console.log('Deleting ingredient with business user ID:', businessUser.id);
 
-      // Using the fetch interceptor in client.ts for business user ID
       const { error } = await supabase
         .from('business_ingredients')
         .delete()
