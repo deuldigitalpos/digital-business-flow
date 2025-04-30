@@ -7,13 +7,19 @@ import { toast } from 'sonner';
 
 export function useBusinessIngredientMutations() {
   const queryClient = useQueryClient();
-  const { business } = useBusinessAuth();
+  const { business, businessUser } = useBusinessAuth();
 
   const createIngredient = useMutation({
     mutationFn: async (ingredientData: IngredientFormValues) => {
       if (!business?.id) {
         throw new Error('Business ID is required');
       }
+
+      if (!businessUser?.id) {
+        throw new Error('Business user ID is required for activity logging');
+      }
+
+      console.log('Creating ingredient with business user ID:', businessUser.id);
 
       const { data, error } = await supabase
         .from('business_ingredients')
@@ -23,7 +29,9 @@ export function useBusinessIngredientMutations() {
           description: ingredientData.description,
           unit_id: ingredientData.unit_id,
           unit_price: ingredientData.unit_price,
-          quantity_available: ingredientData.quantity_available
+          quantity_available: ingredientData.quantity_available,
+          // Make sure updated_by for activity logs is set
+          updated_by: businessUser.id
         })
         .select()
         .single();
@@ -47,13 +55,21 @@ export function useBusinessIngredientMutations() {
 
   const updateIngredient = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: IngredientFormValues }) => {
+      if (!businessUser?.id) {
+        throw new Error('Business user ID is required for activity logging');
+      }
+
+      console.log('Updating ingredient with business user ID:', businessUser.id);
+
       const { data: updatedIngredient, error } = await supabase
         .from('business_ingredients')
         .update({
           name: data.name,
           description: data.description,
           unit_id: data.unit_id,
-          unit_price: data.unit_price
+          unit_price: data.unit_price,
+          // Make sure updated_by for activity logs is set
+          updated_by: businessUser.id
           // Note: quantity_available is typically updated via stock transactions
         })
         .eq('id', id)
@@ -80,6 +96,23 @@ export function useBusinessIngredientMutations() {
 
   const deleteIngredient = useMutation({
     mutationFn: async (id: string) => {
+      if (!businessUser?.id) {
+        throw new Error('Business user ID is required for activity logging');
+      }
+
+      console.log('Deleting ingredient with business user ID:', businessUser.id);
+
+      // First, set the updated_by field to ensure the delete trigger works properly
+      const { error: updateError } = await supabase
+        .from('business_ingredients')
+        .update({ updated_by: businessUser.id })
+        .eq('id', id);
+
+      if (updateError) {
+        console.error('Error setting updated_by before delete:', updateError);
+        throw updateError;
+      }
+
       const { error } = await supabase
         .from('business_ingredients')
         .delete()
