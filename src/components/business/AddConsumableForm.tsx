@@ -33,7 +33,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   unit_id: z.string().optional(),
   unit_price: z.coerce.number().min(0, { message: 'Unit price must be 0 or greater' }),
-  quantity_available: z.coerce.number().min(0, { message: 'Quantity must be 0 or greater' })
+  quantity_available: z.coerce.number().min(0, { message: 'Quantity must be 0 or greater' }).optional()
 });
 
 interface AddConsumableFormProps {
@@ -60,7 +60,15 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onErro
     try {
       console.log('Submitting form data:', data);
       setIsSubmitting(true);
-      await createConsumable.mutateAsync(data);
+      
+      // Ensure quantity_available is at least 0 if undefined
+      const formData = {
+        ...data,
+        quantity_available: data.quantity_available ?? 0
+      };
+      
+      console.log('Processed form data:', formData);
+      await createConsumable.mutateAsync(formData);
       console.log('Consumable created successfully');
       
       form.reset();
@@ -155,9 +163,20 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onErro
           name="quantity_available"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Initial Quantity</FormLabel>
+              <FormLabel>Initial Quantity (Optional)</FormLabel>
               <FormControl>
-                <Input type="number" step="1" min="0" {...field} />
+                <Input 
+                  type="number" 
+                  step="1" 
+                  min="0" 
+                  placeholder="Enter initial quantity or leave empty"
+                  {...field} 
+                  onChange={(e) => {
+                    // Allow empty value by setting to undefined
+                    const value = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                    field.onChange(value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

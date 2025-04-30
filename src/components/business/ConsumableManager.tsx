@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
   AlertDialog,
@@ -18,6 +18,7 @@ import AddConsumableForm from './AddConsumableForm';
 import EditConsumableForm from './EditConsumableForm';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 const ConsumableManager: React.FC = () => {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
@@ -27,6 +28,16 @@ const ConsumableManager: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { deleteConsumable } = useBusinessConsumableMutations();
   const queryClient = useQueryClient();
+  const { businessUser } = useBusinessAuth();
+
+  useEffect(() => {
+    // Log business user ID for debugging
+    if (businessUser?.id) {
+      console.log('ConsumableManager: Business user ID available:', businessUser.id);
+    } else {
+      console.warn('ConsumableManager: Business user ID not available');
+    }
+  }, [businessUser]);
 
   const handleAddClick = () => {
     setIsAddSheetOpen(true);

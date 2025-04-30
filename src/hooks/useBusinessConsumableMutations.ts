@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ConsumableFormValues } from '@/types/business-consumable';
@@ -24,7 +23,7 @@ export function useBusinessConsumableMutations() {
       // Use the special function we created in Supabase that will store the business user ID
       await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
       
-      // Insert the consumable without updated_by (which isn't in the type)
+      // Insert the consumable with quantity_available defaulting to 0 if undefined
       const { data, error } = await supabase
         .from('business_consumables')
         .insert({
@@ -33,7 +32,7 @@ export function useBusinessConsumableMutations() {
           description: consumableData.description || null,
           unit_id: consumableData.unit_id || null,
           unit_price: consumableData.unit_price,
-          quantity_available: consumableData.quantity_available
+          quantity_available: consumableData.quantity_available ?? 0
         })
         .select()
         .single();
@@ -42,9 +41,6 @@ export function useBusinessConsumableMutations() {
         console.error('Error creating consumable:', error);
         throw error;
       }
-
-      // If the insert was successful, ensure the activity log has the businessUser.id
-      // We do this via the native supabase-js fetch interceptor set up in client.ts
 
       return data;
     },
