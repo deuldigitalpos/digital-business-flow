@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import PermissionGuard from '@/components/business/PermissionGuard';
 import ConsumableManager from '@/components/business/ConsumableManager';

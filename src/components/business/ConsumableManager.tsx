@@ -34,31 +34,17 @@ const ConsumableManager: React.FC = () => {
     setIsEditSheetOpen(true);
   };
 
-  const handleDeleteClick = (id: string) => {
-    const handleDelete = async () => {
-      try {
-        await deleteConsumable.mutateAsync(id);
-        setIsDeleteDialogOpen(false);
-        toast.success('Consumable deleted successfully');
-      } catch (error) {
-        toast.error('Failed to delete consumable');
-      }
-    };
-
-    return (consumable: BusinessConsumable) => {
-      setSelectedConsumable(consumable);
-      setIsDeleteDialogOpen(true);
-    };
+  const handleDeleteClick = (consumable: BusinessConsumable) => {
+    setSelectedConsumable(consumable);
+    setIsDeleteDialogOpen(true);
   };
 
   const handleAddSuccess = () => {
     setIsAddSheetOpen(false);
-    toast.success('Consumable added successfully');
   };
 
   const handleEditSuccess = () => {
     setIsEditSheetOpen(false);
-    toast.success('Consumable updated successfully');
   };
 
   const handleDelete = async () => {
@@ -66,7 +52,6 @@ const ConsumableManager: React.FC = () => {
       try {
         await deleteConsumable.mutateAsync(selectedConsumable.id);
         setIsDeleteDialogOpen(false);
-        toast.success('Consumable deleted successfully');
       } catch (error) {
         toast.error('Failed to delete consumable');
       }
@@ -78,11 +63,7 @@ const ConsumableManager: React.FC = () => {
       <ConsumableList 
         onAddNew={handleAddClick}
         onEdit={handleEditClick}
-        onDelete={(id) => {
-          const consumable = { id } as BusinessConsumable;
-          setSelectedConsumable(consumable);
-          setIsDeleteDialogOpen(true);
-        }}
+        onDelete={handleDeleteClick}
       />
 
       {/* Add Consumable Sheet */}

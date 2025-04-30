@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues, BusinessProductSize } from '@/types/business-product';
