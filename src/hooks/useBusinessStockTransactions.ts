@@ -51,42 +51,64 @@ export function useRecentStockTransactions(limit: number = 10) {
         return [];
       }
 
-      const { data, error } = await supabase
+      // First, fetch the transactions
+      const { data: transactions, error: transactionError } = await supabase
         .from('business_stock_transactions')
-        .select(`
-          *,
-          business_products(name),
-          business_ingredients(name),
-          business_consumables(name)
-        `)
+        .select('*')
         .eq('business_id', business.id)
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      if (error) {
-        console.error('Error fetching recent stock transactions:', error);
-        throw error;
+      if (transactionError) {
+        console.error('Error fetching recent stock transactions:', transactionError);
+        throw transactionError;
       }
 
-      // Add a display name based on the item_type
-      const transactions = data.map(transaction => {
-        let itemName = 'Unknown';
-        
-        if (transaction.item_type === 'product' && transaction.business_products) {
-          itemName = transaction.business_products.name;
-        } else if (transaction.item_type === 'ingredient' && transaction.business_ingredients) {
-          itemName = transaction.business_ingredients.name;
-        } else if (transaction.item_type === 'consumable' && transaction.business_consumables) {
-          itemName = transaction.business_consumables.name;
-        }
-        
-        return {
-          ...transaction,
-          item_name: itemName
-        };
-      });
+      // Then for each transaction, fetch the item name based on the item_type
+      const enhancedTransactions = await Promise.all(
+        transactions.map(async (transaction) => {
+          let itemName = 'Unknown';
+          
+          if (transaction.item_type === 'product') {
+            const { data: product, error: productError } = await supabase
+              .from('business_products')
+              .select('name')
+              .eq('id', transaction.item_id)
+              .single();
+            
+            if (!productError && product) {
+              itemName = product.name;
+            }
+          } else if (transaction.item_type === 'ingredient') {
+            const { data: ingredient, error: ingredientError } = await supabase
+              .from('business_ingredients')
+              .select('name')
+              .eq('id', transaction.item_id)
+              .single();
+            
+            if (!ingredientError && ingredient) {
+              itemName = ingredient.name;
+            }
+          } else if (transaction.item_type === 'consumable') {
+            const { data: consumable, error: consumableError } = await supabase
+              .from('business_consumables')
+              .select('name')
+              .eq('id', transaction.item_id)
+              .single();
+            
+            if (!consumableError && consumable) {
+              itemName = consumable.name;
+            }
+          }
+          
+          return {
+            ...transaction,
+            item_name: itemName
+          };
+        })
+      );
 
-      return transactions;
+      return enhancedTransactions;
     },
     enabled: !!business?.id,
   });

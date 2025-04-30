@@ -16,7 +16,7 @@ export function useBusinessProductMutations() {
       }
 
       // First, create the product
-      const { data: productData, error: productError } = await supabase
+      const { data: newProduct, error: productError } = await supabase
         .from('business_products')
         .insert({
           business_id: business.id,
@@ -46,9 +46,9 @@ export function useBusinessProductMutations() {
       }
 
       // Then, if there are sizes, add them
-      if (productData.sizes && productData.sizes.length > 0) {
+      if (productData.sizes && productData.sizes.length > 0 && newProduct) {
         const sizesToInsert = productData.sizes.map(size => ({
-          product_id: productData.id,
+          product_id: newProduct.id,
           size_name: size.size_name,
           price: size.price
         }));
@@ -63,7 +63,7 @@ export function useBusinessProductMutations() {
         }
       }
 
-      return productData;
+      return newProduct;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-products', business?.id] });
