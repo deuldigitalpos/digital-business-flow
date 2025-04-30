@@ -30,11 +30,10 @@ import {
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, PlusCircle, MinusCircle } from 'lucide-react';
+import { Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
@@ -218,14 +217,14 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="increase" id="increase" />
                         <Label htmlFor="increase" className="flex items-center gap-1 cursor-pointer">
-                          <PlusCircle className="h-4 w-4 text-green-600" />
+                          <ArrowUp className="h-4 w-4 text-green-600" />
                           Increase
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="decrease" id="decrease" />
                         <Label htmlFor="decrease" className="flex items-center gap-1 cursor-pointer">
-                          <MinusCircle className="h-4 w-4 text-red-600" />
+                          <ArrowDown className="h-4 w-4 text-red-600" />
                           Decrease
                         </Label>
                       </div>
@@ -251,31 +250,20 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
               )}
             />
 
-            {/* Adjustment Reason */}
+            {/* Adjustment Reason - Changed to text field */}
             <FormField
               control={form.control}
               name="adjustment_reason"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Adjustment Reason</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value || ''}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select reason" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="restock">Restock</SelectItem>
-                      <SelectItem value="sale">Sale</SelectItem>
-                      <SelectItem value="return">Return</SelectItem>
-                      <SelectItem value="damage">Damage/Loss</SelectItem>
-                      <SelectItem value="correction">Inventory Correction</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input 
+                      placeholder="E.g., Restock, Sale, Damage, Inventory Correction" 
+                      {...field} 
+                      value={field.value || ''}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

@@ -15,6 +15,11 @@ export function useBusinessStockMutations() {
         throw new Error('Business ID and User ID are required');
       }
 
+      console.log('Creating stock transaction with business user ID:', businessUser.id);
+      
+      // Set the business user ID in the session variable
+      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+
       const { data, error } = await supabase
         .from('business_stock_transactions')
         .insert({
