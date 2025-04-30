@@ -26,7 +26,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 const formSchema = z.object({
@@ -44,7 +43,6 @@ interface AddConsumableFormProps {
 const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   const { createConsumable } = useBusinessConsumableMutations();
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
-  const { business } = useBusinessAuth();
   
   const form = useForm<ConsumableFormValues>({
     resolver: zodResolver(formSchema),
@@ -58,20 +56,12 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
 
   const onSubmit = async (data: ConsumableFormValues) => {
     try {
-      await createConsumable.mutateAsync({
-        name: data.name,
-        description: data.description,
-        unit_id: data.unit_id,
-        unit_price: Number(data.unit_price),
-        quantity_available: Number(data.quantity_available)
-      });
-      
+      await createConsumable.mutateAsync(data);
       form.reset();
-      toast.success('Consumable added successfully');
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error('Failed to add consumable');
+      // Error is handled in the mutation hook
     }
   };
 
