@@ -33,7 +33,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   unit_id: z.string().optional(),
   unit_price: z.coerce.number().min(0, { message: 'Unit price must be 0 or greater' }),
-  quantity_available: z.coerce.number().min(0, { message: 'Quantity must be 0 or greater' })
+  quantity_available: z.coerce.number().min(0, { message: 'Quantity must be 0 or greater' }).optional()
 });
 
 interface AddIngredientFormProps {
@@ -60,7 +60,14 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
     try {
       console.log('Submitting ingredient form data:', data);
       setIsSubmitting(true);
-      await createIngredient.mutateAsync(data);
+      
+      // Ensure quantity_available is at least 0
+      const formData = {
+        ...data,
+        quantity_available: data.quantity_available ?? 0
+      };
+      
+      await createIngredient.mutateAsync(formData);
       console.log('Ingredient created successfully');
       
       form.reset();
@@ -156,9 +163,20 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
           name="quantity_available"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Initial Quantity</FormLabel>
+              <FormLabel>Initial Quantity (Optional)</FormLabel>
               <FormControl>
-                <Input type="number" step="1" min="0" {...field} />
+                <Input 
+                  type="number" 
+                  step="1" 
+                  min="0" 
+                  placeholder="Enter initial quantity or leave empty"
+                  {...field} 
+                  onChange={(e) => {
+                    // Allow empty value by setting to undefined
+                    const value = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                    field.onChange(value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

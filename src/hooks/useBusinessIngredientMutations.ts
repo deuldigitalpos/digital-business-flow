@@ -25,7 +25,7 @@ export function useBusinessIngredientMutations() {
       // This is done before the insert to ensure the database trigger can access it
       await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
       
-      // Insert the ingredient - the businessUser.id will be sent via the fetch interceptor in client.ts
+      // Insert the ingredient with quantity_available defaulting to 0 if undefined
       const { data, error } = await supabase
         .from('business_ingredients')
         .insert({
@@ -34,7 +34,7 @@ export function useBusinessIngredientMutations() {
           description: ingredientData.description,
           unit_id: ingredientData.unit_id,
           unit_price: ingredientData.unit_price,
-          quantity_available: ingredientData.quantity_available
+          quantity_available: ingredientData.quantity_available ?? 0
         })
         .select()
         .single();

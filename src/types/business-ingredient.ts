@@ -18,5 +18,5 @@ export type IngredientFormValues = {
   description?: string;
   unit_id?: string;
   unit_price: number;
-  quantity_available: number;
+  quantity_available?: number;
 };
