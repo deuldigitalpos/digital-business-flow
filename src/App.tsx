@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/context/AuthContext';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -43,58 +44,60 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Toaster />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
+        <AuthProvider>
+          <Toaster />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
 
-          {/* Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="users" element={<UserManagement />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="packages" element={<PackageManagement />} />
-            <Route path="discounts" element={<DiscountManagement />} />
-            <Route path="referrals" element={<ReferralManagement />} />
-            <Route path="businesses" element={<BusinessManagement />} />
-            <Route path="*" element={<PlaceholderPage />} />
-          </Route>
+            {/* Dashboard Routes */}
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="packages" element={<PackageManagement />} />
+              <Route path="discounts" element={<DiscountManagement />} />
+              <Route path="referrals" element={<ReferralManagement />} />
+              <Route path="businesses" element={<BusinessManagement />} />
+              <Route path="*" element={<PlaceholderPage />} />
+            </Route>
 
-          {/* Business Dashboard Routes - Wrapped with BusinessAuthProvider */}
-          <Route path="/business-login" element={
-            <BusinessAuthProvider>
-              <BusinessLogin />
-            </BusinessAuthProvider>
-          } />
-          
-          <Route path="/business-dashboard" element={
-            <BusinessAuthProvider>
-              <BusinessDashboardLayout />
-            </BusinessAuthProvider>
-          }>
-            <Route index element={<BusinessDashboard />} />
-            <Route path="users" element={<BusinessUsers />} />
-            <Route path="roles" element={<BusinessRoles />} />
-            <Route path="locations" element={<BusinessLocations />} />
-            <Route path="categories" element={<BusinessCategories />} />
-            <Route path="expenses" element={<BusinessExpenses />} />
-            <Route path="customers" element={<BusinessCustomers />} />
-            <Route path="leads" element={<BusinessLeads />} />
-            <Route path="suppliers" element={<BusinessSuppliers />} />
-            <Route path="units" element={<BusinessUnits />} />
-            <Route path="brands" element={<BusinessBrands />} />
-            <Route path="warranties" element={<BusinessWarranties />} />
-            <Route path="products" element={<BusinessProducts />} />
-            <Route path="ingredients" element={<BusinessIngredients />} />
-            <Route path="consumables" element={<BusinessConsumables />} />
-            <Route path="stock" element={<BusinessStock />} />
-            <Route path="activity-log" element={<BusinessActivityLog />} />
-            <Route path="no-permission" element={<PermissionDenied />} />
-            <Route path="*" element={<PlaceholderPage />} />
-          </Route>
+            {/* Business Dashboard Routes - Wrapped with BusinessAuthProvider */}
+            <Route path="/business-login" element={
+              <BusinessAuthProvider>
+                <BusinessLogin />
+              </BusinessAuthProvider>
+            } />
+            
+            <Route path="/business-dashboard" element={
+              <BusinessAuthProvider>
+                <BusinessDashboardLayout />
+              </BusinessAuthProvider>
+            }>
+              <Route index element={<BusinessDashboard />} />
+              <Route path="users" element={<BusinessUsers />} />
+              <Route path="roles" element={<BusinessRoles />} />
+              <Route path="locations" element={<BusinessLocations />} />
+              <Route path="categories" element={<BusinessCategories />} />
+              <Route path="expenses" element={<BusinessExpenses />} />
+              <Route path="customers" element={<BusinessCustomers />} />
+              <Route path="leads" element={<BusinessLeads />} />
+              <Route path="suppliers" element={<BusinessSuppliers />} />
+              <Route path="units" element={<BusinessUnits />} />
+              <Route path="brands" element={<BusinessBrands />} />
+              <Route path="warranties" element={<BusinessWarranties />} />
+              <Route path="products" element={<BusinessProducts />} />
+              <Route path="ingredients" element={<BusinessIngredients />} />
+              <Route path="consumables" element={<BusinessConsumables />} />
+              <Route path="stock" element={<BusinessStock />} />
+              <Route path="activity-log" element={<BusinessActivityLog />} />
+              <Route path="no-permission" element={<PermissionDenied />} />
+              <Route path="*" element={<PlaceholderPage />} />
+            </Route>
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

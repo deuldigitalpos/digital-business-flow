@@ -1,8 +1,11 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+
 const Index = () => {
-  return <div className="flex min-h-screen flex-col">
+  return (
+    <div className="flex min-h-screen flex-col">
       <header className="flex h-16 items-center border-b px-4 md:px-6">
         <div className="flex gap-2 items-center">
           <img src="/lovable-uploads/1df1545d-8aea-4a95-8a04-a342cff67de7.png" alt="DeulDigital Logo" className="h-8 w-auto" />
@@ -44,6 +47,8 @@ const Index = () => {
       <footer className="border-t p-6 text-center text-sm text-muted-foreground">
         &copy; {new Date().getFullYear()} DeulDigital POS. All rights reserved.
       </footer>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
