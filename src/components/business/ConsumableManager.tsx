@@ -41,12 +41,12 @@ const ConsumableManager: React.FC = () => {
 
   const handleAddSuccess = () => {
     setIsAddSheetOpen(false);
-    toast.success('Consumable added successfully');
+    // No need to show toast here as it's now handled in the form component
   };
 
   const handleEditSuccess = () => {
     setIsEditSheetOpen(false);
-    toast.success('Consumable updated successfully');
+    // No need to show toast here as it can be handled in the form component
   };
 
   const handleDelete = async () => {

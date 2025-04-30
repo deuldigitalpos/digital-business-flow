@@ -24,7 +24,8 @@ export function useBusinessConsumableMutations() {
           unit_id: consumableData.unit_id || null,
           unit_price: consumableData.unit_price,
           quantity_available: consumableData.quantity_available,
-          status: getConsumableStatus(consumableData.quantity_available)
+          status: getConsumableStatus(consumableData.quantity_available),
+          total_cost: consumableData.unit_price * consumableData.quantity_available
         })
         .select()
         .single();
@@ -38,11 +39,9 @@ export function useBusinessConsumableMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
-      toast.success('Consumable added successfully');
     },
     onError: (error) => {
       console.error('Failed to add consumable:', error);
-      toast.error('Failed to add consumable');
     }
   });
 
@@ -55,7 +54,8 @@ export function useBusinessConsumableMutations() {
           description: data.description || null,
           unit_id: data.unit_id || null,
           unit_price: data.unit_price,
-          status: getConsumableStatus(data.quantity_available || 0)
+          status: getConsumableStatus(data.quantity_available || 0),
+          total_cost: data.unit_price * (data.quantity_available || 0)
           // Note: quantity_available is typically updated via stock transactions
         })
         .eq('id', id)
@@ -72,11 +72,9 @@ export function useBusinessConsumableMutations() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
       queryClient.invalidateQueries({ queryKey: ['business-consumable', variables.id] });
-      toast.success('Consumable updated successfully');
     },
     onError: (error) => {
       console.error('Failed to update consumable:', error);
-      toast.error('Failed to update consumable');
     }
   });
 
@@ -96,11 +94,9 @@ export function useBusinessConsumableMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
-      toast.success('Consumable deleted successfully');
     },
     onError: (error) => {
       console.error('Failed to delete consumable:', error);
-      toast.error('Failed to delete consumable');
     }
   });
 

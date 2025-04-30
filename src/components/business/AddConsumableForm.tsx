@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -56,12 +57,20 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   const onSubmit = async (data: ConsumableFormValues) => {
     console.log('Submitting form with data:', data);
     try {
-      await createConsumable.mutateAsync(data);
+      await createConsumable.mutateAsync({
+        name: data.name,
+        description: data.description,
+        unit_id: data.unit_id,
+        unit_price: Number(data.unit_price),
+        quantity_available: Number(data.quantity_available)
+      });
       console.log('Consumable created successfully');
       form.reset();
+      toast.success('Consumable added successfully');
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
+      toast.error('Failed to add consumable');
     }
   };
 
