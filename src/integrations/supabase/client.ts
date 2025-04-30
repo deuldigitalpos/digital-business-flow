@@ -11,12 +11,19 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+// Store original fetch for later restoration
+const originalFetch = globalThis.fetch;
+
 // Function to set custom auth for business users
 export const setSupabaseBusinessAuth = (businessUserId: string) => {
-  // For business users, we'll use custom headers via fetch interceptor
-  // This approach avoids accessing protected properties
-  const previousFetch = globalThis.fetch;
+  console.log('Setting business user auth for:', businessUserId);
   
+  // Store original fetch if not already stored
+  if (!(globalThis as any).__originalFetch) {
+    (globalThis as any).__originalFetch = originalFetch;
+  }
+  
+  // Replace global fetch with our interceptor
   globalThis.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     
@@ -25,24 +32,34 @@ export const setSupabaseBusinessAuth = (businessUserId: string) => {
       init = init || {};
       init.headers = init.headers || {};
       
-      // Add our custom business user header
-      Object.assign(init.headers, {
-        'business-user-id': businessUserId
+      // Add our custom header for business user authentication
+      (init.headers as Record<string, string>)['business-user-id'] = businessUserId;
+      
+      console.log('Intercepted Supabase request:', { 
+        url, 
+        headers: { ...init.headers, Authorization: '[REDACTED]' } 
       });
     }
     
-    return previousFetch(input, init);
+    return originalFetch(input, init);
   };
+  
+  // Mark that we've set up the fetch interceptor
+  (globalThis as any).__supabaseFetchInterceptor = true;
+  
+  console.log('Business user auth setup complete');
 };
 
 // Function to clear custom auth
 export const clearSupabaseBusinessAuth = () => {
-  // Reset fetch to its original implementation
-  delete (globalThis as any).__supabaseFetchInterceptor;
+  console.log('Clearing business user auth');
   
-  // If we stored the previous fetch implementation, restore it
-  if ((globalThis as any).__originalFetch) {
+  // Reset fetch to its original implementation if we've modified it
+  if ((globalThis as any).__supabaseFetchInterceptor) {
     globalThis.fetch = (globalThis as any).__originalFetch;
     delete (globalThis as any).__originalFetch;
+    delete (globalThis as any).__supabaseFetchInterceptor;
+    
+    console.log('Fetch interceptor cleared');
   }
 };

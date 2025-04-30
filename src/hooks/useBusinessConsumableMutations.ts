@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ConsumableFormValues } from '@/types/business-consumable';
@@ -18,6 +19,13 @@ export function useBusinessConsumableMutations() {
       console.log('Current business:', business);
 
       try {
+        // Add debugging for headers
+        const headers = {};
+        (supabase as any).rest?.headers?.forEach((value: any, key: string) => {
+          headers[key] = value;
+        });
+        console.log('Supabase headers:', headers);
+
         const { data, error } = await supabase
           .from('business_consumables')
           .insert({

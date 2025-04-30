@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BusinessUser } from '@/types/business-user';
 import { Business } from '@/types/business';
@@ -153,6 +152,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
           setBusinessUser(parsedUser);
           
           // Set Supabase auth for the business user
+          console.log('Setting Supabase auth for stored business user:', parsedUser.id);
           setSupabaseBusinessAuth(parsedUser.id);
           
           // Check if this is the default user for the business
@@ -177,6 +177,11 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     initializeAuth();
+    
+    // Clear auth on unmount
+    return () => {
+      clearSupabaseBusinessAuth();
+    };
   }, [fetchBusinessDetails, fetchUserPermissions, checkIfDefaultUser]);
 
   // Optimized login function
@@ -190,6 +195,9 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     console.log('Attempting login for username:', username);
     
     try {
+      // First clear any existing auth just to be safe
+      clearSupabaseBusinessAuth();
+      
       // Query the business_users table to find the user
       const { data, error } = await supabase
         .from('business_users')
@@ -208,21 +216,17 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const user = data as unknown as BusinessUser;
       console.log('Login successful, user found:', user.id);
       
-      // Store user data first
+      // Set user data and store it
       setBusinessUser(user);
       localStorage.setItem('businessUser', JSON.stringify(user));
       
-      // Set Supabase auth for the business user
+      // IMPORTANT: Set Supabase auth for the business user
+      console.log('Setting Supabase auth for user:', user.id);
       setSupabaseBusinessAuth(user.id);
-      console.log('Supabase auth set for business user');
       
-      // Check if this is the default user for the business
+      // Rest of login process
       await checkIfDefaultUser(user.id, user.business_id);
-      
-      // Fetch user permissions before fetching business details
       await fetchUserPermissions(user.role_id);
-      
-      // Then fetch business details
       await fetchBusinessDetails(user.business_id);
       
       toast.success('Login successful!');
@@ -244,7 +248,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setIsDefaultUser(false);
     localStorage.removeItem('businessUser');
     
-    // Clear Supabase auth on logout
+    // IMPORTANT: Clear Supabase auth on logout
     clearSupabaseBusinessAuth();
     console.log('Supabase auth cleared on logout');
     

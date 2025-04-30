@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -24,8 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -42,6 +45,8 @@ interface AddConsumableFormProps {
 const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   const { createConsumable } = useBusinessConsumableMutations();
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
+  const { businessUser, business } = useBusinessAuth();
+  const [errorDetails, setErrorDetails] = React.useState<string | null>(null);
   
   const form = useForm<ConsumableFormValues>({
     resolver: zodResolver(formSchema),
@@ -54,7 +59,11 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   });
 
   const onSubmit = async (data: ConsumableFormValues) => {
+    setErrorDetails(null);
     console.log('Submitting form with data:', data);
+    console.log('Current business user:', businessUser);
+    console.log('Current business:', business);
+    
     try {
       await createConsumable.mutateAsync({
         name: data.name,
@@ -68,13 +77,27 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
-      // Toast is now handled in the mutation hook
+      setErrorDetails(typeof error === 'object' && error !== null 
+        ? JSON.stringify(error, null, 2) 
+        : String(error));
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {errorDetails && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-xs overflow-auto max-h-32">
+              <details>
+                <summary>Error Details</summary>
+                <pre className="whitespace-pre-wrap">{errorDetails}</pre>
+              </details>
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <FormField
           control={form.control}
           name="name"
