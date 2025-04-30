@@ -74,8 +74,7 @@ export function useWarrantyProductsCount() {
       
       const { data, error } = await supabase
         .from('business_warranty_products')
-        .select('warranty_id, id')
-        .eq('business_id', business.id);
+        .select('warranty_id, id');
         
       if (error) {
         console.error('Error fetching warranty products count:', error);
