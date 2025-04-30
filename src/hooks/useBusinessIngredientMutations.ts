@@ -26,7 +26,14 @@ export function useBusinessIngredientMutations() {
         await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
         console.log('Business user ID set successfully');
         
-        // Then perform the insert operation
+        // Create custom headers for this request
+        const headers = {
+          'business-user-id': businessUser.id
+        };
+        
+        console.log('Using headers:', headers);
+        
+        // Then perform the insert operation with explicit header and updated_by field
         const { data, error } = await supabase
           .from('business_ingredients')
           .insert({
@@ -35,10 +42,13 @@ export function useBusinessIngredientMutations() {
             description: ingredientData.description,
             unit_id: ingredientData.unit_id,
             unit_price: ingredientData.unit_price,
-            quantity_available: ingredientData.quantity_available ?? 0
+            quantity_available: ingredientData.quantity_available ?? 0,
+            // Add business user ID directly to the data
+            updated_by: businessUser.id
           })
           .select()
-          .single();
+          .single()
+          .headers(headers); // Explicitly add the header to this request
 
         if (error) {
           console.error('Error creating ingredient:', error);
@@ -75,17 +85,25 @@ export function useBusinessIngredientMutations() {
         await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
         console.log('Business user ID set successfully for update');
 
+        // Create custom headers for this request
+        const headers = {
+          'business-user-id': businessUser.id
+        };
+        
         const { data: updatedIngredient, error } = await supabase
           .from('business_ingredients')
           .update({
             name: data.name,
             description: data.description,
             unit_id: data.unit_id,
-            unit_price: data.unit_price
+            unit_price: data.unit_price,
+            // Add business user ID directly to the update data
+            updated_by: businessUser.id
           })
           .eq('id', id)
           .select()
-          .single();
+          .single()
+          .headers(headers); // Explicitly add the header to this request
 
         if (error) {
           console.error('Error updating ingredient:', error);
@@ -122,10 +140,16 @@ export function useBusinessIngredientMutations() {
         await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
         console.log('Business user ID set successfully for delete');
 
+        // Create custom headers for this request
+        const headers = {
+          'business-user-id': businessUser.id
+        };
+        
         const { error } = await supabase
           .from('business_ingredients')
           .delete()
-          .eq('id', id);
+          .eq('id', id)
+          .headers(headers); // Explicitly add the header to this request
 
         if (error) {
           console.error('Error deleting ingredient:', error);

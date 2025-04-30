@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,6 +47,7 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { businessUser } = useBusinessAuth();
+  const submitTimeRef = useRef<number | null>(null);
   
   // Add debug logging for business user
   console.log('Current business user in AddIngredientForm:', businessUser);
@@ -62,16 +64,25 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
   });
 
   const onSubmit = async (data: IngredientFormValues) => {
-    // Prevent double submission
+    // Prevent double submission with both state and time-based check
     if (isSubmitting) {
       console.log('Form submission already in progress');
       return;
     }
+    
+    // Additional time-based debounce for double click issues
+    const now = Date.now();
+    if (submitTimeRef.current && now - submitTimeRef.current < 1000) {
+      console.log('Submission too soon after previous submission, ignoring');
+      return;
+    }
+    
+    submitTimeRef.current = now;
+    setIsSubmitting(true);
 
     try {
       console.log('Submitting ingredient form data:', data);
       console.log('Current business user ID:', businessUser?.id);
-      setIsSubmitting(true);
       
       // Ensure quantity_available is at least 0
       const formData = {
@@ -94,7 +105,10 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
         toast.error(`Failed to add ingredient: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } finally {
-      setIsSubmitting(false);
+      // Small delay before allowing another submission
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 500);
     }
   };
 
