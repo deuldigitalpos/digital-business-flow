@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ConsumableFormValues } from '@/types/business-consumable';
@@ -30,11 +29,8 @@ export function useBusinessConsumableMutations() {
             description: consumableData.description || null,
             unit_id: consumableData.unit_id || null,
             unit_price: consumableData.unit_price,
-            quantity_available: consumableData.quantity_available,
-            // Calculate the total cost as quantity * unit price
-            total_cost: consumableData.quantity_available * consumableData.unit_price,
-            // Set the initial status based on quantity
-            status: getConsumableStatus(consumableData.quantity_available)
+            quantity_available: consumableData.quantity_available
+            // total_cost and status are now removed - will be set by the database trigger
           })
           .select()
           .single();
