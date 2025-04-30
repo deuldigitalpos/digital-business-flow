@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface ConsumableListProps {
   onEdit: (consumable: BusinessConsumable) => void;
-  onDelete: (id: string) => void;
+  onDelete: (consumable: BusinessConsumable) => void;  // Changed from string to BusinessConsumable
   onAddNew: () => void;
 }
 
@@ -124,7 +124,7 @@ const ConsumableList: React.FC<ConsumableListProps> = ({ onEdit, onDelete, onAdd
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => onDelete(consumable.id)}>
+                  <Button variant="outline" size="sm" onClick={() => onDelete(consumable)}>
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
