@@ -24,6 +24,7 @@ const ConsumableManager: React.FC = () => {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedConsumable, setSelectedConsumable] = useState<BusinessConsumable | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { deleteConsumable } = useBusinessConsumableMutations();
   const queryClient = useQueryClient();
 
@@ -47,6 +48,11 @@ const ConsumableManager: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['business-consumables'] });
   };
 
+  const handleAddError = (error: any) => {
+    console.error('Error adding consumable:', error);
+    toast.error(`Error adding consumable: ${error.message || 'Unknown error'}`);
+  };
+
   const handleEditSuccess = () => {
     setIsEditSheetOpen(false);
     // Force a refresh of the consumables list
@@ -56,11 +62,15 @@ const ConsumableManager: React.FC = () => {
   const handleDelete = async () => {
     if (selectedConsumable) {
       try {
+        setIsProcessing(true);
         await deleteConsumable.mutateAsync(selectedConsumable.id);
         setIsDeleteDialogOpen(false);
         setSelectedConsumable(null);
       } catch (error) {
-        // Toast is now handled in the mutation hook
+        console.error('Error deleting consumable:', error);
+        toast.error(`Failed to delete consumable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        setIsProcessing(false);
       }
     }
   };
@@ -80,7 +90,10 @@ const ConsumableManager: React.FC = () => {
             <SheetTitle>Add New Consumable</SheetTitle>
           </SheetHeader>
           <div className="py-6">
-            <AddConsumableForm onSuccess={handleAddSuccess} />
+            <AddConsumableForm 
+              onSuccess={handleAddSuccess} 
+              onError={handleAddError}
+            />
           </div>
         </SheetContent>
       </Sheet>
@@ -112,12 +125,13 @@ const ConsumableManager: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
+              disabled={isProcessing}
             >
-              Delete
+              {isProcessing ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

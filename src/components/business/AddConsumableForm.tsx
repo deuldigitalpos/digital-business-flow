@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,11 +38,13 @@ const formSchema = z.object({
 
 interface AddConsumableFormProps {
   onSuccess?: () => void;
+  onError?: (error: any) => void;
 }
 
-const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
+const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onError }) => {
   const { createConsumable } = useBusinessConsumableMutations();
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<ConsumableFormValues>({
     resolver: zodResolver(formSchema),
@@ -56,13 +58,22 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
 
   const onSubmit = async (data: ConsumableFormValues) => {
     try {
+      console.log('Submitting form data:', data);
+      setIsSubmitting(true);
       await createConsumable.mutateAsync(data);
+      console.log('Consumable created successfully');
+      
       form.reset();
-      toast.success('Consumable added successfully!');
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error('Failed to add consumable. Please try again.');
+      if (onError) {
+        onError(error);
+      } else {
+        toast.error(`Failed to add consumable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -156,9 +167,9 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
         <Button 
           type="submit" 
           className="w-full"
-          disabled={createConsumable.isPending}
+          disabled={isSubmitting || createConsumable.isPending}
         >
-          {createConsumable.isPending ? (
+          {(isSubmitting || createConsumable.isPending) ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Adding Consumable...
