@@ -30,6 +30,11 @@ import BusinessCategories from '@/pages/BusinessCategories';
 import BusinessUnits from '@/pages/BusinessUnits';
 import BusinessBrands from '@/pages/BusinessBrands';
 import BusinessWarranties from '@/pages/BusinessWarranties';
+import BusinessProducts from '@/pages/BusinessProducts';
+import BusinessIngredients from '@/pages/BusinessIngredients';
+import BusinessConsumables from '@/pages/BusinessConsumables';
+import BusinessStock from '@/pages/BusinessStock';
+import BusinessActivityLog from '@/pages/BusinessActivityLog';
 import { BusinessAuthProvider } from '@/context/BusinessAuthContext';
 
 const queryClient = new QueryClient();
@@ -79,12 +84,11 @@ function App() {
             <Route path="units" element={<BusinessUnits />} />
             <Route path="brands" element={<BusinessBrands />} />
             <Route path="warranties" element={<BusinessWarranties />} />
-            <Route path="consumables" element={<PlaceholderPage />} />
-            <Route path="equipment" element={<PlaceholderPage />} />
-            <Route path="service" element={<PlaceholderPage />} />
-            <Route path="products" element={<PlaceholderPage />} />
-            <Route path="stock" element={<PlaceholderPage />} />
-            <Route path="purchases" element={<PlaceholderPage />} />
+            <Route path="products" element={<BusinessProducts />} />
+            <Route path="ingredients" element={<BusinessIngredients />} />
+            <Route path="consumables" element={<BusinessConsumables />} />
+            <Route path="stock" element={<BusinessStock />} />
+            <Route path="activity-log" element={<BusinessActivityLog />} />
             <Route path="no-permission" element={<PermissionDenied />} />
             <Route path="*" element={<PlaceholderPage />} />
           </Route>

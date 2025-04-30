@@ -1,28 +1,28 @@
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building, 
-  MapPin, 
-  FileText, 
-  CreditCard, 
-  ClipboardList, 
-  Package, 
-  Truck,
-  BarChart, 
-  Settings, 
-  FileOutput, 
-  Database, 
-  UserPlus, 
-  ShoppingCart,
+
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
   DollarSign,
-  Landmark,
+  UserRound,
+  Activity,
+  BadgePercent,
+  Settings,
+  Home,
+  Package2,
   Tags,
-  Box,
+  Clock,
+  ShoppingCart,
+  CalendarClock,
+  PanelRight,
+  Store,
   Boxes,
-  Wrench,
-  Tag,
-  FileCheck
-} from "lucide-react";
+  Utensils,
+  PackageOpen,
+  BarChart2,
+  History,
+  Coffee,
+} from 'lucide-react';
 
 export interface SidebarNavItem {
   title: string;
@@ -32,194 +32,150 @@ export interface SidebarNavItem {
   children?: SidebarNavItem[];
 }
 
-export interface SidebarNavGroup {
+export interface SidebarNavSection {
   title: string;
   items: SidebarNavItem[];
 }
 
-export const sidebarNavigation: SidebarNavGroup[] = [
+export const sidebarNavigation: SidebarNavSection[] = [
   {
-    title: "Overview",
+    title: 'Overview',
     items: [
       {
-        title: "Dashboard",
-        href: "/business-dashboard",
+        title: 'Dashboard',
+        href: '/business-dashboard',
         icon: LayoutDashboard,
-        permission: "dashboard",
+        permission: 'dashboard'
       },
-    ],
+    ]
   },
   {
-    title: "User Management",
+    title: 'Management',
     items: [
       {
-        title: "Users",
-        href: "/business-dashboard/users",
+        title: 'Team',
         icon: Users,
-        permission: "users",
+        permission: 'user_management',
+        children: [
+          {
+            title: 'Staff',
+            href: '/business-dashboard/users',
+            icon: UserRound,
+            permission: 'users'
+          },
+          {
+            title: 'Roles',
+            href: '/business-dashboard/roles',
+            icon: BadgePercent,
+            permission: 'roles'
+          }
+        ],
       },
       {
-        title: "Roles",
-        href: "/business-dashboard/roles",
-        icon: UserPlus,
-        permission: "roles",
-      },
-    ],
-  },
-  {
-    title: "Business Setup",
-    items: [
-      {
-        title: "Locations",
-        href: "/business-dashboard/locations",
-        icon: MapPin,
-        permission: "locations",
+        title: 'Locations',
+        href: '/business-dashboard/locations',
+        icon: Building2,
+        permission: 'locations'
       },
       {
-        title: "Taxes",
-        href: "/business-dashboard/taxes",
+        title: 'Expenses',
+        href: '/business-dashboard/expenses',
         icon: DollarSign,
-        permission: "taxes",
+        permission: 'expenses'
       },
-    ],
-  },
-  {
-    title: "Contacts",
-    items: [
       {
-        title: "Customers",
-        href: "/business-dashboard/customers",
+        title: 'People',
         icon: Users,
-        permission: "customers",
-      },
-      {
-        title: "Leads",
-        href: "/business-dashboard/leads",
-        icon: UserPlus,
-        permission: "customers",
-      },
-      {
-        title: "Suppliers",
-        href: "/business-dashboard/suppliers",
-        icon: Truck,
-        permission: "suppliers",
+        children: [
+          {
+            title: 'Customers',
+            href: '/business-dashboard/customers',
+            icon: UserRound,
+            permission: 'customers'
+          },
+          {
+            title: 'Leads',
+            href: '/business-dashboard/leads',
+            icon: Activity,
+            permission: 'leads'
+          },
+          {
+            title: 'Suppliers',
+            href: '/business-dashboard/suppliers',
+            icon: Store,
+            permission: 'suppliers'
+          },
+        ],
       },
     ],
   },
   {
-    title: "Inventory",
+    title: 'Inventory',
     items: [
       {
-        title: "Products",
-        href: "/business-dashboard/products",
-        icon: Package,
-        permission: "products",
+        title: 'Products',
+        href: '/business-dashboard/products',
+        icon: Package2,
+        permission: 'products'
       },
       {
-        title: "Categories",
-        href: "/business-dashboard/categories",
-        icon: Tags,
-        permission: "categories",
+        title: 'Ingredients',
+        href: '/business-dashboard/ingredients',
+        icon: Utensils,
+        permission: 'ingredients'
       },
       {
-        title: "Units",
-        href: "/business-dashboard/units",
-        icon: Box,
-        permission: "products",
+        title: 'Consumables',
+        href: '/business-dashboard/consumables',
+        icon: Coffee,
+        permission: 'consumables'
       },
       {
-        title: "Brands",
-        href: "/business-dashboard/brands",
-        icon: Tag,
-        permission: "products",
-      },
-      {
-        title: "Warranties",
-        href: "/business-dashboard/warranties",
-        icon: FileCheck,
-        permission: "products",
-      },
-      {
-        title: "Consumables",
-        href: "/business-dashboard/consumables",
+        title: 'Stock',
+        href: '/business-dashboard/stock',
         icon: Boxes,
-        permission: "products",
+        permission: 'stock'
       },
       {
-        title: "Equipment",
-        href: "/business-dashboard/equipment",
-        icon: Wrench,
-        permission: "products",
-      },
-      {
-        title: "Service",
-        href: "/business-dashboard/service",
-        icon: ClipboardList,
-        permission: "products",
-      },
-      {
-        title: "Stock Management",
-        href: "/business-dashboard/stock",
-        icon: Database,
-        permission: "stock",
-      },
-      {
-        title: "Purchases",
-        href: "/business-dashboard/purchases",
-        icon: ShoppingCart,
-        permission: "purchases",
+        title: 'Activity Log',
+        href: '/business-dashboard/activity-log',
+        icon: History,
+        permission: 'activity_log'
       },
     ],
   },
   {
-    title: "Sales & Finances",
+    title: 'Configuration',
     items: [
       {
-        title: "POS",
-        href: "/business-dashboard/pos",
-        icon: CreditCard,
-        permission: "pos",
-      },
-      {
-        title: "Sales",
-        href: "/business-dashboard/sales",
-        icon: ShoppingCart,
-        permission: "sales",
-      },
-      {
-        title: "Invoices",
-        href: "/business-dashboard/invoices",
-        icon: FileText,
-        permission: "sales",
-      },
-      {
-        title: "Expenses",
-        href: "/business-dashboard/expenses",
-        icon: FileOutput,
-        permission: "expenses",
-      },
-      {
-        title: "Banking",
-        href: "/business-dashboard/banking",
-        icon: Landmark,
-        permission: "financials",
-      },
-    ],
-  },
-  {
-    title: "Reports & Settings",
-    items: [
-      {
-        title: "Reports",
-        href: "/business-dashboard/reports",
-        icon: BarChart,
-        permission: "reports",
-      },
-      {
-        title: "Settings",
-        href: "/business-dashboard/settings",
+        title: 'Setup',
         icon: Settings,
-        permission: "settings",
+        children: [
+          {
+            title: 'Categories',
+            href: '/business-dashboard/categories',
+            icon: Tags,
+            permission: 'categories'
+          },
+          {
+            title: 'Units',
+            href: '/business-dashboard/units',
+            icon: PanelRight,
+            permission: 'units'
+          },
+          {
+            title: 'Brands',
+            href: '/business-dashboard/brands',
+            icon: ShoppingCart,
+            permission: 'brands'
+          },
+          {
+            title: 'Warranties',
+            href: '/business-dashboard/warranties',
+            icon: Clock,
+            permission: 'warranties'
+          },
+        ],
       },
     ],
   },
