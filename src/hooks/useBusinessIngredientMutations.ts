@@ -48,7 +48,7 @@ export function useBusinessIngredientMutations() {
           })
           .select()
           .single()
-          .headers(headers); // Explicitly add the header to this request
+          .headers(headers); // Correctly chain the headers method
 
         if (error) {
           console.error('Error creating ingredient:', error);
@@ -103,7 +103,7 @@ export function useBusinessIngredientMutations() {
           .eq('id', id)
           .select()
           .single()
-          .headers(headers); // Explicitly add the header to this request
+          .headers(headers); // Correctly chain the headers method
 
         if (error) {
           console.error('Error updating ingredient:', error);
@@ -149,7 +149,7 @@ export function useBusinessIngredientMutations() {
           .from('business_ingredients')
           .delete()
           .eq('id', id)
-          .headers(headers); // Explicitly add the header to this request
+          .headers(headers); // Correctly chain the headers method
 
         if (error) {
           console.error('Error deleting ingredient:', error);

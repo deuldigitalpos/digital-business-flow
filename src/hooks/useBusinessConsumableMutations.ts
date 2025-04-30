@@ -48,7 +48,7 @@ export function useBusinessConsumableMutations() {
           })
           .select()
           .single()
-          .headers(headers); // Explicitly add the header to this request
+          .headers(headers); // Correctly chain the headers method
 
         if (error) {
           console.error('Error creating consumable:', error);
@@ -102,7 +102,7 @@ export function useBusinessConsumableMutations() {
           .eq('id', id)
           .select()
           .single()
-          .headers(headers); // Explicitly add the header to this request
+          .headers(headers); // Correctly chain the headers method
 
         if (error) {
           console.error('Error updating consumable:', error);
@@ -149,7 +149,7 @@ export function useBusinessConsumableMutations() {
           .from('business_consumables')
           .delete()
           .eq('id', id)
-          .headers(headers); // Explicitly add the header to this request
+          .headers(headers); // Correctly chain the headers method
 
         if (error) {
           console.error('Error deleting consumable:', error);
