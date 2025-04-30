@@ -21,6 +21,11 @@ export function useBusinessIngredientMutations() {
 
       console.log('Creating ingredient with business user ID:', businessUser.id);
 
+      // Set the headers for RLS policies and triggers
+      supabase.headers({
+        'business-user-id': businessUser.id
+      });
+
       const { data, error } = await supabase
         .from('business_ingredients')
         .insert({
@@ -29,9 +34,8 @@ export function useBusinessIngredientMutations() {
           description: ingredientData.description,
           unit_id: ingredientData.unit_id,
           unit_price: ingredientData.unit_price,
-          quantity_available: ingredientData.quantity_available,
-          // Make sure updated_by for activity logs is set
-          updated_by: businessUser.id
+          quantity_available: ingredientData.quantity_available
+          // We don't need to set updated_by directly anymore, it will be handled by the database trigger
         })
         .select()
         .single();
@@ -61,16 +65,20 @@ export function useBusinessIngredientMutations() {
 
       console.log('Updating ingredient with business user ID:', businessUser.id);
 
+      // Set the headers for RLS policies and triggers
+      supabase.headers({
+        'business-user-id': businessUser.id
+      });
+
       const { data: updatedIngredient, error } = await supabase
         .from('business_ingredients')
         .update({
           name: data.name,
           description: data.description,
           unit_id: data.unit_id,
-          unit_price: data.unit_price,
-          // Make sure updated_by for activity logs is set
-          updated_by: businessUser.id
+          unit_price: data.unit_price
           // Note: quantity_available is typically updated via stock transactions
+          // We don't need to set updated_by directly anymore
         })
         .eq('id', id)
         .select()
@@ -102,17 +110,12 @@ export function useBusinessIngredientMutations() {
 
       console.log('Deleting ingredient with business user ID:', businessUser.id);
 
-      // First, set the updated_by field to ensure the delete trigger works properly
-      const { error: updateError } = await supabase
-        .from('business_ingredients')
-        .update({ updated_by: businessUser.id })
-        .eq('id', id);
+      // Set the headers for RLS policies and triggers
+      supabase.headers({
+        'business-user-id': businessUser.id
+      });
 
-      if (updateError) {
-        console.error('Error setting updated_by before delete:', updateError);
-        throw updateError;
-      }
-
+      // We don't need to update the record separately anymore
       const { error } = await supabase
         .from('business_ingredients')
         .delete()
