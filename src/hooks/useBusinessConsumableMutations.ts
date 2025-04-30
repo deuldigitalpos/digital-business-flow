@@ -21,7 +21,10 @@ export function useBusinessConsumableMutations() {
 
       console.log('Creating consumable with business user ID:', businessUser.id);
       
-      // First, insert the consumable without updated_by (which isn't in the type)
+      // Explicitly set the business user ID in the session
+      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+      
+      // Insert the consumable without updated_by (which isn't in the type)
       const { data, error } = await supabase
         .from('business_consumables')
         .insert({
@@ -63,6 +66,9 @@ export function useBusinessConsumableMutations() {
 
       console.log('Updating consumable with business user ID:', businessUser.id);
       
+      // Explicitly set the business user ID in the session
+      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+      
       // Update the consumable - the businessUser.id will be sent via the fetch interceptor
       const { data: updatedConsumable, error } = await supabase
         .from('business_consumables')
@@ -101,6 +107,9 @@ export function useBusinessConsumableMutations() {
       }
 
       console.log('Deleting consumable with business user ID:', businessUser.id);
+      
+      // Explicitly set the business user ID in the session
+      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
       
       // For the delete operation, we don't have updated_by in the type
       // The businessUser.id will be sent via the fetch interceptor in client.ts
