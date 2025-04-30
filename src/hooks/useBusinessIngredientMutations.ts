@@ -21,8 +21,7 @@ export function useBusinessIngredientMutations() {
 
       console.log('Creating ingredient with business user ID:', businessUser.id);
 
-      // Make sure that we are using the Supabase client with the business user ID set
-      // This is handled by the fetch interceptor in client.ts
+      // Insert the ingredient - the businessUser.id will be sent via the fetch interceptor in client.ts
       const { data, error } = await supabase
         .from('business_ingredients')
         .insert({
@@ -31,9 +30,7 @@ export function useBusinessIngredientMutations() {
           description: ingredientData.description,
           unit_id: ingredientData.unit_id,
           unit_price: ingredientData.unit_price,
-          quantity_available: ingredientData.quantity_available,
-          // Add updated_by field explicitly for the activity log trigger
-          updated_by: businessUser.id
+          quantity_available: ingredientData.quantity_available
         })
         .select()
         .single();
@@ -69,9 +66,7 @@ export function useBusinessIngredientMutations() {
           name: data.name,
           description: data.description,
           unit_id: data.unit_id,
-          unit_price: data.unit_price,
-          // Add updated_by field explicitly for the activity log trigger
-          updated_by: businessUser.id
+          unit_price: data.unit_price
         })
         .eq('id', id)
         .select()
@@ -103,13 +98,8 @@ export function useBusinessIngredientMutations() {
 
       console.log('Deleting ingredient with business user ID:', businessUser.id);
 
-      // Set the updated_by in the database before deleting
-      // We need to do this because the log_ingredient_activity trigger needs it
-      await supabase
-        .from('business_ingredients')
-        .update({ updated_by: businessUser.id })
-        .eq('id', id);
-
+      // For the delete operation, we rely on the fetch interceptor in client.ts
+      // to pass the businessUser.id in the headers
       const { error } = await supabase
         .from('business_ingredients')
         .delete()

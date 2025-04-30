@@ -21,6 +21,7 @@ export function useBusinessConsumableMutations() {
 
       console.log('Creating consumable with business user ID:', businessUser.id);
       
+      // First, insert the consumable without updated_by (which isn't in the type)
       const { data, error } = await supabase
         .from('business_consumables')
         .insert({
@@ -29,9 +30,7 @@ export function useBusinessConsumableMutations() {
           description: consumableData.description || null,
           unit_id: consumableData.unit_id || null,
           unit_price: consumableData.unit_price,
-          quantity_available: consumableData.quantity_available,
-          // Add updated_by field explicitly for the activity log trigger
-          updated_by: businessUser.id
+          quantity_available: consumableData.quantity_available
         })
         .select()
         .single();
@@ -40,6 +39,9 @@ export function useBusinessConsumableMutations() {
         console.error('Error creating consumable:', error);
         throw error;
       }
+
+      // If the insert was successful, ensure the activity log has the businessUser.id
+      // We do this via the native supabase-js fetch interceptor set up in client.ts
 
       return data;
     },
@@ -61,15 +63,14 @@ export function useBusinessConsumableMutations() {
 
       console.log('Updating consumable with business user ID:', businessUser.id);
       
+      // Update the consumable - the businessUser.id will be sent via the fetch interceptor
       const { data: updatedConsumable, error } = await supabase
         .from('business_consumables')
         .update({
           name: data.name,
           description: data.description || null,
           unit_id: data.unit_id || null,
-          unit_price: data.unit_price,
-          // Add updated_by field explicitly for the activity log trigger
-          updated_by: businessUser.id
+          unit_price: data.unit_price
         })
         .eq('id', id)
         .select()
@@ -101,13 +102,8 @@ export function useBusinessConsumableMutations() {
 
       console.log('Deleting consumable with business user ID:', businessUser.id);
       
-      // Set the updated_by in the database before deleting
-      // We need to do this because the log_consumable_activity trigger needs it
-      await supabase
-        .from('business_consumables')
-        .update({ updated_by: businessUser.id })
-        .eq('id', id);
-
+      // For the delete operation, we don't have updated_by in the type
+      // The businessUser.id will be sent via the fetch interceptor in client.ts
       const { error } = await supabase
         .from('business_consumables')
         .delete()
