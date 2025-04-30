@@ -33,7 +33,7 @@ const navItems: SidebarNavItem[] = [
   {
     title: "Business Management",
     icon: Building2,
-    href: "/dashboard/business",
+    href: "/dashboard/businesses",
   },
   {
     title: "Package Management",

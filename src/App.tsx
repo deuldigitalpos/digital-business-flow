@@ -59,6 +59,7 @@ function App() {
               <Route path="discounts" element={<DiscountManagement />} />
               <Route path="referrals" element={<ReferralManagement />} />
               <Route path="businesses" element={<BusinessManagement />} />
+              <Route path="business" element={<BusinessManagement />} />
               <Route path="*" element={<PlaceholderPage />} />
             </Route>
 
