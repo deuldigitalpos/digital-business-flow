@@ -21,11 +21,9 @@ export function useBusinessIngredientMutations() {
 
       console.log('Creating ingredient with business user ID:', businessUser.id);
 
-      // Add businessUser.id to request headers via custom header for database triggers
-      const headers = {
-        'business-user-id': businessUser.id
-      };
-
+      // We need to use the fetch interceptor in client.ts instead of direct headers
+      // The interceptor will add the businessUser.id to all Supabase requests
+      // Make sure the businessUser.id is set in the global variable
       const { data, error } = await supabase
         .from('business_ingredients')
         .insert({
@@ -35,8 +33,8 @@ export function useBusinessIngredientMutations() {
           unit_id: ingredientData.unit_id,
           unit_price: ingredientData.unit_price,
           quantity_available: ingredientData.quantity_available
-          // We don't need to set updated_by directly anymore, it will be handled by the database trigger
-        }, { headers })
+          // The database trigger will extract the business user ID from request headers
+        })
         .select()
         .single();
 
@@ -65,11 +63,7 @@ export function useBusinessIngredientMutations() {
 
       console.log('Updating ingredient with business user ID:', businessUser.id);
 
-      // Add businessUser.id to request headers via custom header for database triggers
-      const headers = {
-        'business-user-id': businessUser.id
-      };
-
+      // Using the fetch interceptor in client.ts for business user ID
       const { data: updatedIngredient, error } = await supabase
         .from('business_ingredients')
         .update({
@@ -78,8 +72,8 @@ export function useBusinessIngredientMutations() {
           unit_id: data.unit_id,
           unit_price: data.unit_price
           // Note: quantity_available is typically updated via stock transactions
-          // We don't need to set updated_by directly anymore
-        }, { headers })
+          // The database trigger will extract the business user ID from request headers
+        })
         .eq('id', id)
         .select()
         .single();
@@ -110,15 +104,10 @@ export function useBusinessIngredientMutations() {
 
       console.log('Deleting ingredient with business user ID:', businessUser.id);
 
-      // Add businessUser.id to request headers via custom header for database triggers
-      const headers = {
-        'business-user-id': businessUser.id
-      };
-
-      // We don't need to update the record separately anymore
+      // Using the fetch interceptor in client.ts for business user ID
       const { error } = await supabase
         .from('business_ingredients')
-        .delete({ headers })
+        .delete()
         .eq('id', id);
 
       if (error) {
