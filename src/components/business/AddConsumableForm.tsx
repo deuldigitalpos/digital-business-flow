@@ -29,7 +29,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { setSupabaseBusinessAuth } from '@/integrations/supabase/client';
+import { setSupabaseBusinessAuth, getCurrentBusinessUserId } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -61,19 +61,21 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
 
   // Ensure business user authentication is set up properly before submitting
   React.useEffect(() => {
-    console.log("Authentication state:", { 
-      isAuthenticated, 
-      hasBusinessUser: !!businessUser, 
-      hasBusiness: !!business,
-      businessUserId: businessUser?.id
-    });
-    
-    // Ensure business user authentication is set up
     if (businessUser?.id) {
       console.log('Setting business user auth in form:', businessUser.id);
       setSupabaseBusinessAuth(businessUser.id);
+      
+      // Verify the auth was set properly
+      const currentId = getCurrentBusinessUserId();
+      console.log('Current business user ID after setting:', currentId);
+      
+      if (currentId !== businessUser.id) {
+        console.error('Business user ID mismatch!', { expected: businessUser.id, actual: currentId });
+      }
+    } else {
+      console.log('No business user ID available in form');
     }
-  }, [isAuthenticated, businessUser, business]);
+  }, [businessUser?.id]);
 
   const onSubmit = async (data: ConsumableFormValues) => {
     setErrorDetails(null);
@@ -85,6 +87,10 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
     if (businessUser?.id) {
       console.log('Re-setting business user auth before submission:', businessUser.id);
       setSupabaseBusinessAuth(businessUser.id);
+      
+      // Verify the auth header is set
+      const currentId = getCurrentBusinessUserId();
+      console.log('Verified business user ID before submission:', currentId);
     } else {
       setErrorDetails('Business user authentication is not available. Please try logging in again.');
       return;
@@ -106,12 +112,16 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
       });
       console.log('Consumable created successfully');
       form.reset();
+      toast.success('Consumable added successfully');
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
-      setErrorDetails(typeof error === 'object' && error !== null 
+      const errorMessage = typeof error === 'object' && error !== null 
         ? JSON.stringify(error, null, 2) 
-        : String(error));
+        : String(error);
+      
+      setErrorDetails(errorMessage);
+      toast.error('Failed to add consumable');
     }
   };
 

@@ -14,9 +14,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Store original fetch for later restoration
 const originalFetch = globalThis.fetch;
 
+// Global variable to store the current business user ID
+let currentBusinessUserId: string | null = null;
+
 // Function to set custom auth for business users
 export const setSupabaseBusinessAuth = (businessUserId: string) => {
   console.log('Setting business user auth for:', businessUserId);
+  
+  // Store the business user ID globally
+  currentBusinessUserId = businessUserId;
   
   // Store original fetch if not already stored
   if (!(globalThis as any).__originalFetch) {
@@ -35,11 +41,7 @@ export const setSupabaseBusinessAuth = (businessUserId: string) => {
       // Add our custom header for business user authentication
       (init.headers as Record<string, string>)['business-user-id'] = businessUserId;
       
-      console.log('Intercepted Supabase request:', { 
-        url, 
-        businessUserId,
-        hasHeaders: !!init.headers
-      });
+      console.log('Intercepted Supabase request with business user ID:', businessUserId);
     }
     
     return originalFetch(input, init);
@@ -54,6 +56,7 @@ export const setSupabaseBusinessAuth = (businessUserId: string) => {
 // Function to clear custom auth
 export const clearSupabaseBusinessAuth = () => {
   console.log('Clearing business user auth');
+  currentBusinessUserId = null;
   
   // Reset fetch to its original implementation if we've modified it
   if ((globalThis as any).__supabaseFetchInterceptor) {
@@ -63,4 +66,9 @@ export const clearSupabaseBusinessAuth = () => {
     
     console.log('Fetch interceptor cleared');
   }
+};
+
+// Helper function to get the current business user ID
+export const getCurrentBusinessUserId = () => {
+  return currentBusinessUserId;
 };

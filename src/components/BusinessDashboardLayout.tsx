@@ -17,6 +17,7 @@ const BusinessDashboardLayout = () => {
     if (businessUser?.id) {
       console.log('Setting up business user authentication in Dashboard layout');
       setSupabaseBusinessAuth(businessUser.id);
+      console.log('Business user ID set to:', businessUser.id);
     } else {
       console.log('No business user ID available to set auth');
     }
@@ -24,7 +25,7 @@ const BusinessDashboardLayout = () => {
     return () => {
       clearSupabaseBusinessAuth();
     };
-  }, [businessUser]);
+  }, [businessUser?.id]); // Dependency on businessUser.id to ensure it updates if ID changes
   
   // Scroll to top on route change
   useEffect(() => {

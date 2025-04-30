@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ConsumableFormValues } from '@/types/business-consumable';
@@ -11,6 +12,7 @@ export function useBusinessConsumableMutations() {
   const createConsumable = useMutation({
     mutationFn: async (consumableData: ConsumableFormValues) => {
       if (!business?.id) {
+        console.error('Business ID is missing');
         throw new Error('Business ID is required');
       }
 
@@ -18,9 +20,8 @@ export function useBusinessConsumableMutations() {
       console.log('Current business:', business);
 
       try {
-        // Add debugging for request
         console.log('Sending request to Supabase with business ID:', business.id);
-
+        
         const { data, error } = await supabase
           .from('business_consumables')
           .insert({
@@ -30,7 +31,7 @@ export function useBusinessConsumableMutations() {
             unit_id: consumableData.unit_id || null,
             unit_price: consumableData.unit_price,
             quantity_available: consumableData.quantity_available
-            // total_cost and status are now removed - will be set by the database trigger
+            // total_cost and status will be set by a database trigger
           })
           .select()
           .single();
@@ -115,13 +116,6 @@ export function useBusinessConsumableMutations() {
       toast.error('Failed to delete consumable');
     }
   });
-
-  // Helper function to determine consumable status based on quantity
-  const getConsumableStatus = (quantity: number): string => {
-    if (quantity <= 0) return 'Out of Stock';
-    if (quantity <= 10) return 'Low Stock';
-    return 'In Stock';
-  };
 
   return {
     createConsumable,
