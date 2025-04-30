@@ -21,7 +21,8 @@ export function useBusinessIngredientMutations() {
 
       console.log('Creating ingredient with business user ID:', businessUser.id);
 
-      // Explicitly set the business user ID in the session
+      // Use the special function we created in Supabase that will store the business user ID
+      // This is done before the insert to ensure the database trigger can access it
       await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
       
       // Insert the ingredient - the businessUser.id will be sent via the fetch interceptor in client.ts
@@ -63,7 +64,7 @@ export function useBusinessIngredientMutations() {
 
       console.log('Updating ingredient with business user ID:', businessUser.id);
       
-      // Explicitly set the business user ID in the session
+      // Use the special function we created in Supabase that will store the business user ID
       await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
 
       const { data: updatedIngredient, error } = await supabase
@@ -104,7 +105,7 @@ export function useBusinessIngredientMutations() {
 
       console.log('Deleting ingredient with business user ID:', businessUser.id);
       
-      // Explicitly set the business user ID in the session
+      // Use the special function we created in Supabase that will store the business user ID
       await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
 
       // For the delete operation, we rely on the fetch interceptor in client.ts

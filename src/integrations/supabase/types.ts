@@ -1088,6 +1088,10 @@ export type Database = {
           location_id: string
         }[]
       }
+      set_business_user_id: {
+        Args: { business_user_id: string }
+        Returns: undefined
+      }
       update_business_user_with_locations: {
         Args: { user_id_input: string; user_data: Json; location_ids: string[] }
         Returns: Json
