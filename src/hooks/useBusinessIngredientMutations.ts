@@ -1,6 +1,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, getCurrentBusinessUserId } from '@/integrations/supabase/client';
 import { IngredientFormValues } from '@/types/business-ingredient';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { toast } from 'sonner';
@@ -21,10 +21,10 @@ export function useBusinessIngredientMutations() {
 
       console.log('Creating ingredient with business user ID:', businessUser.id);
 
-      // Set the headers for RLS policies and triggers
-      supabase.headers({
+      // Add businessUser.id to request headers via custom header for database triggers
+      const headers = {
         'business-user-id': businessUser.id
-      });
+      };
 
       const { data, error } = await supabase
         .from('business_ingredients')
@@ -36,7 +36,7 @@ export function useBusinessIngredientMutations() {
           unit_price: ingredientData.unit_price,
           quantity_available: ingredientData.quantity_available
           // We don't need to set updated_by directly anymore, it will be handled by the database trigger
-        })
+        }, { headers })
         .select()
         .single();
 
@@ -65,10 +65,10 @@ export function useBusinessIngredientMutations() {
 
       console.log('Updating ingredient with business user ID:', businessUser.id);
 
-      // Set the headers for RLS policies and triggers
-      supabase.headers({
+      // Add businessUser.id to request headers via custom header for database triggers
+      const headers = {
         'business-user-id': businessUser.id
-      });
+      };
 
       const { data: updatedIngredient, error } = await supabase
         .from('business_ingredients')
@@ -79,7 +79,7 @@ export function useBusinessIngredientMutations() {
           unit_price: data.unit_price
           // Note: quantity_available is typically updated via stock transactions
           // We don't need to set updated_by directly anymore
-        })
+        }, { headers })
         .eq('id', id)
         .select()
         .single();
@@ -110,15 +110,15 @@ export function useBusinessIngredientMutations() {
 
       console.log('Deleting ingredient with business user ID:', businessUser.id);
 
-      // Set the headers for RLS policies and triggers
-      supabase.headers({
+      // Add businessUser.id to request headers via custom header for database triggers
+      const headers = {
         'business-user-id': businessUser.id
-      });
+      };
 
       // We don't need to update the record separately anymore
       const { error } = await supabase
         .from('business_ingredients')
-        .delete()
+        .delete({ headers })
         .eq('id', id);
 
       if (error) {
