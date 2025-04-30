@@ -13,16 +13,36 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
 // Function to set custom auth for business users
 export const setSupabaseBusinessAuth = (businessUserId: string) => {
-  // Use a custom JWT to authenticate with Supabase
-  // This JWT is not a real Supabase JWT, but we'll use it to identify the business user
-  const customToken = `business_user_${businessUserId}`;
+  // For business users, we'll use custom headers via fetch interceptor
+  // This approach avoids accessing protected properties
+  const previousFetch = globalThis.fetch;
   
-  // Set custom headers for all Supabase requests
-  supabase.rest.headers.append('business-user-id', businessUserId);
+  globalThis.fetch = async (input, init) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    
+    // Only intercept Supabase API requests
+    if (url.includes(SUPABASE_URL)) {
+      init = init || {};
+      init.headers = init.headers || {};
+      
+      // Add our custom business user header
+      Object.assign(init.headers, {
+        'business-user-id': businessUserId
+      });
+    }
+    
+    return previousFetch(input, init);
+  };
 };
 
 // Function to clear custom auth
 export const clearSupabaseBusinessAuth = () => {
-  // Remove custom headers
-  supabase.rest.headers.delete('business-user-id');
+  // Reset fetch to its original implementation
+  delete (globalThis as any).__supabaseFetchInterceptor;
+  
+  // If we stored the previous fetch implementation, restore it
+  if ((globalThis as any).__originalFetch) {
+    globalThis.fetch = (globalThis as any).__originalFetch;
+    delete (globalThis as any).__originalFetch;
+  }
 };
