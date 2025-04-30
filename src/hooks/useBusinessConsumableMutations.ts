@@ -29,7 +29,9 @@ export function useBusinessConsumableMutations() {
           description: consumableData.description || null,
           unit_id: consumableData.unit_id || null,
           unit_price: consumableData.unit_price,
-          quantity_available: consumableData.quantity_available
+          quantity_available: consumableData.quantity_available,
+          // Add updated_by field explicitly for the activity log trigger
+          updated_by: businessUser.id
         })
         .select()
         .single();
@@ -65,7 +67,9 @@ export function useBusinessConsumableMutations() {
           name: data.name,
           description: data.description || null,
           unit_id: data.unit_id || null,
-          unit_price: data.unit_price
+          unit_price: data.unit_price,
+          // Add updated_by field explicitly for the activity log trigger
+          updated_by: businessUser.id
         })
         .eq('id', id)
         .select()
@@ -97,6 +101,13 @@ export function useBusinessConsumableMutations() {
 
       console.log('Deleting consumable with business user ID:', businessUser.id);
       
+      // Set the updated_by in the database before deleting
+      // We need to do this because the log_consumable_activity trigger needs it
+      await supabase
+        .from('business_consumables')
+        .update({ updated_by: businessUser.id })
+        .eq('id', id);
+
       const { error } = await supabase
         .from('business_consumables')
         .delete()
