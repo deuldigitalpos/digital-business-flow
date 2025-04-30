@@ -61,8 +61,6 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   const onSubmit = async (data: ConsumableFormValues) => {
     setErrorDetails(null);
     console.log('Submitting form with data:', data);
-    console.log('Current business user ID:', businessUser?.id);
-    console.log('Current business ID:', business?.id);
     
     // Validate business data is available
     if (!business?.id) {
@@ -77,8 +75,6 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
     }
     
     try {
-      console.log('Attempting to create consumable with business user ID:', businessUser.id);
-      
       await createConsumable.mutateAsync({
         name: data.name,
         description: data.description,
