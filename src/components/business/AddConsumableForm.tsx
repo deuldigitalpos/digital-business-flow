@@ -25,10 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -45,8 +44,7 @@ interface AddConsumableFormProps {
 const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   const { createConsumable } = useBusinessConsumableMutations();
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
-  const { businessUser, business, isAuthenticated } = useBusinessAuth();
-  const [errorDetails, setErrorDetails] = React.useState<string | null>(null);
+  const { business } = useBusinessAuth();
   
   const form = useForm<ConsumableFormValues>({
     resolver: zodResolver(formSchema),
@@ -59,21 +57,6 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   });
 
   const onSubmit = async (data: ConsumableFormValues) => {
-    setErrorDetails(null);
-    console.log('Submitting form with data:', data);
-    
-    // Validate business data is available
-    if (!business?.id) {
-      setErrorDetails('Business information is not available. Please try logging in again.');
-      return;
-    }
-    
-    // Validate business user authentication
-    if (!businessUser?.id) {
-      setErrorDetails('Business user authentication is not available. Please try logging in again.');
-      return;
-    }
-    
     try {
       await createConsumable.mutateAsync({
         name: data.name,
@@ -83,17 +66,11 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
         quantity_available: Number(data.quantity_available)
       });
       
-      console.log('Consumable created successfully');
       form.reset();
       toast.success('Consumable added successfully');
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
-      const errorMessage = typeof error === 'object' && error !== null 
-        ? JSON.stringify(error, null, 2) 
-        : String(error);
-      
-      setErrorDetails(errorMessage);
       toast.error('Failed to add consumable');
     }
   };
@@ -101,37 +78,6 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {errorDetails && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs overflow-auto max-h-32">
-              <details>
-                <summary>Error Details</summary>
-                <pre className="whitespace-pre-wrap">{errorDetails}</pre>
-              </details>
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        {/* Show auth status warning if needed */}
-        {!isAuthenticated && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              You may not be properly authenticated. Try logging in again if you encounter issues.
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        {/* Show business user ID info */}
-        {businessUser?.id && (
-          <Alert variant="default" className="mb-4 bg-green-50">
-            <AlertDescription className="text-xs">
-              Using business user: {businessUser.id}
-            </AlertDescription>
-          </Alert>
-        )}
-        
         <FormField
           control={form.control}
           name="name"

@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ConsumableFormValues } from '@/types/business-consumable';
@@ -12,50 +11,32 @@ export function useBusinessConsumableMutations() {
   const createConsumable = useMutation({
     mutationFn: async (consumableData: ConsumableFormValues) => {
       if (!business?.id) {
-        console.error('Business ID is missing');
         throw new Error('Business ID is required');
       }
 
-      console.log('Creating consumable with data:', consumableData);
-      console.log('Current business:', business);
+      const { data, error } = await supabase
+        .from('business_consumables')
+        .insert({
+          business_id: business.id,
+          name: consumableData.name,
+          description: consumableData.description || null,
+          unit_id: consumableData.unit_id || null,
+          unit_price: consumableData.unit_price,
+          quantity_available: consumableData.quantity_available
+          // total_cost and status will be set by a database trigger
+        })
+        .select()
+        .single();
 
-      try {
-        console.log('Sending request to Supabase with business ID:', business.id);
-        
-        const { data, error } = await supabase
-          .from('business_consumables')
-          .insert({
-            business_id: business.id,
-            name: consumableData.name,
-            description: consumableData.description || null,
-            unit_id: consumableData.unit_id || null,
-            unit_price: consumableData.unit_price,
-            quantity_available: consumableData.quantity_available
-            // total_cost and status will be set by a database trigger
-          })
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Error creating consumable:', error);
-          console.error('Error details:', JSON.stringify(error));
-          throw error;
-        }
-
-        console.log('Consumable created successfully:', data);
-        return data;
-      } catch (error) {
-        console.error('Exception in createConsumable:', error);
+      if (error) {
+        console.error('Error creating consumable:', error);
         throw error;
       }
+
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
-      toast.success('Consumable added successfully');
-    },
-    onError: (error) => {
-      console.error('Failed to add consumable:', error);
-      toast.error('Failed to add consumable');
     }
   });
 
