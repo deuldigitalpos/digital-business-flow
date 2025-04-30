@@ -1054,6 +1054,14 @@ export type Database = {
         }
         Returns: Json
       }
+      disable_rls: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      enable_rls: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_business_users: {
         Args: { business_id_param: string }
         Returns: {

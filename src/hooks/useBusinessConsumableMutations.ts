@@ -17,7 +17,7 @@ export function useBusinessConsumableMutations() {
 
       try {
         // Disable RLS for the session to bypass the activity logging issues
-        await supabase.rpc('disable_rls');
+        await supabase.rpc('disable_rls' as any);
         
         // Insert the consumable directly without triggering log activity
         const { data, error } = await supabase
@@ -45,7 +45,7 @@ export function useBusinessConsumableMutations() {
         throw error;
       } finally {
         // Re-enable RLS after operation
-        await supabase.rpc('enable_rls');
+        await supabase.rpc('enable_rls' as any);
       }
     },
     onSuccess: () => {
@@ -62,7 +62,7 @@ export function useBusinessConsumableMutations() {
     mutationFn: async ({ id, data }: { id: string; data: ConsumableFormValues }) => {
       try {
         // Disable RLS for the session to bypass the activity logging issues
-        await supabase.rpc('disable_rls');
+        await supabase.rpc('disable_rls' as any);
         
         const { data: updatedConsumable, error } = await supabase
           .from('business_consumables')
@@ -88,7 +88,7 @@ export function useBusinessConsumableMutations() {
         throw error;
       } finally {
         // Re-enable RLS after operation
-        await supabase.rpc('enable_rls');
+        await supabase.rpc('enable_rls' as any);
       }
     },
     onSuccess: (_, variables) => {
@@ -106,7 +106,7 @@ export function useBusinessConsumableMutations() {
     mutationFn: async (id: string) => {
       try {
         // Disable RLS for the session to bypass the activity logging issues
-        await supabase.rpc('disable_rls');
+        await supabase.rpc('disable_rls' as any);
         
         const { error } = await supabase
           .from('business_consumables')
@@ -124,7 +124,7 @@ export function useBusinessConsumableMutations() {
         throw error;
       } finally {
         // Re-enable RLS after operation
-        await supabase.rpc('enable_rls');
+        await supabase.rpc('enable_rls' as any);
       }
     },
     onSuccess: () => {
