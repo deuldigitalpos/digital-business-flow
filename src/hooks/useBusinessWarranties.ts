@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BusinessWarranty } from '@/types/business-warranty';
+import { BusinessWarranty, BusinessWarrantyProduct } from '@/types/business-warranty';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 export function useBusinessWarranties() {
@@ -16,7 +16,7 @@ export function useBusinessWarranties() {
       
       const { data, error } = await supabase
         .from('business_warranties')
-        .select('*, business_warranty_products:business_warranty_products(warranty_id)')
+        .select('*')
         .eq('business_id', business.id)
         .order('name');
         
