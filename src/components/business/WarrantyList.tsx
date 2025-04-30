@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isAfter, parseISO } from "date-fns";
 
 interface WarrantyListProps {
   warranties: BusinessWarranty[];
@@ -50,8 +50,15 @@ const WarrantyList: React.FC<WarrantyListProps> = ({
     );
   }
 
-  const formatDuration = (warranty: BusinessWarranty) => {
-    return `${warranty.duration} ${warranty.duration_unit}`;
+  const getExpirationStatusBadge = (warranty: BusinessWarranty) => {
+    const today = new Date();
+    const expirationDate = parseISO(warranty.expiration_date);
+    
+    if (isAfter(expirationDate, today)) {
+      return <Badge variant="default" className="bg-green-500">Valid</Badge>;
+    } else {
+      return <Badge variant="destructive">Expired</Badge>;
+    }
   };
 
   return (
@@ -61,7 +68,7 @@ const WarrantyList: React.FC<WarrantyListProps> = ({
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead>Duration</TableHead>
+            <TableHead>Expiration Date</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Products Count</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -74,13 +81,14 @@ const WarrantyList: React.FC<WarrantyListProps> = ({
               <TableCell className="max-w-xs truncate">
                 {warranty.description || "-"}
               </TableCell>
-              <TableCell>{formatDuration(warranty)}</TableCell>
               <TableCell>
-                {warranty.is_active ? (
-                  <Badge variant="default" className="bg-green-500">Active</Badge>
-                ) : (
+                {warranty.expiration_date ? format(new Date(warranty.expiration_date), "PP") : "-"}
+              </TableCell>
+              <TableCell>
+                {warranty.is_active ? 
+                  getExpirationStatusBadge(warranty) : 
                   <Badge variant="secondary">Inactive</Badge>
-                )}
+                }
               </TableCell>
               <TableCell>
                 {productCounts[warranty.id] || 0}

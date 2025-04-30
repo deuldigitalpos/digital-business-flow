@@ -4,8 +4,7 @@ export interface BusinessWarranty {
   business_id: string;
   name: string;
   description: string | null;
-  duration: number;
-  duration_unit: 'days' | 'weeks' | 'months' | 'years';
+  expiration_date: string;
   is_active: boolean | null;
   created_at: string;
   updated_at: string;
@@ -14,8 +13,7 @@ export interface BusinessWarranty {
 export type BusinessWarrantyFormValues = {
   name: string;
   description?: string;
-  duration: number;
-  duration_unit: 'days' | 'weeks' | 'months' | 'years';
+  expiration_date: string;
   is_active?: boolean;
 };
 

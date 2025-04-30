@@ -17,19 +17,16 @@ import {
 import { BusinessWarranty, BusinessWarrantyFormValues } from "@/types/business-warranty";
 import { useBusinessWarrantyMutations } from "@/hooks/useBusinessWarrantyMutations";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  duration: z.coerce.number().positive("Duration must be a positive number"),
-  duration_unit: z.enum(["days", "weeks", "months", "years"]),
+  expiration_date: z.string().min(1, "Expiration date is required"),
   is_active: z.boolean().default(true),
 });
 
@@ -46,8 +43,7 @@ const EditWarrantyForm: React.FC<EditWarrantyFormProps> = ({ warranty, onSuccess
     defaultValues: {
       name: warranty.name || "",
       description: warranty.description || "",
-      duration: warranty.duration || 30,
-      duration_unit: warranty.duration_unit || "days",
+      expiration_date: warranty.expiration_date || format(new Date(), "yyyy-MM-dd"),
       is_active: warranty.is_active ?? true,
     },
   });
@@ -57,8 +53,7 @@ const EditWarrantyForm: React.FC<EditWarrantyFormProps> = ({ warranty, onSuccess
       form.reset({
         name: warranty.name,
         description: warranty.description || "",
-        duration: warranty.duration,
-        duration_unit: warranty.duration_unit,
+        expiration_date: warranty.expiration_date,
         is_active: warranty.is_active ?? true,
       });
     }
@@ -111,53 +106,45 @@ const EditWarrantyForm: React.FC<EditWarrantyFormProps> = ({ warranty, onSuccess
           )}
         />
 
-        <div className="flex gap-4">
-          <FormField
-            control={form.control}
-            name="duration"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel>Duration</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    placeholder="Enter duration" 
-                    {...field} 
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="duration_unit"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel>Unit</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
+        <FormField
+          control={form.control}
+          name="expiration_date"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Expiration Date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select unit" />
-                    </SelectTrigger>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(new Date(field.value), "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="days">Days</SelectItem>
-                    <SelectItem value="weeks">Weeks</SelectItem>
-                    <SelectItem value="months">Months</SelectItem>
-                    <SelectItem value="years">Years</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
