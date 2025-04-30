@@ -4,25 +4,33 @@ import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import PermissionDenied from './PermissionDenied';
 import IngredientManager from '@/components/business/IngredientManager';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { toast } from 'sonner';
 
 const BusinessIngredients: React.FC = () => {
-  const { hasPermission } = useBusinessAuth();
+  const { hasPermission, businessUser } = useBusinessAuth();
   const hasAccess = hasPermission('ingredients');
-  const [status, setStatus] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  const [status, setStatus] = useState<{type: 'success' | 'error' | 'info', message: string} | null>(null);
 
   if (!hasAccess) {
     return <PermissionDenied />;
   }
 
+  // Display business user info for debugging
+  console.log('Current business user:', businessUser);
+
   const handleActionSuccess = (message: string) => {
+    console.log('Success:', message);
     setStatus({ type: 'success', message });
+    toast.success(message);
     setTimeout(() => setStatus(null), 5000); // Clear after 5 seconds
   };
 
   const handleActionError = (message: string) => {
+    console.error('Error:', message);
     setStatus({ type: 'error', message });
-    setTimeout(() => setStatus(null), 5000); // Clear after 5 seconds
+    toast.error(message);
+    setTimeout(() => setStatus(null), 8000); // Give a bit more time for error messages
   };
 
   return (
@@ -32,13 +40,24 @@ const BusinessIngredients: React.FC = () => {
         <p className="text-muted-foreground">
           Manage your raw ingredients and track inventory levels
         </p>
+        {businessUser && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            Logged in as: {businessUser.first_name} {businessUser.last_name} (ID: {businessUser.id.substring(0, 8)}...)
+          </div>
+        )}
       </div>
       
       {status && (
-        <Alert className={status.type === 'success' ? 'bg-green-50 text-green-800 border-green-200' : 'bg-red-50 text-red-800 border-red-200'}>
+        <Alert className={
+          status.type === 'success' ? 'bg-green-50 text-green-800 border-green-200' : 
+          status.type === 'error' ? 'bg-red-50 text-red-800 border-red-200' : 
+          'bg-blue-50 text-blue-800 border-blue-200'
+        }>
           {status.type === 'success' ? 
             <CheckCircle className="h-4 w-4 mr-2" /> : 
-            <AlertCircle className="h-4 w-4 mr-2" />
+            status.type === 'error' ?
+            <AlertCircle className="h-4 w-4 mr-2" /> :
+            <Info className="h-4 w-4 mr-2" />
           }
           <AlertDescription>{status.message}</AlertDescription>
         </Alert>

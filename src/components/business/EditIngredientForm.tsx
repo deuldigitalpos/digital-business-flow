@@ -40,13 +40,18 @@ const formSchema = z.object({
 interface EditIngredientFormProps {
   ingredient: BusinessIngredient;
   onSuccess?: () => void;
+  onError?: (error: any) => void;
 }
 
-const EditIngredientForm: React.FC<EditIngredientFormProps> = ({ ingredient, onSuccess }) => {
+const EditIngredientForm: React.FC<EditIngredientFormProps> = ({ ingredient, onSuccess, onError }) => {
   const { updateIngredient } = useBusinessIngredientMutations();
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { businessUser } = useBusinessAuth();
+  
+  // Add debug logging for business user
+  console.log('Current business user in EditIngredientForm:', businessUser);
+  console.log('Business user ID:', businessUser?.id);
   
   const form = useForm<IngredientFormValues>({
     resolver: zodResolver(formSchema),
@@ -74,7 +79,11 @@ const EditIngredientForm: React.FC<EditIngredientFormProps> = ({ ingredient, onS
       toast.success('Ingredient updated successfully');
     } catch (error) {
       console.error('Error submitting edit ingredient form:', error);
-      toast.error(`Failed to update ingredient: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (onError) {
+        onError(error);
+      } else {
+        toast.error(`Failed to update ingredient: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     } finally {
       setIsSubmitting(false);
     }

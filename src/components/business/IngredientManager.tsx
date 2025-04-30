@@ -18,6 +18,7 @@ import AddIngredientForm from './AddIngredientForm';
 import EditIngredientForm from './EditIngredientForm';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 interface IngredientManagerProps {
   onActionSuccess?: (message: string) => void;
@@ -35,6 +36,9 @@ const IngredientManager: React.FC<IngredientManagerProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const { deleteIngredient } = useBusinessIngredientMutations();
   const queryClient = useQueryClient();
+  const { businessUser } = useBusinessAuth();
+
+  console.log('Current business user in IngredientManager:', businessUser?.id);
 
   const handleAddClick = () => {
     setIsAddSheetOpen(true);
@@ -73,10 +77,19 @@ const IngredientManager: React.FC<IngredientManagerProps> = ({
     else toast.success('Ingredient updated successfully');
   };
 
+  const handleEditError = (error: any) => {
+    console.error('Error updating ingredient:', error);
+    const errorMessage = `Error updating ingredient: ${error.message || 'Unknown error'}`;
+    if (onActionError) onActionError(errorMessage);
+    else toast.error(errorMessage);
+    setIsEditSheetOpen(false);
+  };
+
   const handleDelete = async () => {
     if (selectedIngredient) {
       try {
         setIsProcessing(true);
+        console.log('Deleting ingredient with ID:', selectedIngredient.id);
         await deleteIngredient.mutateAsync(selectedIngredient.id);
         setIsDeleteDialogOpen(false);
         setSelectedIngredient(null);
@@ -126,6 +139,7 @@ const IngredientManager: React.FC<IngredientManagerProps> = ({
               <EditIngredientForm 
                 ingredient={selectedIngredient} 
                 onSuccess={handleEditSuccess}
+                onError={handleEditError}
               />
             )}
           </div>
