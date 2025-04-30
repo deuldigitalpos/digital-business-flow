@@ -19,7 +19,15 @@ import EditIngredientForm from './EditIngredientForm';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-const IngredientManager: React.FC = () => {
+interface IngredientManagerProps {
+  onActionSuccess?: (message: string) => void;
+  onActionError?: (message: string) => void;
+}
+
+const IngredientManager: React.FC<IngredientManagerProps> = ({ 
+  onActionSuccess, 
+  onActionError 
+}) => {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -46,17 +54,23 @@ const IngredientManager: React.FC = () => {
     setIsAddSheetOpen(false);
     // Force a refresh of the ingredients list
     queryClient.invalidateQueries({ queryKey: ['business-ingredients'] });
+    if (onActionSuccess) onActionSuccess('Ingredient added successfully');
+    else toast.success('Ingredient added successfully');
   };
 
   const handleAddError = (error: any) => {
     console.error('Error adding ingredient:', error);
-    toast.error(`Error adding ingredient: ${error.message || 'Unknown error'}`);
+    const errorMessage = `Error adding ingredient: ${error.message || 'Unknown error'}`;
+    if (onActionError) onActionError(errorMessage);
+    else toast.error(errorMessage);
   };
 
   const handleEditSuccess = () => {
     setIsEditSheetOpen(false);
     // Force a refresh of the ingredients list
     queryClient.invalidateQueries({ queryKey: ['business-ingredients'] });
+    if (onActionSuccess) onActionSuccess('Ingredient updated successfully');
+    else toast.success('Ingredient updated successfully');
   };
 
   const handleDelete = async () => {
@@ -66,9 +80,12 @@ const IngredientManager: React.FC = () => {
         await deleteIngredient.mutateAsync(selectedIngredient.id);
         setIsDeleteDialogOpen(false);
         setSelectedIngredient(null);
+        if (onActionSuccess) onActionSuccess('Ingredient deleted successfully');
       } catch (error) {
         console.error('Error deleting ingredient:', error);
-        toast.error(`Failed to delete ingredient: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        const errorMessage = `Failed to delete ingredient: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        if (onActionError) onActionError(errorMessage);
+        else toast.error(errorMessage);
       } finally {
         setIsProcessing(false);
       }

@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -45,6 +46,7 @@ const EditIngredientForm: React.FC<EditIngredientFormProps> = ({ ingredient, onS
   const { updateIngredient } = useBusinessIngredientMutations();
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { businessUser } = useBusinessAuth();
   
   const form = useForm<IngredientFormValues>({
     resolver: zodResolver(formSchema),
@@ -60,6 +62,7 @@ const EditIngredientForm: React.FC<EditIngredientFormProps> = ({ ingredient, onS
   const onSubmit = async (data: IngredientFormValues) => {
     try {
       console.log('Submitting edit ingredient form data:', data);
+      console.log('Current business user ID:', businessUser?.id);
       setIsSubmitting(true);
       await updateIngredient.mutateAsync({
         id: ingredient.id,
