@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -58,10 +58,11 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
     try {
       await createConsumable.mutateAsync(data);
       form.reset();
+      toast.success('Consumable added successfully!');
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
-      // Error is handled in the mutation hook
+      toast.error('Failed to add consumable. Please try again.');
     }
   };
 
