@@ -16,6 +16,7 @@ import { BusinessConsumable } from '@/types/business-consumable';
 import ConsumableList from './ConsumableList';
 import AddConsumableForm from './AddConsumableForm';
 import EditConsumableForm from './EditConsumableForm';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 const ConsumableManager: React.FC = () => {
@@ -24,6 +25,7 @@ const ConsumableManager: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedConsumable, setSelectedConsumable] = useState<BusinessConsumable | null>(null);
   const { deleteConsumable } = useBusinessConsumableMutations();
+  const queryClient = useQueryClient();
 
   const handleAddClick = () => {
     setIsAddSheetOpen(true);
@@ -41,12 +43,14 @@ const ConsumableManager: React.FC = () => {
 
   const handleAddSuccess = () => {
     setIsAddSheetOpen(false);
-    // No need to show toast here as it's now handled in the form component
+    // Force a refresh of the consumables list
+    queryClient.invalidateQueries({ queryKey: ['business-consumables'] });
   };
 
   const handleEditSuccess = () => {
     setIsEditSheetOpen(false);
-    // No need to show toast here as it can be handled in the form component
+    // Force a refresh of the consumables list
+    queryClient.invalidateQueries({ queryKey: ['business-consumables'] });
   };
 
   const handleDelete = async () => {
@@ -56,7 +60,7 @@ const ConsumableManager: React.FC = () => {
         setIsDeleteDialogOpen(false);
         setSelectedConsumable(null);
       } catch (error) {
-        toast.error('Failed to delete consumable');
+        // Toast is now handled in the mutation hook
       }
     }
   };

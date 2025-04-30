@@ -38,9 +38,11 @@ export function useBusinessConsumableMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
+      toast.success('Consumable added successfully');
     },
     onError: (error) => {
       console.error('Failed to add consumable:', error);
+      toast.error('Failed to add consumable');
     }
   });
 
@@ -70,9 +72,11 @@ export function useBusinessConsumableMutations() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
       queryClient.invalidateQueries({ queryKey: ['business-consumable', variables.id] });
+      toast.success('Consumable updated successfully');
     },
     onError: (error) => {
       console.error('Failed to update consumable:', error);
+      toast.error('Failed to update consumable');
     }
   });
 
@@ -92,9 +96,11 @@ export function useBusinessConsumableMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
+      toast.success('Consumable deleted successfully');
     },
     onError: (error) => {
       console.error('Failed to delete consumable:', error);
+      toast.error('Failed to delete consumable');
     }
   });
 

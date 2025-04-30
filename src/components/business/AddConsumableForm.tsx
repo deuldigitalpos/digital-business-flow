@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -66,11 +65,10 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
       });
       console.log('Consumable created successfully');
       form.reset();
-      toast.success('Consumable added successfully');
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error('Failed to add consumable');
+      // Toast is now handled in the mutation hook
     }
   };
 
