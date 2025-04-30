@@ -21,30 +21,36 @@ export function useBusinessIngredientMutations() {
 
       console.log('Creating ingredient with business user ID:', businessUser.id);
 
-      // Use the special function we created in Supabase that will store the business user ID
-      // This is done before the insert to ensure the database trigger can access it
-      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
-      
-      // Insert the ingredient with quantity_available defaulting to 0 if undefined
-      const { data, error } = await supabase
-        .from('business_ingredients')
-        .insert({
-          business_id: business.id,
-          name: ingredientData.name,
-          description: ingredientData.description,
-          unit_id: ingredientData.unit_id,
-          unit_price: ingredientData.unit_price,
-          quantity_available: ingredientData.quantity_available ?? 0
-        })
-        .select()
-        .single();
+      try {
+        // First explicitly set the business user ID in the database session
+        await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+        console.log('Business user ID set successfully');
+        
+        // Then perform the insert operation
+        const { data, error } = await supabase
+          .from('business_ingredients')
+          .insert({
+            business_id: business.id,
+            name: ingredientData.name,
+            description: ingredientData.description,
+            unit_id: ingredientData.unit_id,
+            unit_price: ingredientData.unit_price,
+            quantity_available: ingredientData.quantity_available ?? 0
+          })
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error creating ingredient:', error);
+        if (error) {
+          console.error('Error creating ingredient:', error);
+          throw error;
+        }
+
+        console.log('Ingredient created successfully:', data);
+        return data;
+      } catch (error) {
+        console.error('Error in createIngredient mutation:', error);
         throw error;
       }
-
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-ingredients', business?.id] });
@@ -52,7 +58,7 @@ export function useBusinessIngredientMutations() {
     },
     onError: (error) => {
       console.error('Failed to add ingredient:', error);
-      toast.error('Failed to add ingredient');
+      toast.error(`Failed to add ingredient: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 
@@ -64,27 +70,33 @@ export function useBusinessIngredientMutations() {
 
       console.log('Updating ingredient with business user ID:', businessUser.id);
       
-      // Use the special function we created in Supabase that will store the business user ID
-      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+      try {
+        // First explicitly set the business user ID in the database session
+        await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+        console.log('Business user ID set successfully for update');
 
-      const { data: updatedIngredient, error } = await supabase
-        .from('business_ingredients')
-        .update({
-          name: data.name,
-          description: data.description,
-          unit_id: data.unit_id,
-          unit_price: data.unit_price
-        })
-        .eq('id', id)
-        .select()
-        .single();
+        const { data: updatedIngredient, error } = await supabase
+          .from('business_ingredients')
+          .update({
+            name: data.name,
+            description: data.description,
+            unit_id: data.unit_id,
+            unit_price: data.unit_price
+          })
+          .eq('id', id)
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error updating ingredient:', error);
+        if (error) {
+          console.error('Error updating ingredient:', error);
+          throw error;
+        }
+
+        return updatedIngredient;
+      } catch (error) {
+        console.error('Error in updateIngredient mutation:', error);
         throw error;
       }
-
-      return updatedIngredient;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['business-ingredients', business?.id] });
@@ -93,7 +105,7 @@ export function useBusinessIngredientMutations() {
     },
     onError: (error) => {
       console.error('Failed to update ingredient:', error);
-      toast.error('Failed to update ingredient');
+      toast.error(`Failed to update ingredient: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 
@@ -105,22 +117,26 @@ export function useBusinessIngredientMutations() {
 
       console.log('Deleting ingredient with business user ID:', businessUser.id);
       
-      // Use the special function we created in Supabase that will store the business user ID
-      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+      try {
+        // First explicitly set the business user ID in the database session
+        await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+        console.log('Business user ID set successfully for delete');
 
-      // For the delete operation, we rely on the fetch interceptor in client.ts
-      // to pass the businessUser.id in the headers
-      const { error } = await supabase
-        .from('business_ingredients')
-        .delete()
-        .eq('id', id);
+        const { error } = await supabase
+          .from('business_ingredients')
+          .delete()
+          .eq('id', id);
 
-      if (error) {
-        console.error('Error deleting ingredient:', error);
+        if (error) {
+          console.error('Error deleting ingredient:', error);
+          throw error;
+        }
+
+        return id;
+      } catch (error) {
+        console.error('Error in deleteIngredient mutation:', error);
         throw error;
       }
-
-      return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-ingredients', business?.id] });
@@ -128,7 +144,7 @@ export function useBusinessIngredientMutations() {
     },
     onError: (error) => {
       console.error('Failed to delete ingredient:', error);
-      toast.error('Failed to delete ingredient');
+      toast.error(`Failed to delete ingredient: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 

@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ConsumableFormValues } from '@/types/business-consumable';
@@ -20,29 +21,36 @@ export function useBusinessConsumableMutations() {
 
       console.log('Creating consumable with business user ID:', businessUser.id);
       
-      // Use the special function we created in Supabase that will store the business user ID
-      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
-      
-      // Insert the consumable with quantity_available defaulting to 0 if undefined
-      const { data, error } = await supabase
-        .from('business_consumables')
-        .insert({
-          business_id: business.id,
-          name: consumableData.name,
-          description: consumableData.description || null,
-          unit_id: consumableData.unit_id || null,
-          unit_price: consumableData.unit_price,
-          quantity_available: consumableData.quantity_available ?? 0
-        })
-        .select()
-        .single();
+      try {
+        // First explicitly set the business user ID in the database session
+        await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+        console.log('Business user ID set successfully for consumable creation');
+        
+        // Insert the consumable with quantity_available defaulting to 0 if undefined
+        const { data, error } = await supabase
+          .from('business_consumables')
+          .insert({
+            business_id: business.id,
+            name: consumableData.name,
+            description: consumableData.description || null,
+            unit_id: consumableData.unit_id || null,
+            unit_price: consumableData.unit_price,
+            quantity_available: consumableData.quantity_available ?? 0
+          })
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error creating consumable:', error);
+        if (error) {
+          console.error('Error creating consumable:', error);
+          throw error;
+        }
+
+        console.log('Consumable created successfully:', data);
+        return data;
+      } catch (error) {
+        console.error('Error in createConsumable mutation:', error);
         throw error;
       }
-
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
@@ -50,7 +58,7 @@ export function useBusinessConsumableMutations() {
     },
     onError: (error) => {
       console.error('Failed to add consumable:', error);
-      toast.error('Failed to add consumable');
+      toast.error(`Failed to add consumable: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 
@@ -62,28 +70,34 @@ export function useBusinessConsumableMutations() {
 
       console.log('Updating consumable with business user ID:', businessUser.id);
       
-      // Use the special function we created in Supabase that will store the business user ID
-      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
-      
-      // Update the consumable - the businessUser.id will be sent via the fetch interceptor
-      const { data: updatedConsumable, error } = await supabase
-        .from('business_consumables')
-        .update({
-          name: data.name,
-          description: data.description || null,
-          unit_id: data.unit_id || null,
-          unit_price: data.unit_price
-        })
-        .eq('id', id)
-        .select()
-        .single();
+      try {
+        // First explicitly set the business user ID in the database session
+        await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+        console.log('Business user ID set successfully for consumable update');
+        
+        const { data: updatedConsumable, error } = await supabase
+          .from('business_consumables')
+          .update({
+            name: data.name,
+            description: data.description || null,
+            unit_id: data.unit_id || null,
+            unit_price: data.unit_price
+          })
+          .eq('id', id)
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error updating consumable:', error);
+        if (error) {
+          console.error('Error updating consumable:', error);
+          throw error;
+        }
+
+        console.log('Consumable updated successfully:', updatedConsumable);
+        return updatedConsumable;
+      } catch (error) {
+        console.error('Error in updateConsumable mutation:', error);
         throw error;
       }
-
-      return updatedConsumable;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
@@ -92,7 +106,7 @@ export function useBusinessConsumableMutations() {
     },
     onError: (error) => {
       console.error('Failed to update consumable:', error);
-      toast.error('Failed to update consumable');
+      toast.error(`Failed to update consumable: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 
@@ -104,22 +118,26 @@ export function useBusinessConsumableMutations() {
 
       console.log('Deleting consumable with business user ID:', businessUser.id);
       
-      // Use the special function we created in Supabase that will store the business user ID
-      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
-      
-      // For the delete operation, we don't have updated_by in the type
-      // The businessUser.id will be sent via the fetch interceptor in client.ts
-      const { error } = await supabase
-        .from('business_consumables')
-        .delete()
-        .eq('id', id);
+      try {
+        // First explicitly set the business user ID in the database session
+        await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+        console.log('Business user ID set successfully for consumable deletion');
+        
+        const { error } = await supabase
+          .from('business_consumables')
+          .delete()
+          .eq('id', id);
 
-      if (error) {
-        console.error('Error deleting consumable:', error);
+        if (error) {
+          console.error('Error deleting consumable:', error);
+          throw error;
+        }
+
+        return id;
+      } catch (error) {
+        console.error('Error in deleteConsumable mutation:', error);
         throw error;
       }
-
-      return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-consumables', business?.id] });
@@ -127,7 +145,7 @@ export function useBusinessConsumableMutations() {
     },
     onError: (error) => {
       console.error('Failed to delete consumable:', error);
-      toast.error('Failed to delete consumable');
+      toast.error(`Failed to delete consumable: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 

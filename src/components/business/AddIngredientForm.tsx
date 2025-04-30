@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -6,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useBusinessIngredientMutations } from '@/hooks/useBusinessIngredientMutations';
 import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 import { IngredientFormValues } from '@/types/business-ingredient';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,11 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
   const { createIngredient } = useBusinessIngredientMutations();
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { businessUser } = useBusinessAuth();
+  
+  // Add debug logging for business user
+  console.log('Current business user in AddIngredientForm:', businessUser);
+  console.log('Business user ID:', businessUser?.id);
   
   const form = useForm<IngredientFormValues>({
     resolver: zodResolver(formSchema),
@@ -57,8 +62,15 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
   });
 
   const onSubmit = async (data: IngredientFormValues) => {
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log('Form submission already in progress');
+      return;
+    }
+
     try {
       console.log('Submitting ingredient form data:', data);
+      console.log('Current business user ID:', businessUser?.id);
       setIsSubmitting(true);
       
       // Ensure quantity_available is at least 0
@@ -67,6 +79,7 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
         quantity_available: data.quantity_available ?? 0
       };
       
+      console.log('Processed ingredient form data:', formData);
       await createIngredient.mutateAsync(formData);
       console.log('Ingredient created successfully');
       

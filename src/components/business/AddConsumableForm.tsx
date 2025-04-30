@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -27,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -45,6 +45,11 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onErro
   const { createConsumable } = useBusinessConsumableMutations();
   const { data: units, isLoading: isLoadingUnits } = useBusinessUnits();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { businessUser } = useBusinessAuth();
+  
+  // Add debug logging for business user
+  console.log('Current business user in AddConsumableForm:', businessUser);
+  console.log('Business user ID:', businessUser?.id);
   
   const form = useForm<ConsumableFormValues>({
     resolver: zodResolver(formSchema),
@@ -57,8 +62,15 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onErro
   });
 
   const onSubmit = async (data: ConsumableFormValues) => {
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log('Form submission already in progress');
+      return;
+    }
+
     try {
       console.log('Submitting form data:', data);
+      console.log('Current business user ID:', businessUser?.id);
       setIsSubmitting(true);
       
       // Ensure quantity_available is at least 0 if undefined
