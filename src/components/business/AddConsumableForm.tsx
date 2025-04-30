@@ -29,7 +29,6 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { setSupabaseBusinessAuth, getCurrentBusinessUserId } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -59,42 +58,11 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
     }
   });
 
-  // Ensure business user authentication is set up properly before submitting
-  React.useEffect(() => {
-    if (businessUser?.id) {
-      console.log('Setting business user auth in form:', businessUser.id);
-      setSupabaseBusinessAuth(businessUser.id);
-      
-      // Verify the auth was set properly
-      const currentId = getCurrentBusinessUserId();
-      console.log('Current business user ID after setting:', currentId);
-      
-      if (currentId !== businessUser.id) {
-        console.error('Business user ID mismatch!', { expected: businessUser.id, actual: currentId });
-      }
-    } else {
-      console.log('No business user ID available in form');
-    }
-  }, [businessUser?.id]);
-
   const onSubmit = async (data: ConsumableFormValues) => {
     setErrorDetails(null);
     console.log('Submitting form with data:', data);
     console.log('Current business user ID:', businessUser?.id);
     console.log('Current business ID:', business?.id);
-    
-    // Re-set the auth just before submission to ensure it's active
-    if (businessUser?.id) {
-      console.log('Re-setting business user auth before submission:', businessUser.id);
-      setSupabaseBusinessAuth(businessUser.id);
-      
-      // Verify the auth header is set
-      const currentId = getCurrentBusinessUserId();
-      console.log('Verified business user ID before submission:', currentId);
-    } else {
-      setErrorDetails('Business user authentication is not available. Please try logging in again.');
-      return;
-    }
     
     // Validate business data is available
     if (!business?.id) {
@@ -102,7 +70,15 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
       return;
     }
     
+    // Validate business user authentication
+    if (!businessUser?.id) {
+      setErrorDetails('Business user authentication is not available. Please try logging in again.');
+      return;
+    }
+    
     try {
+      console.log('Attempting to create consumable with business user ID:', businessUser.id);
+      
       await createConsumable.mutateAsync({
         name: data.name,
         description: data.description,
@@ -110,6 +86,7 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
         unit_price: Number(data.unit_price),
         quantity_available: Number(data.quantity_available)
       });
+      
       console.log('Consumable created successfully');
       form.reset();
       toast.success('Consumable added successfully');
