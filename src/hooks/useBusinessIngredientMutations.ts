@@ -26,16 +26,7 @@ export function useBusinessIngredientMutations() {
         await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
         console.log('Business user ID set successfully');
         
-        // Create custom headers for this request
-        const options = {
-          headers: {
-            'business-user-id': businessUser.id
-          }
-        };
-        
-        console.log('Using headers:', options.headers);
-        
-        // Then perform the insert operation with explicit header and updated_by field
+        // Then perform the insert operation with updated_by field
         const { data, error } = await supabase
           .from('business_ingredients')
           .insert({
@@ -47,7 +38,7 @@ export function useBusinessIngredientMutations() {
             quantity_available: ingredientData.quantity_available ?? 0,
             // Add business user ID directly to the data
             updated_by: businessUser.id
-          }, options)
+          })
           .select()
           .single();
 
@@ -86,13 +77,6 @@ export function useBusinessIngredientMutations() {
         await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
         console.log('Business user ID set successfully for update');
 
-        // Create custom headers for this request
-        const options = {
-          headers: {
-            'business-user-id': businessUser.id
-          }
-        };
-        
         const { data: updatedIngredient, error } = await supabase
           .from('business_ingredients')
           .update({
@@ -102,7 +86,7 @@ export function useBusinessIngredientMutations() {
             unit_price: data.unit_price,
             // Add business user ID directly to the update data
             updated_by: businessUser.id
-          }, options)
+          })
           .eq('id', id)
           .select()
           .single();
@@ -142,16 +126,9 @@ export function useBusinessIngredientMutations() {
         await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
         console.log('Business user ID set successfully for delete');
 
-        // Create custom headers for this request
-        const options = {
-          headers: {
-            'business-user-id': businessUser.id
-          }
-        };
-        
         const { error } = await supabase
           .from('business_ingredients')
-          .delete(options)
+          .delete()
           .eq('id', id);
 
         if (error) {

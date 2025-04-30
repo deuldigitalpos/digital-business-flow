@@ -26,15 +26,6 @@ export function useBusinessConsumableMutations() {
         await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
         console.log('Business user ID set successfully for consumable creation');
         
-        // Create custom headers for this request
-        const options = {
-          headers: {
-            'business-user-id': businessUser.id
-          }
-        };
-        
-        console.log('Using headers for consumable creation:', options.headers);
-        
         // Insert the consumable with quantity_available defaulting to 0 if undefined
         // and adding the business user ID directly to the data
         const { data, error } = await supabase
@@ -47,7 +38,7 @@ export function useBusinessConsumableMutations() {
             unit_price: consumableData.unit_price,
             quantity_available: consumableData.quantity_available ?? 0,
             updated_by: businessUser.id // Add business user ID directly to the data
-          }, options)
+          })
           .select()
           .single();
 
@@ -86,13 +77,6 @@ export function useBusinessConsumableMutations() {
         await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
         console.log('Business user ID set successfully for consumable update');
         
-        // Create custom headers for this request
-        const options = {
-          headers: {
-            'business-user-id': businessUser.id
-          }
-        };
-        
         const { data: updatedConsumable, error } = await supabase
           .from('business_consumables')
           .update({
@@ -101,7 +85,7 @@ export function useBusinessConsumableMutations() {
             unit_id: data.unit_id || null,
             unit_price: data.unit_price,
             updated_by: businessUser.id // Add business user ID directly to the update data
-          }, options)
+          })
           .eq('id', id)
           .select()
           .single();
@@ -142,16 +126,9 @@ export function useBusinessConsumableMutations() {
         await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
         console.log('Business user ID set successfully for consumable deletion');
         
-        // Create custom headers for this request
-        const options = {
-          headers: {
-            'business-user-id': businessUser.id
-          }
-        };
-        
         const { error } = await supabase
           .from('business_consumables')
-          .delete(options)
+          .delete()
           .eq('id', id);
 
         if (error) {
