@@ -59,16 +59,18 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
     }
   });
 
-  // Add check for auth state
+  // Ensure business user authentication is set up properly before submitting
   React.useEffect(() => {
     console.log("Authentication state:", { 
       isAuthenticated, 
       hasBusinessUser: !!businessUser, 
-      hasBusiness: !!business 
+      hasBusiness: !!business,
+      businessUserId: businessUser?.id
     });
     
     // Ensure business user authentication is set up
     if (businessUser?.id) {
+      console.log('Setting business user auth in form:', businessUser.id);
       setSupabaseBusinessAuth(businessUser.id);
     }
   }, [isAuthenticated, businessUser, business]);
@@ -76,8 +78,17 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
   const onSubmit = async (data: ConsumableFormValues) => {
     setErrorDetails(null);
     console.log('Submitting form with data:', data);
-    console.log('Current business user:', businessUser);
-    console.log('Current business:', business);
+    console.log('Current business user ID:', businessUser?.id);
+    console.log('Current business ID:', business?.id);
+    
+    // Re-set the auth just before submission to ensure it's active
+    if (businessUser?.id) {
+      console.log('Re-setting business user auth before submission:', businessUser.id);
+      setSupabaseBusinessAuth(businessUser.id);
+    } else {
+      setErrorDetails('Business user authentication is not available. Please try logging in again.');
+      return;
+    }
     
     // Validate business data is available
     if (!business?.id) {
@@ -125,6 +136,15 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess }) => {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               You may not be properly authenticated. Try logging in again if you encounter issues.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Show business user ID info */}
+        {businessUser?.id && (
+          <Alert variant="default" className="mb-4 bg-green-50">
+            <AlertDescription className="text-xs">
+              Using business user: {businessUser.id}
             </AlertDescription>
           </Alert>
         )}

@@ -17,6 +17,8 @@ const BusinessDashboardLayout = () => {
     if (businessUser?.id) {
       console.log('Setting up business user authentication in Dashboard layout');
       setSupabaseBusinessAuth(businessUser.id);
+    } else {
+      console.log('No business user ID available to set auth');
     }
     
     return () => {
