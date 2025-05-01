@@ -493,6 +493,7 @@ export type Database = {
       business_products: {
         Row: {
           alert_quantity: number | null
+          auto_generate_sku: boolean | null
           brand_id: string | null
           business_id: string
           category_id: string | null
@@ -516,12 +517,15 @@ export type Database = {
           selling_price: number | null
           sku: string | null
           status: string | null
+          unit_id: string | null
           unit_price: number | null
           updated_at: string
+          warning_flags: Json | null
           warranty_id: string | null
         }
         Insert: {
           alert_quantity?: number | null
+          auto_generate_sku?: boolean | null
           brand_id?: string | null
           business_id: string
           category_id?: string | null
@@ -545,12 +549,15 @@ export type Database = {
           selling_price?: number | null
           sku?: string | null
           status?: string | null
+          unit_id?: string | null
           unit_price?: number | null
           updated_at?: string
+          warning_flags?: Json | null
           warranty_id?: string | null
         }
         Update: {
           alert_quantity?: number | null
+          auto_generate_sku?: boolean | null
           brand_id?: string | null
           business_id?: string
           category_id?: string | null
@@ -574,8 +581,10 @@ export type Database = {
           selling_price?: number | null
           sku?: string | null
           status?: string | null
+          unit_id?: string | null
           unit_price?: number | null
           updated_at?: string
+          warning_flags?: Json | null
           warranty_id?: string | null
         }
         Relationships: [
@@ -605,6 +614,13 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "business_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
             referencedColumns: ["id"]
           },
           {

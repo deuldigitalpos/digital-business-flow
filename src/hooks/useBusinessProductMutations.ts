@@ -22,6 +22,7 @@ export function useBusinessProductMutations() {
       const brand_id = productData.brand_id === "none" ? null : productData.brand_id;
       const warranty_id = productData.warranty_id === "none" ? null : productData.warranty_id;
       const location_id = productData.location_id === "none" ? null : productData.location_id;
+      const unit_id = productData.unit_id === "none" ? null : productData.unit_id;
 
       // First, create the product
       const { data: newProduct, error: productError } = await supabase
@@ -30,11 +31,13 @@ export function useBusinessProductMutations() {
           business_id: business.id,
           name: productData.name,
           sku: productData.sku,
+          auto_generate_sku: productData.auto_generate_sku || false,
           description: productData.description,
           category_id: category_id,
           brand_id: brand_id,
           warranty_id: warranty_id,
           location_id: location_id,
+          unit_id: unit_id,
           image_url: productData.image_url,
           expiration_date: expiration_date,
           alert_quantity: productData.alert_quantity || 10,
@@ -63,6 +66,8 @@ export function useBusinessProductMutations() {
         has_recipe: newProduct.has_recipe ?? false,
         has_modifiers: newProduct.has_modifiers ?? false,
         has_consumables: newProduct.has_consumables ?? false,
+        auto_generate_sku: newProduct.auto_generate_sku ?? false,
+        warning_flags: newProduct.warning_flags ?? null
       } as BusinessProduct;
 
       // Then, if there are sizes, add them
@@ -217,6 +222,7 @@ export function useBusinessProductMutations() {
       const brand_id = data.brand_id === "none" ? null : data.brand_id;
       const warranty_id = data.warranty_id === "none" ? null : data.warranty_id;
       const location_id = data.location_id === "none" ? null : data.location_id;
+      const unit_id = data.unit_id === "none" ? null : data.unit_id;
 
       // First, update the product
       const { data: updatedProduct, error: productError } = await supabase
@@ -224,11 +230,13 @@ export function useBusinessProductMutations() {
         .update({
           name: data.name,
           sku: data.sku,
+          auto_generate_sku: data.auto_generate_sku || false,
           description: data.description,
           category_id: category_id,
           brand_id: brand_id,
           warranty_id: warranty_id,
           location_id: location_id,
+          unit_id: unit_id,
           image_url: data.image_url,
           expiration_date: expiration_date,
           alert_quantity: data.alert_quantity,
@@ -539,6 +547,8 @@ export function useBusinessProductMutations() {
         has_recipe: updatedProduct.has_recipe ?? false,
         has_modifiers: updatedProduct.has_modifiers ?? false,
         has_consumables: updatedProduct.has_consumables ?? false,
+        auto_generate_sku: updatedProduct.auto_generate_sku ?? false,
+        warning_flags: updatedProduct.warning_flags ?? null
       } as BusinessProduct;
 
       return typedProduct;

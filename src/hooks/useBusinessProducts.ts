@@ -17,7 +17,7 @@ export function useBusinessProducts() {
 
       const { data, error } = await supabase
         .from('business_products')
-        .select('*, business_product_sizes(*)')
+        .select('*, business_product_sizes(*), business_units(*)')
         .eq('business_id', business.id);
 
       if (error) {
@@ -33,6 +33,8 @@ export function useBusinessProducts() {
         has_recipe: product.has_recipe ?? false,
         has_modifiers: product.has_modifiers ?? false,
         has_consumables: product.has_consumables ?? false,
+        auto_generate_sku: product.auto_generate_sku ?? false,
+        warning_flags: product.warning_flags ?? null
       }) as BusinessProduct);
     },
     enabled: !!business?.id,
@@ -51,7 +53,7 @@ export function useBusinessProduct(id: string | undefined) {
 
       const { data, error } = await supabase
         .from('business_products')
-        .select('*, business_product_sizes(*)')
+        .select('*, business_product_sizes(*), business_units(*)')
         .eq('id', id)
         .single();
 
@@ -68,6 +70,8 @@ export function useBusinessProduct(id: string | undefined) {
         has_recipe: data.has_recipe ?? false,
         has_modifiers: data.has_modifiers ?? false,
         has_consumables: data.has_consumables ?? false,
+        auto_generate_sku: data.auto_generate_sku ?? false,
+        warning_flags: data.warning_flags ?? null
       } as BusinessProduct;
     },
     enabled: !!id && !!business?.id,

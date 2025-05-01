@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { Plus, Trash } from 'lucide-react';
+import { Plus, Trash, AlertTriangle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,17 +44,20 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import RecipeItemForm from './RecipeItemForm';
 import ConsumableItemForm from './ConsumableItemForm';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
   sku: z.string().optional(),
+  auto_generate_sku: z.boolean().default(false).optional(),
   description: z.string().optional(),
   category_id: z.string().optional(),
   brand_id: z.string().optional(),
   warranty_id: z.string().optional(),
   location_id: z.string().optional(),
+  unit_id: z.string().optional(),
   image_url: z.string().optional(),
   expiration_date: z.string().optional(),
   alert_quantity: z.coerce.number().optional(),
@@ -125,21 +128,25 @@ const ProductForm: React.FC<ProductFormProps> = ({
     { name: '', size_regular_price: 0, size_medium_price: null, size_large_price: null, size_xl_price: null }
   ]);
   
-  // Add state for consumable items
   const [consumableItems, setConsumableItems] = useState<ConsumableItem[]>([
     { consumable_id: '', quantity: 0, unit_id: null, cost: 0 }
   ]);
+
+  const [totalRecipeCost, setTotalRecipeCost] = useState(0);
+  const [belowCostWarning, setBelowCostWarning] = useState(false);
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
       sku: '',
+      auto_generate_sku: false,
       description: '',
       category_id: 'none',
       brand_id: 'none',
       warranty_id: 'none',
       location_id: 'none',
+      unit_id: 'none',
       image_url: '',
       expiration_date: '',
       alert_quantity: 10,
@@ -155,6 +162,35 @@ const ProductForm: React.FC<ProductFormProps> = ({
       consumable_items: []
     }
   });
+
+  // Calculate total recipe cost when recipe items change
+  useEffect(() => {
+    if (form.watch('has_recipe') && recipeItems.length > 0) {
+      const total = recipeItems.reduce((sum, item) => sum + (item.cost || 0), 0);
+      setTotalRecipeCost(total);
+      
+      // If recipe is enabled, update unit price based on recipe cost
+      if (total > 0) {
+        form.setValue('unit_price', total);
+      }
+    }
+  }, [recipeItems, form]);
+
+  // Check if selling price is below cost
+  useEffect(() => {
+    const unitPrice = form.watch('unit_price') || 0;
+    const sellingPrice = form.watch('selling_price') || 0;
+    
+    setBelowCostWarning(sellingPrice < unitPrice && sellingPrice > 0);
+  }, [form.watch('unit_price'), form.watch('selling_price')]);
+
+  // Toggle SKU field based on auto_generate_sku
+  useEffect(() => {
+    const autoGenerateSku = form.watch('auto_generate_sku');
+    if (autoGenerateSku) {
+      form.setValue('sku', '');
+    }
+  }, [form.watch('auto_generate_sku')]);
 
   useEffect(() => {
     if (initialValues) {
@@ -194,11 +230,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const loadProductData = async (product: any) => {
     form.setValue('name', product.name);
     form.setValue('sku', product.sku || '');
+    form.setValue('auto_generate_sku', product.auto_generate_sku || false);
     form.setValue('description', product.description || '');
     form.setValue('category_id', product.category_id || 'none');
     form.setValue('brand_id', product.brand_id || 'none');
     form.setValue('warranty_id', product.warranty_id || 'none');
     form.setValue('location_id', product.location_id || 'none');
+    form.setValue('unit_id', product.unit_id || 'none');
     form.setValue('image_url', product.image_url || '');
     form.setValue('expiration_date', product.expiration_date || '');
     form.setValue('alert_quantity', product.alert_quantity || 10);
@@ -442,6 +480,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       // Prepare recipe items if any
       if (values.has_recipe && recipeItems) {
         values.recipe_items = recipeItems.filter(item => item.ingredient_id);
+        // Update unit_price based on recipe cost
+        values.unit_price = totalRecipeCost;
       } else {
         values.recipe_items = [];
       }
@@ -459,6 +499,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
       } else {
         values.modifier_items = [];
       }
+
+      // If auto-generate SKU is enabled, ensure SKU is empty for the database function to work
+      if (values.auto_generate_sku) {
+        values.sku = '';
+      }
       
       if (productId) {
         // Update existing product
@@ -470,7 +515,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       toast.success('Product saved successfully!');
       if (onSuccess) onSuccess();
-      navigate('/BusinessProducts');
+      navigate('/business-dashboard/products');
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Failed to save product. Please check the form for errors.');
@@ -483,254 +528,405 @@ const ProductForm: React.FC<ProductFormProps> = ({
     form.setValue('expiration_date', e.target.value);
   };
 
+  // Calculate profit margin
+  const calculateProfitMargin = () => {
+    const costPrice = form.watch('unit_price') || 0;
+    const sellingPrice = form.watch('selling_price') || 0;
+    
+    if (costPrice <= 0 || sellingPrice <= 0) return 0;
+    
+    const profit = sellingPrice - costPrice;
+    const margin = (profit / sellingPrice) * 100;
+    
+    return margin.toFixed(2);
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Product name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="sku"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>SKU</FormLabel>
-                  <FormControl>
-                    <Input placeholder="SKU" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Description" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="category_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+          {/* Basic Information Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+              <CardDescription>
+                Enter the basic details about the product
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
+                      <Input placeholder="Product name" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {categories?.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="brand_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Brand</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormField
+                control={form.control}
+                name="auto_generate_sku"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Auto-generate SKU</FormLabel>
+                      <FormDescription>
+                        Automatically generate SKU based on category and sequence
+                      </FormDescription>
+                    </div>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a brand" />
-                      </SelectTrigger>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {brands?.map((brand) => (
-                        <SelectItem key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
+                  </FormItem>
+                )}
+              />
+
+              {!form.watch('auto_generate_sku') && (
+                <FormField
+                  control={form.control}
+                  name="sku"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>SKU</FormLabel>
+                      <FormControl>
+                        <Input placeholder="SKU" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
-          </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Description" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {categories?.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="unit_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Unit</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a unit" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {units?.map((unit) => (
+                          <SelectItem key={unit.id} value={unit.id}>
+                            {unit.name} ({unit.short_name})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="image_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Image URL" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
           
-          <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="warranty_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Warranty</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+          {/* Additional Details Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Details</CardTitle>
+              <CardDescription>
+                Set properties like brand, warranty, and inventory levels
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="brand_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Brand</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a brand" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {brands?.map((brand) => (
+                          <SelectItem key={brand.id} value={brand.id}>
+                            {brand.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="warranty_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Warranty</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a warranty" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {warranties?.map((warranty) => (
+                          <SelectItem key={warranty.id} value={warranty.id}>
+                            {warranty.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="location_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a location" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {locations?.map((location) => (
+                          <SelectItem key={location.id} value={location.id}>
+                            {location.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="expiration_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Expiration Date</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a warranty" />
-                      </SelectTrigger>
+                      <Input
+                        type="date"
+                        value={field.value || ''}
+                        onChange={handleExpireDateChange}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {warranties?.map((warranty) => (
-                        <SelectItem key={warranty.id} value={warranty.id}>
-                          {warranty.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="location_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormField
+                control={form.control}
+                name="alert_quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alert Quantity</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a location" />
-                      </SelectTrigger>
+                      <Input
+                        type="number"
+                        placeholder="Alert Quantity"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {locations?.map((location) => (
-                        <SelectItem key={location.id} value={location.id}>
-                          {location.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="image_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Image URL" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="expiration_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Expiration Date</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={field.value || ''}
-                      onChange={handleExpireDateChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="alert_quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Alert Quantity</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Alert Quantity"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Replace is_raw_ingredient with has_consumables */}
-            <FormField
-              control={form.control}
-              name="has_consumables"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Requires Consumables</FormLabel>
                     <FormDescription>
-                      Does this product use consumables like packaging, napkins, etc?
+                      System will mark product as "Low Stock" when quantity falls below this threshold
                     </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="is_consumable"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Is Consumable</FormLabel>
-                    <FormDescription>
-                      Is this product a consumable item?
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="is_consumable"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Is Consumable</FormLabel>
+                      <FormDescription>
+                        Is this product a consumable item?
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
         </div>
         
+        {/* Product Pricing Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Pricing</CardTitle>
+            <CardDescription>
+              Set the cost and selling price for this product
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <FormField
+                  control={form.control}
+                  name="unit_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit Cost Price</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Unit Cost"
+                          {...field}
+                          disabled={form.watch('has_recipe')}
+                        />
+                      </FormControl>
+                      {form.watch('has_recipe') && (
+                        <FormDescription>
+                          Cost is automatically calculated from recipe ingredients
+                        </FormDescription>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div>
+                <FormField
+                  control={form.control}
+                  name="selling_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Selling Price</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Selling Price"
+                          {...field}
+                          className={belowCostWarning ? "border-red-500" : ""}
+                        />
+                      </FormControl>
+                      {belowCostWarning && (
+                        <div className="text-red-500 text-xs mt-1 flex items-center">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Selling price is below cost price
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            
+            <div className="mt-4 p-4 bg-gray-50 rounded-md">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Cost Price</p>
+                  <p className="text-lg font-medium">{form.watch('unit_price') || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Selling Price</p>
+                  <p className="text-lg font-medium">{form.watch('selling_price') || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Profit</p>
+                  <p className="text-lg font-medium">
+                    {(form.watch('selling_price') || 0) - (form.watch('unit_price') || 0)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Profit Margin</p>
+                  <p className="text-lg font-medium">{calculateProfitMargin()}%</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Product Sizes Section */}
         <Card>
           <CardHeader>
             <CardTitle>Sizes</CardTitle>
@@ -742,224 +938,4 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <div className="space-y-4">
               {sizes.map((size, index) => (
                 <div key={index} className="flex items-center space-x-4">
-                  <div className="grid gap-2">
-                    <FormItem>
-                      <FormLabel>Size Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          value={size.size_name}
-                          onChange={(e) => handleSizeChange(index, 'size_name', e.target.value)}
-                          placeholder="Size Name"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  </div>
-                  <div className="grid gap-2">
-                    <FormItem>
-                      <FormLabel>Price</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          value={size.price}
-                          onChange={(e) => handleSizeChange(index, 'price', e.target.value)}
-                          placeholder="Price"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveSize(index)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              <Button type="button" variant="outline" onClick={handleAddSize}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Size
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recipe section */}
-        {form.watch('has_recipe') && (
-          <div className="border rounded-md p-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Recipe</h3>
-              <Button 
-                type="button" 
-                onClick={handleAddRecipeItem}
-                variant="outline"
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-2" /> Add Ingredient
-              </Button>
-            </div>
-            
-            <div className="space-y-3">
-              {recipeItems.map((item, index) => (
-                <RecipeItemForm
-                  key={index}
-                  index={index}
-                  value={item}
-                  onChange={handleRecipeItemChange}
-                  onRemove={handleRemoveRecipeItem}
-                  isRemovable={recipeItems.length > 1}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Consumables section */}
-        {form.watch('has_consumables') && (
-          <div className="border rounded-md p-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Consumables</h3>
-              <Button 
-                type="button" 
-                onClick={handleAddConsumableItem}
-                variant="outline"
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-2" /> Add Consumable
-              </Button>
-            </div>
-            
-            <div className="space-y-3">
-              {consumableItems.map((item, index) => (
-                <ConsumableItemForm
-                  key={index}
-                  index={index}
-                  value={item}
-                  onChange={handleConsumableItemChange}
-                  onRemove={handleRemoveConsumableItem}
-                  isRemovable={consumableItems.length > 1}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Modifiers</CardTitle>
-            <CardDescription>
-              Add different modifiers for this product (e.g. toppings, flavors)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FormField
-              control={form.control}
-              name="has_modifiers"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Has Modifiers</FormLabel>
-                    <FormDescription>
-                      Does this product have modifiers?
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            {form.watch('has_modifiers') && (
-              <div className="space-y-4">
-                {modifierItems.map((modifier, index) => (
-                  <div key={index} className="space-y-2 border rounded-md p-4">
-                    <div className="flex justify-between items-center">
-                      <h4 className="text-sm font-medium">Modifier {index + 1}</h4>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveModifier(index)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Separator />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="form-item">
-                        <label className="text-sm font-medium">Name</label>
-                        <Input
-                          type="text"
-                          value={modifier.name}
-                          onChange={(e) => handleModifierChange(index, 'name', e.target.value)}
-                          placeholder="Modifier Name"
-                        />
-                      </div>
-                      <div className="form-item">
-                        <label className="text-sm font-medium">Regular Price</label>
-                        <Input
-                          type="number"
-                          value={modifier.size_regular_price}
-                          onChange={(e) => handleModifierChange(index, 'size_regular_price', e.target.value)}
-                          placeholder="Regular Price"
-                        />
-                      </div>
-                      <div className="form-item">
-                        <label className="text-sm font-medium">Medium Price</label>
-                        <Input
-                          type="number"
-                          value={modifier.size_medium_price || ''}
-                          onChange={(e) => handleModifierChange(index, 'size_medium_price', e.target.value === '' ? null : e.target.value)}
-                          placeholder="Medium Price"
-                        />
-                      </div>
-                      <div className="form-item">
-                        <label className="text-sm font-medium">Large Price</label>
-                        <Input
-                          type="number"
-                          value={modifier.size_large_price || ''}
-                          onChange={(e) => handleModifierChange(index, 'size_large_price', e.target.value === '' ? null : e.target.value)}
-                          placeholder="Large Price"
-                        />
-                      </div>
-                      <div className="form-item">
-                        <label className="text-sm font-medium">X-Large Price</label>
-                        <Input
-                          type="number"
-                          value={modifier.size_xl_price || ''}
-                          onChange={(e) => handleModifierChange(index, 'size_xl_price', e.target.value === '' ? null : e.target.value)}
-                          placeholder="X-Large Price"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <Button type="button" variant="outline" onClick={handleAddModifier}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Modifier
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="pt-6 space-x-2 flex justify-end">
-          <Button type="submit">Submit</Button>
-          <Button type="button" variant="outline" onClick={() => navigate('/BusinessProducts')}>
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </Form>
-  );
-};
-
-export default ProductForm;
+                  <

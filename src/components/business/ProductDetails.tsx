@@ -10,10 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Archive, Calendar, Pencil, Package, Tag } from 'lucide-react';
+import { Archive, Calendar, Pencil, Package, Tag, AlertTriangle, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import ProductForm from './ProductForm';
 import { useProductRecipes, useProductConsumables } from '@/hooks/useBusinessProductRecipeModifiers';
+import { useBusinessUnit } from '@/hooks/useBusinessUnit';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ProductDetailsProps {
   productId: string;
@@ -25,6 +27,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
   const { data: brand } = useBusinessBrand(product?.brand_id);
   const { data: warranty } = useBusinessWarranty(product?.warranty_id);
   const { data: location } = useBusinessLocation(product?.location_id);
+  const { data: unit } = useBusinessUnit(product?.unit_id);
   const { data: recipes = [] } = useProductRecipes(productId);
   const { data: consumables = [] } = useProductConsumables(productId);
   
@@ -65,6 +68,17 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
     }
   };
 
+  // Check if there are any warning flags
+  const hasPricingWarning = product.warning_flags && product.warning_flags.price_below_cost;
+
+  // Calculate profit margin
+  const calculateProfitMargin = () => {
+    if (!product.unit_price || !product.selling_price) return 0;
+    const profit = product.selling_price - product.unit_price;
+    const margin = (profit / product.selling_price) * 100;
+    return margin.toFixed(2);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
@@ -75,6 +89,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
               <div className="flex items-center gap-1">
                 <Tag className="h-4 w-4" />
                 <span>SKU: {product.sku}</span>
+                {product.auto_generate_sku && (
+                  <Badge variant="outline" className="ml-2 text-xs">Auto-generated</Badge>
+                )}
               </div>
             )}
             <Badge className={getStatusBadgeColor(product.status || '')}>
@@ -90,6 +107,15 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
           Edit Product
         </Button>
       </div>
+
+      {hasPricingWarning && (
+        <Alert variant="warning" className="bg-yellow-50 border-yellow-100">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Warning: The selling price ({product.selling_price}) is below the cost price ({product.unit_price}).
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -121,6 +147,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
             <div>
               <h4 className="text-sm font-medium text-gray-500 mb-1">Category</h4>
               <p className="text-sm">{category?.name || 'Not assigned'}</p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-medium text-gray-500 mb-1">Unit</h4>
+              <p className="text-sm">{unit ? `${unit.name} (${unit.short_name})` : 'Not assigned'}</p>
             </div>
 
             <div>
@@ -187,9 +218,39 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Product Composition</CardTitle>
+            <CardTitle className="text-lg">Pricing & Composition</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium text-gray-500 mb-2">Pricing Information</h4>
+              <div className="bg-gray-50 p-3 rounded-md space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Cost Price</span>
+                  <span className="font-medium">{product.unit_price || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Selling Price</span>
+                  <span className={`font-medium ${hasPricingWarning ? 'text-red-600' : ''}`}>
+                    {product.selling_price || 0}
+                    {hasPricingWarning && <AlertTriangle className="inline h-3 w-3 ml-1" />}
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Profit</span>
+                  <span className={`font-medium ${hasPricingWarning ? 'text-red-600' : ''}`}>
+                    {((product.selling_price || 0) - (product.unit_price || 0)).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Margin</span>
+                  <span className={`font-medium ${hasPricingWarning ? 'text-red-600' : ''}`}>
+                    {calculateProfitMargin()}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {product.is_consumable ? (
               <div>
                 <h4 className="text-sm font-medium text-gray-500 mb-2">Consumable Item</h4>
@@ -253,7 +314,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No pricing information available</p>
+              <p className="text-sm text-gray-500">No size-based pricing available</p>
             )}
           </CardContent>
         </Card>

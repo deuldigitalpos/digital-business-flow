@@ -10,6 +10,7 @@ export interface BusinessProduct {
   brand_id: string | null;
   warranty_id: string | null;
   location_id: string | null;
+  unit_id: string | null; // Added unit_id field
   image_url: string | null;
   expiration_date: string | null; // ISO date string
   alert_quantity: number | null;
@@ -22,6 +23,8 @@ export interface BusinessProduct {
   has_recipe: boolean;
   has_modifiers: boolean;
   has_consumables: boolean;
+  auto_generate_sku: boolean; // Added auto_generate_sku field
+  warning_flags: Record<string, any> | null; // Added warning_flags field
   created_at: string;
   updated_at: string;
   business_product_sizes?: BusinessProductSize[];
@@ -98,11 +101,13 @@ export interface ModifierItem {
 export type ProductFormValues = {
   name: string;
   sku?: string;
+  auto_generate_sku?: boolean; // Added auto_generate_sku field
   description?: string;
   category_id?: string;
   brand_id?: string;
   warranty_id?: string;
   location_id?: string;
+  unit_id?: string; // Added unit_id field
   image_url?: string;
   expiration_date?: string; // Only string type, not Date
   alert_quantity?: number;
