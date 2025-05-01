@@ -12,7 +12,6 @@ export interface BusinessProduct {
   location_id: string | null;
   unit_id: string | null;
   image_url: string | null;
-  expiration_date: string | null; // ISO date string
   alert_quantity: number | null;
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
   quantity_sold: number;
@@ -86,7 +85,6 @@ export type ProductFormValues = {
   location_id?: string;
   unit_id?: string;
   image_url?: string;
-  expiration_date?: string; // Only string type, not Date
   alert_quantity?: number;
   unit_price?: number;
   selling_price?: number;

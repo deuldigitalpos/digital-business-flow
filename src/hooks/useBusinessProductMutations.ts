@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues } from '@/types/business-product';
@@ -14,9 +13,6 @@ export function useBusinessProductMutations() {
       if (!business?.id) {
         throw new Error('Business ID is required');
       }
-
-      // Handle expiration date - ensure it's a string
-      const expiration_date = productData.expiration_date || null;
 
       // Process optional IDs, converting "none" to null
       const category_id = productData.category_id === "none" ? null : productData.category_id;
@@ -40,7 +36,6 @@ export function useBusinessProductMutations() {
           location_id: location_id,
           unit_id: unit_id,
           image_url: productData.image_url,
-          expiration_date: expiration_date,
           alert_quantity: productData.alert_quantity || 10,
           unit_price: productData.unit_price || 0,
           selling_price: productData.selling_price || 0,
@@ -174,9 +169,6 @@ export function useBusinessProductMutations() {
 
   const updateProduct = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ProductFormValues }) => {
-      // Handle expiration date - ensure it's a string
-      const expiration_date = data.expiration_date || null;
-
       // Process optional IDs, converting "none" to null
       const category_id = data.category_id === "none" ? null : data.category_id;
       const brand_id = data.brand_id === "none" ? null : data.brand_id;
@@ -198,7 +190,6 @@ export function useBusinessProductMutations() {
           location_id: location_id,
           unit_id: unit_id,
           image_url: data.image_url,
-          expiration_date: expiration_date,
           alert_quantity: data.alert_quantity,
           unit_price: data.unit_price || 0,
           selling_price: data.selling_price || 0,

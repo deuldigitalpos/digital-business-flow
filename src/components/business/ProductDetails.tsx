@@ -9,8 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Archive, Calendar, Pencil, Package, Tag, AlertTriangle, Info } from 'lucide-react';
-import { format } from 'date-fns';
+import { Archive, Pencil, Package, Tag, AlertTriangle, Info } from 'lucide-react';
 import ProductForm from './ProductForm';
 import { useProductRecipes, useProductConsumables } from '@/hooks/useBusinessProductRecipeModifiers';
 import { useBusinessUnit } from '@/hooks/useBusinessUnit';
@@ -157,16 +156,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
               <h4 className="text-sm font-medium text-gray-500 mb-1">Brand</h4>
               <p className="text-sm">{brand?.name || 'Not assigned'}</p>
             </div>
-
-            {product.expiration_date && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-1">Expiration Date</h4>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <p className="text-sm">{format(new Date(product.expiration_date), 'PP')}</p>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 

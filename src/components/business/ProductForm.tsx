@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -59,7 +58,6 @@ const formSchema = z.object({
   location_id: z.string().optional(),
   unit_id: z.string().optional(),
   image_url: z.string().optional(),
-  expiration_date: z.string().optional(),
   alert_quantity: z.coerce.number().optional(),
   unit_price: z.coerce.number().optional(),
   selling_price: z.coerce.number().optional(),
@@ -137,7 +135,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       location_id: 'none',
       unit_id: 'none',
       image_url: '',
-      expiration_date: '',
       alert_quantity: 10,
       unit_price: 0,
       selling_price: 0,
@@ -229,7 +226,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     form.setValue('location_id', product.location_id || 'none');
     form.setValue('unit_id', product.unit_id || 'none');
     form.setValue('image_url', product.image_url || '');
-    form.setValue('expiration_date', product.expiration_date || '');
     form.setValue('alert_quantity', product.alert_quantity || 10);
     form.setValue('unit_price', product.unit_price || 0);
     form.setValue('selling_price', product.selling_price || 0);
@@ -814,24 +810,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
               <FormField
                 control={form.control}
-                name="expiration_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Expiration Date</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        value={field.value || ''}
-                        onChange={handleExpireDateChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="alert_quantity"
                 render={({ field }) => (
                   <FormItem>
@@ -1149,4 +1127,3 @@ const ProductForm: React.FC<ProductFormProps> = ({
 };
 
 export default ProductForm;
-
