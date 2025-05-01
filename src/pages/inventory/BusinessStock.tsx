@@ -1,25 +1,45 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useBusinessAuth } from "@/context/BusinessAuthContext";
 import PermissionGuard from "@/components/business/PermissionGuard";
+import StockSummary from "@/components/business-inventory/StockSummary";
+import StockTable from "@/components/business-inventory/StockTable";
+import StockFilters from "@/components/business-inventory/StockFilters";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useBusinessStockTransactions } from "@/hooks/useBusinessStockTransactions";
 
 const BusinessStock: React.FC = () => {
+  const [filters, setFilters] = useState({});
+  const { refetch } = useBusinessStockTransactions(filters);
+
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(newFilters);
+    refetch();
+  };
+
   return (
     <PermissionGuard permission="stock">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Stock Management</h1>
-          <p className="text-muted-foreground">
-            Track and manage your inventory stock levels
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Stock Management</h1>
+            <p className="text-muted-foreground">
+              Track and manage your inventory stock levels
+            </p>
+          </div>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Add Stock Transaction
+          </Button>
         </div>
+
+        <StockSummary />
+
+        <StockFilters onFilterChange={handleFilterChange} />
 
         <Card>
           <CardContent className="pt-6">
-            <div className="p-4 text-center">
-              <p className="text-muted-foreground">Stock management functionality coming soon.</p>
-            </div>
+            <StockTable />
           </CardContent>
         </Card>
       </div>
