@@ -57,7 +57,12 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/business-login" element={<BusinessLogin />} />
+            {/* Wrap BusinessLogin with BusinessAuthProvider */}
+            <Route path="/business-login" element={
+              <BusinessAuthProvider>
+                <BusinessLogin />
+              </BusinessAuthProvider>
+            } />
 
             {/* Dashboard Routes */}
             <Route path="/dashboard" element={<DashboardLayout />}>
