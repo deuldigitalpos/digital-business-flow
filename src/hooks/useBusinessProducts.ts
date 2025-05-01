@@ -26,8 +26,8 @@ export function useBusinessProducts(filter: 'all' | 'low-stock' | 'expiring' = '
 
       if (filter === 'low-stock') {
         console.log('Applying low-stock filter');
-        // Corrected filter for low stock products
-        query = query.or(`quantity_available.lt.alert_quantity,quantity_available.eq.0`);
+        // Fixed filter for low stock products using proper parameter comparison
+        query = query.or('quantity_available.lt.alert_quantity,quantity_available.eq.0');
       } else if (filter === 'expiring') {
         console.log('Applying expiring filter');
         // For expiring products

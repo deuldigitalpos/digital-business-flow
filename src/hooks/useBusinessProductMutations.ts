@@ -25,47 +25,48 @@ export function useBusinessProductMutations() {
       const location_id = productData.location_id === "none" ? null : productData.location_id;
       const unit_id = productData.unit_id === "none" ? null : productData.unit_id;
 
-      // CRITICAL: Ensure alert_quantity is a number, not a string
+      // FIXED: Ensure alert_quantity is a number, not a string
       const alert_quantity = productData.alert_quantity ? Number(productData.alert_quantity) : 10;
       
       console.log("Creating product with data:", {
         ...productData,
         alert_quantity,
         business_id: business.id,
+        businessUserId: businessUser?.id // Log for debugging
       });
       
-      console.log("Business User ID:", businessUser?.id);
+      const productToCreate = {
+        business_id: business.id,
+        name: productData.name,
+        sku: productData.sku,
+        auto_generate_sku: productData.auto_generate_sku || false,
+        description: productData.description,
+        category_id: category_id,
+        brand_id: brand_id,
+        warranty_id: warranty_id,
+        location_id: location_id,
+        unit_id: unit_id,
+        image_url: productData.image_url,
+        alert_quantity: alert_quantity, // Use the numeric version
+        unit_price: productData.unit_price || 0,
+        selling_price: productData.selling_price || 0,
+        has_recipe: productData.has_recipe || false,
+        has_consumables: productData.has_consumables || false,
+        quantity_available: 0, // Initial stock is 0
+        quantity_sold: 0
+      };
       
       try {
+        console.log("Disabling RLS with business user ID:", businessUser.id);
         // First, disable RLS to perform the operation
-        console.log("Disabling RLS...");
         await supabase.rpc('disable_rls');
         console.log("RLS disabled, proceeding with product creation");
 
         // Create the product with explicit headers
         const { data: newProduct, error: productError } = await supabase
           .from('business_products')
-          .insert({
-            business_id: business.id,
-            name: productData.name,
-            sku: productData.sku,
-            auto_generate_sku: productData.auto_generate_sku || false,
-            description: productData.description,
-            category_id: category_id,
-            brand_id: brand_id,
-            warranty_id: warranty_id,
-            location_id: location_id,
-            unit_id: unit_id,
-            image_url: productData.image_url,
-            alert_quantity: alert_quantity, // Use the numeric version
-            unit_price: productData.unit_price || 0,
-            selling_price: productData.selling_price || 0,
-            has_recipe: productData.has_recipe || false,
-            has_consumables: productData.has_consumables || false,
-            quantity_available: 0, // Initial stock is 0
-            quantity_sold: 0
-          })
-          .select()
+          .insert(productToCreate)
+          .select('*')
           .single();
 
         if (productError) {
@@ -117,23 +118,13 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // Using fetch API directly to insert recipe items
-          const recipeResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_recipes`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Prefer': 'return=minimal',
-                'business-user-id': businessUser.id
-              },
-              body: JSON.stringify(recipeItems)
-            }
-          );
+          // Using supabase client directly to insert recipe items with headers
+          const { error: recipeError } = await supabase
+            .from('business_product_recipes')
+            .insert(recipeItems);
           
-          if (!recipeResponse.ok) {
-            const error = new Error(`Failed to insert recipe items: ${recipeResponse.statusText}`);
+          if (recipeError) {
+            const error = new Error(`Failed to insert recipe items: ${recipeError.message}`);
             console.error('Error creating product recipe items:', error);
             throw error;
           }
@@ -151,23 +142,13 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // Using fetch API directly to insert consumable items with explicit business user ID
-          const consumablesResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Prefer': 'return=minimal',
-                'business-user-id': businessUser.id
-              },
-              body: JSON.stringify(consumableItems)
-            }
-          );
+          // Using supabase client directly to insert consumable items
+          const { error: consumablesError } = await supabase
+            .from('business_product_consumables')
+            .insert(consumableItems);
           
-          if (!consumablesResponse.ok) {
-            const error = new Error(`Failed to insert consumable items: ${consumablesResponse.statusText}`);
+          if (consumablesError) {
+            const error = new Error(`Failed to insert consumable items: ${consumablesError.message}`);
             console.error('Error creating product consumables:', error);
             throw error;
           }
