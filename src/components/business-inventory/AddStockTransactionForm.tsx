@@ -46,9 +46,14 @@ interface AddStockTransactionFormProps {
   defaultTransactionType?: 'consumable' | 'ingredient' | 'addon' | 'product';
 }
 
+// Define types for status options
+type TransactionType = 'consumable' | 'ingredient' | 'addon' | 'product';
+type TransactionStatus = 'delivered' | 'ordered' | 'damaged' | 'returned';
+type PaymentStatus = 'paid' | 'unpaid' | 'partial' | 'refunded';
+
 const formSchema = z.object({
   category_id: z.string().optional(),
-  transaction_type: z.string(),
+  transaction_type: z.enum(['consumable', 'ingredient', 'addon', 'product']),
   item_id: z.string(),
   supplier_id: z.string().optional(),
   quantity: z.number(),
@@ -56,8 +61,8 @@ const formSchema = z.object({
   unit_id: z.string().optional(),
   cost_per_unit: z.number().min(0),
   total_cost: z.number().min(0),
-  status: z.string(),
-  payment_status: z.string(),
+  status: z.enum(['delivered', 'ordered', 'damaged', 'returned']),
+  payment_status: z.enum(['paid', 'unpaid', 'partial', 'refunded']),
   discount: z.number().min(0).default(0),
   paid_amount: z.number().min(0).optional(),
   due_date: z.date().optional(),
@@ -346,7 +351,7 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                   <FormLabel>Transaction Type</FormLabel>
                   <Select 
                     onValueChange={(value) => {
-                      field.onChange(value);
+                      field.onChange(value as TransactionType);
                       form.setValue('item_id', '');
                       form.setValue('category_id', '');
                       setSelectedCategory(null);
@@ -555,7 +560,7 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                 <FormItem>
                   <FormLabel>Status</FormLabel>
                   <Select 
-                    onValueChange={field.onChange} 
+                    onValueChange={(value) => field.onChange(value as TransactionStatus)} 
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -583,7 +588,7 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                 <FormItem>
                   <FormLabel>Payment Status</FormLabel>
                   <Select 
-                    onValueChange={field.onChange} 
+                    onValueChange={(value) => field.onChange(value as PaymentStatus)} 
                     defaultValue={field.value}
                   >
                     <FormControl>

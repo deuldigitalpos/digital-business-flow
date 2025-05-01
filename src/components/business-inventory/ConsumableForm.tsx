@@ -70,9 +70,9 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
       form.reset({
         name: consumable.name,
         description: consumable.description || '',
-        category_id: consumable.category_id,
-        unit_id: consumable.unit_id,
-        image_url: consumable.image_url
+        category_id: consumable.category_id || null,
+        unit_id: consumable.unit_id || null,
+        image_url: consumable.image_url || null
       });
     } else {
       form.reset({
@@ -89,9 +89,22 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
     setIsSubmitting(true);
     try {
       if (consumable) {
-        await updateConsumable.mutateAsync({ ...data, id: consumable.id });
+        await updateConsumable.mutateAsync({
+          id: consumable.id,
+          name: data.name,
+          description: data.description || '',
+          category_id: data.category_id,
+          unit_id: data.unit_id,
+          image_url: data.image_url
+        });
       } else {
-        await createConsumable.mutateAsync(data);
+        await createConsumable.mutateAsync({
+          name: data.name,
+          description: data.description || '',
+          category_id: data.category_id,
+          unit_id: data.unit_id,
+          image_url: data.image_url
+        });
       }
       onClose();
     } catch (error) {

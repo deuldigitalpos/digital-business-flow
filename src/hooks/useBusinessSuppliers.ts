@@ -7,7 +7,7 @@ import { useBusinessAuth } from '@/context/BusinessAuthContext';
 export const useBusinessSuppliers = () => {
   const { businessUser } = useBusinessAuth();
   
-  return useQuery({
+  const query = useQuery({
     queryKey: ['business-suppliers'],
     queryFn: async (): Promise<BusinessSupplier[]> => {
       if (!businessUser?.business_id) {
@@ -29,4 +29,12 @@ export const useBusinessSuppliers = () => {
     },
     enabled: !!businessUser?.business_id
   });
+
+  return {
+    suppliers: query.data || [],
+    isLoading: query.isLoading,
+    error: query.error
+  };
 };
+
+export default useBusinessSuppliers;
