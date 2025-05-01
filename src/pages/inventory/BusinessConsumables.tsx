@@ -29,6 +29,12 @@ const BusinessConsumables: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all"); // Initialize with 'all'
   const { data: categories } = useBusinessCategories();
 
+  // Generate safe unique values for empty IDs
+  const getSafeCategoryValue = (id: string | null | undefined, name: string): string => {
+    if (id) return id;
+    return `category-${name}-${Math.random().toString(36).substring(2, 9)}`;
+  };
+
   return (
     <PermissionGuard permission="inventory">
       <div className="space-y-6">
@@ -88,7 +94,7 @@ const BusinessConsumables: React.FC = () => {
                     {categories?.map(category => (
                       <SelectItem 
                         key={category.id} 
-                        value={category.id || "no-category"}
+                        value={getSafeCategoryValue(category.id, category.name)}
                       >
                         {category.name}
                       </SelectItem>

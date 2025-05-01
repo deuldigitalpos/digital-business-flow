@@ -114,6 +114,12 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
     }
   };
 
+  // Generate safe unique values for empty IDs
+  const getSafeValue = (value: string | null | undefined, prefix: string, fallback: string): string => {
+    if (value) return value;
+    return `${prefix}-${fallback}-${Math.random().toString(36).substring(2, 9)}`;
+  };
+
   return (
     <DialogContent className="sm:max-w-[500px]">
       <DialogHeader>
@@ -172,7 +178,7 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
                     {categories?.map(category => (
                       <SelectItem 
                         key={category.id} 
-                        value={category.id || "no-category-" + category.name}
+                        value={getSafeValue(category.id, 'category', category.name)}
                       >
                         {category.name}
                       </SelectItem>
@@ -203,7 +209,7 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
                     {units?.map(unit => (
                       <SelectItem 
                         key={unit.id} 
-                        value={unit.id || "no-unit-" + unit.name}
+                        value={getSafeValue(unit.id, 'unit', unit.name)}
                       >
                         {unit.name} ({unit.short_name})
                       </SelectItem>

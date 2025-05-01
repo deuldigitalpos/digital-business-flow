@@ -70,13 +70,19 @@ const ConsumableList: React.FC<ConsumableListProps> = ({
 
   // Filter consumables based on search term and category
   const filteredConsumables = consumables.filter(consumable => {
+    // Make sure categoryFilter is valid before comparison
+    const effectiveCategoryFilter = categoryFilter || '';
+    
     // Filter by search term
     const matchesSearch = !searchTerm || 
       consumable.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (consumable.description && consumable.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Filter by category
-    const matchesCategory = !categoryFilter || consumable.category_id === categoryFilter;
+    // Filter by category - handling the case where categoryFilter might be a generated safe ID
+    const matchesCategory = !effectiveCategoryFilter || 
+                            effectiveCategoryFilter === 'all' || 
+                            (consumable.category_id && effectiveCategoryFilter.includes(consumable.category_id)) ||
+                            (consumable.category_id === null && effectiveCategoryFilter.includes('category-'));
     
     return matchesSearch && matchesCategory;
   });
