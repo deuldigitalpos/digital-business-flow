@@ -22,8 +22,12 @@ export function useUpdateProduct(businessId: string | undefined) {
       const location_id = data.location_id === "none" ? null : data.location_id;
       const unit_id = data.unit_id === "none" ? null : data.unit_id;
       
-      // CRITICAL FIX: Ensure alert_quantity is properly converted to a number
-      const alert_quantity = Number(data.alert_quantity || 10);
+      // CRITICAL: Ensure alert_quantity is properly parsed to a number
+      const alert_quantity = data.alert_quantity ? Number(data.alert_quantity) : 10;
+
+      console.log("Updating product with data:", { id, data });
+      console.log("alert_quantity type:", typeof alert_quantity);
+      console.log("alert_quantity value:", alert_quantity);
       
       // Get auth session for API calls
       const session = await supabase.auth.getSession();
@@ -33,26 +37,32 @@ export function useUpdateProduct(businessId: string | undefined) {
         throw new Error('No valid access token found');
       }
 
+      // Prepare update object with explicit type conversions
+      const updateObject = {
+        name: data.name,
+        sku: data.sku || null,
+        auto_generate_sku: data.auto_generate_sku || false,
+        description: data.description || null,
+        category_id: category_id,
+        brand_id: brand_id,
+        warranty_id: warranty_id,
+        location_id: location_id,
+        unit_id: unit_id,
+        image_url: data.image_url || null,
+        alert_quantity: alert_quantity, // Explicit number conversion
+        unit_price: Number(data.unit_price || 0),
+        selling_price: Number(data.selling_price || 0),
+        has_recipe: data.has_recipe || false,
+        has_consumables: data.has_consumables || false
+      };
+
+      // Log the exact object we're sending to the database
+      console.log("Product object to update in database:", JSON.stringify(updateObject));
+
       // First, update the product with explicit number conversion for alert_quantity
       const { data: updatedProduct, error: productError } = await supabase
         .from('business_products')
-        .update({
-          name: data.name,
-          sku: data.sku || null,
-          auto_generate_sku: data.auto_generate_sku || false,
-          description: data.description || null,
-          category_id: category_id,
-          brand_id: brand_id,
-          warranty_id: warranty_id,
-          location_id: location_id,
-          unit_id: unit_id,
-          image_url: data.image_url || null,
-          alert_quantity: alert_quantity, // Ensure this is a number
-          unit_price: Number(data.unit_price || 0),
-          selling_price: Number(data.selling_price || 0),
-          has_recipe: data.has_recipe || false,
-          has_consumables: data.has_consumables || false
-        })
+        .update(updateObject)
         .eq('id', id)
         .select()
         .single();

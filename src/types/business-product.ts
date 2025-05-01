@@ -1,4 +1,3 @@
-
 export interface BusinessProduct {
   id: string;
   business_id: string;
@@ -85,7 +84,7 @@ export type ProductFormValues = {
   location_id?: string;
   unit_id?: string;
   image_url?: string;
-  alert_quantity?: number;
+  alert_quantity?: number;  // Explicitly typed as number
   unit_price?: number;
   selling_price?: number;
   has_recipe?: boolean;
