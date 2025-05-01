@@ -23,10 +23,11 @@ export function useBusinessProducts(filter: 'all' | 'low-stock' | 'expiring' = '
         .eq('business_id', business.id);
 
       if (filter === 'low-stock') {
-        // Use lt (less than) for number comparison and make sure alert_quantity is treated as a number
-        query = query.or(`quantity_available.lt.alert_quantity,quantity_available.eq.0`);
+        // Use numeric comparison for alert_quantity
+        // We need to compare the quantity_available and alert_quantity columns properly
+        query = query.or('quantity_available.lt.alert_quantity,quantity_available.eq.0');
       } else if (filter === 'expiring') {
-        // For expiring products (coming soon)
+        // For expiring products
         const nextMonth = new Date();
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         

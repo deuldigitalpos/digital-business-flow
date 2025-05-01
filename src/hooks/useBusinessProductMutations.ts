@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues } from '@/types/business-product';
@@ -22,7 +21,7 @@ export function useBusinessProductMutations() {
       const location_id = productData.location_id === "none" ? null : productData.location_id;
       const unit_id = productData.unit_id === "none" ? null : productData.unit_id;
 
-      // Ensure alert_quantity is a number, not a string (fixes the SQL error)
+      // CRITICAL FIX: Ensure alert_quantity is a number, not a string
       const alert_quantity = productData.alert_quantity ? Number(productData.alert_quantity) : 10;
       
       try {
@@ -163,7 +162,7 @@ export function useBusinessProductMutations() {
     },
     onError: (error) => {
       console.error('Failed to create product:', error);
-      toast.error('Failed to create product');
+      toast.error('Failed to create product: ' + (error as Error).message);
     }
   });
 
@@ -176,7 +175,7 @@ export function useBusinessProductMutations() {
       const location_id = data.location_id === "none" ? null : data.location_id;
       const unit_id = data.unit_id === "none" ? null : data.unit_id;
       
-      // Ensure alert_quantity is a number, not a string (fixes the SQL error)
+      // CRITICAL FIX: Ensure alert_quantity is a number, not a string
       const alert_quantity = data.alert_quantity ? Number(data.alert_quantity) : 10;
 
       // First, update the product
