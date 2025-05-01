@@ -282,7 +282,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   return (
     <BusinessAuthContext.Provider 
       value={{ 
-        businessUser, 
+        businessUser, // Explicitly provide businessUser
         business,
         userPermissions,
         hasPermission,

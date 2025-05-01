@@ -14,6 +14,10 @@ export function useBusinessProductMutations() {
         throw new Error('Business ID is required');
       }
 
+      if (!businessUser?.id) {
+        throw new Error('Business User ID is required for authentication');
+      }
+
       // Process optional IDs, converting "none" to null
       const category_id = productData.category_id === "none" ? null : productData.category_id;
       const brand_id = productData.brand_id === "none" ? null : productData.brand_id;
@@ -21,17 +25,24 @@ export function useBusinessProductMutations() {
       const location_id = productData.location_id === "none" ? null : productData.location_id;
       const unit_id = productData.unit_id === "none" ? null : productData.unit_id;
 
-      // CRITICAL FIX: Ensure alert_quantity is a number, not a string
+      // CRITICAL: Ensure alert_quantity is a number, not a string
       const alert_quantity = productData.alert_quantity ? Number(productData.alert_quantity) : 10;
       
+      console.log("Creating product with data:", {
+        ...productData,
+        alert_quantity,
+        business_id: business.id,
+      });
+      
+      console.log("Business User ID:", businessUser?.id);
+      
       try {
-        // Log the business user ID for debugging
-        console.log("Business User ID:", businessUser?.id);
-        
         // First, disable RLS to perform the operation
+        console.log("Disabling RLS...");
         await supabase.rpc('disable_rls');
+        console.log("RLS disabled, proceeding with product creation");
 
-        // Create the product
+        // Create the product with explicit headers
         const { data: newProduct, error: productError } = await supabase
           .from('business_products')
           .insert({
@@ -59,8 +70,10 @@ export function useBusinessProductMutations() {
 
         if (productError) {
           console.error('Error creating product:', productError);
-          throw productError;
+          throw new Error(`Failed to create product: ${productError.message}`);
         }
+        
+        console.log("Product created successfully:", newProduct);
 
         // Create a properly typed product with defaults
         const typedProduct = {
@@ -75,6 +88,7 @@ export function useBusinessProductMutations() {
 
         // Then, if there are sizes, add them
         if (productData.sizes && productData.sizes.length > 0 && newProduct) {
+          console.log("Adding product sizes...");
           const sizesToInsert = productData.sizes.map(size => ({
             product_id: newProduct.id,
             size_name: size.size_name,
@@ -87,12 +101,14 @@ export function useBusinessProductMutations() {
 
           if (sizesError) {
             console.error('Error creating product sizes:', sizesError);
-            throw sizesError;
+            throw new Error(`Failed to create product sizes: ${sizesError.message}`);
           }
+          console.log("Product sizes added successfully");
         }
 
         // If there's a recipe, add the recipe items
         if (productData.has_recipe && productData.recipe_items && productData.recipe_items.length > 0 && newProduct) {
+          console.log("Adding recipe items...");
           const recipeItems = productData.recipe_items.map(item => ({
             product_id: newProduct.id,
             ingredient_id: item.ingredient_id,
@@ -109,7 +125,8 @@ export function useBusinessProductMutations() {
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Prefer': 'return=minimal'
+                'Prefer': 'return=minimal',
+                'business-user-id': businessUser.id
               },
               body: JSON.stringify(recipeItems)
             }
@@ -120,10 +137,12 @@ export function useBusinessProductMutations() {
             console.error('Error creating product recipe items:', error);
             throw error;
           }
+          console.log("Recipe items added successfully");
         }
 
         // If there are consumables, add them
         if (productData.has_consumables && productData.consumable_items && productData.consumable_items.length > 0 && newProduct) {
+          console.log("Adding consumable items...");
           const consumableItems = productData.consumable_items.map(item => ({
             product_id: newProduct.id,
             consumable_id: item.consumable_id,
@@ -132,7 +151,7 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // Using fetch API directly to insert consumable items
+          // Using fetch API directly to insert consumable items with explicit business user ID
           const consumablesResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables`,
             {
@@ -140,7 +159,8 @@ export function useBusinessProductMutations() {
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Prefer': 'return=minimal'
+                'Prefer': 'return=minimal',
+                'business-user-id': businessUser.id
               },
               body: JSON.stringify(consumableItems)
             }
@@ -151,12 +171,18 @@ export function useBusinessProductMutations() {
             console.error('Error creating product consumables:', error);
             throw error;
           }
+          console.log("Consumable items added successfully");
         }
         
         return typedProduct;
+      } catch (error) {
+        console.error('Error in createProduct mutation:', error);
+        throw error;
       } finally {
         // Always re-enable RLS when done, even if there was an error
+        console.log("Re-enabling RLS...");
         await supabase.rpc('enable_rls');
+        console.log("RLS re-enabled");
       }
     },
     onSuccess: () => {

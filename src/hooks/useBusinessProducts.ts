@@ -14,6 +14,8 @@ export function useBusinessProducts(filter: 'all' | 'low-stock' | 'expiring' = '
         throw new Error('Business ID is required');
       }
 
+      console.log(`Fetching products with filter: ${filter}`);
+
       let query = supabase
         .from('business_products')
         .select(`
@@ -23,9 +25,11 @@ export function useBusinessProducts(filter: 'all' | 'low-stock' | 'expiring' = '
         .eq('business_id', business.id);
 
       if (filter === 'low-stock') {
-        // Fixed comparison for alert_quantity to ensure proper SQL 
-        query = query.or('quantity_available.lt.alert_quantity,quantity_available.eq.0');
+        console.log('Applying low-stock filter');
+        // Corrected filter for low stock products
+        query = query.or(`quantity_available.lt.alert_quantity,quantity_available.eq.0`);
       } else if (filter === 'expiring') {
+        console.log('Applying expiring filter');
         // For expiring products
         const nextMonth = new Date();
         nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -33,6 +37,7 @@ export function useBusinessProducts(filter: 'all' | 'low-stock' | 'expiring' = '
         query = query.lt('expiration_date', nextMonth.toISOString());
       }
 
+      console.log('Executing query');
       const { data, error } = await query;
 
       if (error) {
@@ -40,6 +45,7 @@ export function useBusinessProducts(filter: 'all' | 'low-stock' | 'expiring' = '
         throw error;
       }
 
+      console.log(`Fetched ${data?.length || 0} products`);
       return (data || []) as BusinessProduct[];
     },
     enabled: !!business?.id

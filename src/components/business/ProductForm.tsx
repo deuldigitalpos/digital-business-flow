@@ -456,6 +456,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   // Add consumable form preparation before submit
   const onSubmit = async (values: ProductFormValues) => {
     try {
+      // Debugging logs
       console.log("Form values before submission:", values);
       console.log("Alert quantity (raw):", values.alert_quantity);
       console.log("Alert quantity type:", typeof values.alert_quantity);
@@ -479,7 +480,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         return;
       }
       
-      // IMPORTANT: Ensure alert_quantity is a number
+      // CRITICAL: Ensure alert_quantity is a number
       values.alert_quantity = values.alert_quantity ? Number(values.alert_quantity) : 10;
       console.log("Alert quantity (processed):", values.alert_quantity);
       console.log("Alert quantity type (processed):", typeof values.alert_quantity);
@@ -512,16 +513,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
         // Update existing product
         await updateProduct.mutateAsync({ id: productId, data: values });
       } else {
-        // Create new product
+        console.log("Creating new product with values:", {
+          ...values,
+          alert_quantity: values.alert_quantity
+        });
         await createProduct.mutateAsync(values);
       }
-
+      
       toast.success('Product saved successfully!');
       if (onSuccess) onSuccess();
       navigate('/business-dashboard/products');
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('Failed to save product. Please check the form for errors.');
+      console.error("Error submitting product form:", error);
+      toast.error('Error saving product: ' + (error as Error).message);
     }
   };
 
