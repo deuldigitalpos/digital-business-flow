@@ -81,7 +81,9 @@ const AddStockTransactionModal: React.FC<AddStockTransactionModalProps> = ({ isO
   const { ingredients } = useBusinessIngredients();
   const { addons } = useBusinessAddons();
   const { suppliers } = useBusinessSuppliers();
-  const { units } = useBusinessUnits();
+  const unitsQuery = useBusinessUnits();
+  // Fix #1: Extract the data property from the query result
+  const units = unitsQuery.data || [];
 
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
@@ -128,17 +130,32 @@ const AddStockTransactionModal: React.FC<AddStockTransactionModalProps> = ({ isO
 
   const onSubmit = async (values: StockTransactionFormValues) => {
     try {
+      const totalCost = calculateTotal();
+      const paidAmount = values.payment_status === 'paid' ? totalCost : (values.paid_amount || 0);
+      const unpaidAmount = values.payment_status === 'paid' ? 0 : (totalCost - (values.paid_amount || 0));
+      
+      // Fix #2: Include all required properties from the StockTransaction type
       const transactionData = {
-        ...values,
-        total_cost: calculateTotal(),
-        // If payment_status is paid, set paid_amount to total_cost
-        paid_amount: values.payment_status === 'paid' 
-          ? calculateTotal() 
-          : values.paid_amount || 0,
-        // Calculate unpaid_amount
-        unpaid_amount: values.payment_status === 'paid' 
-          ? 0 
-          : (calculateTotal() - (values.paid_amount || 0))
+        transaction_type: values.transaction_type,
+        item_id: values.item_id,
+        transaction_date: values.transaction_date,
+        quantity: values.quantity,
+        unit_id: values.unit_id,
+        cost_per_unit: values.cost_per_unit || 0,
+        status: values.status,
+        payment_status: values.payment_status,
+        supplier_id: values.supplier_id,
+        discount: values.discount || 0,
+        total_cost: totalCost,
+        paid_amount: paidAmount,
+        unpaid_amount: unpaidAmount,
+        notes: values.notes,
+        // Add missing required fields with null or default values
+        reference_id: null,
+        brand_id: null,
+        warranty_id: null,
+        due_date: null,
+        expiration_date: null
       };
       
       await createStockTransaction.mutateAsync(transactionData);
@@ -296,7 +313,7 @@ const AddStockTransactionModal: React.FC<AddStockTransactionModalProps> = ({ isO
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {units?.map((unit) => (
+                        {units.map((unit) => (
                           <SelectItem key={unit.id} value={unit.id}>
                             {unit.name} ({unit.short_name})
                           </SelectItem>
@@ -409,7 +426,8 @@ const AddStockTransactionModal: React.FC<AddStockTransactionModalProps> = ({ isO
                       <SelectContent>
                         {suppliers?.map((supplier) => (
                           <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.supplier_name || `${supplier.first_name} ${supplier.last_name}`}
+                            {/* Fix #3: Use supplier_id property, or first+last name if not available */}
+                            {supplier.business_name || `${supplier.first_name} ${supplier.last_name}`}
                           </SelectItem>
                         ))}
                       </SelectContent>
