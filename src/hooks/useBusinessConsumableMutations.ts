@@ -5,12 +5,22 @@ import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { toast } from 'sonner';
 import { BusinessConsumable } from './useBusinessConsumables';
 
+type ConsumableCreateInput = {
+  name: string;
+  description?: string | null;
+  category_id?: string | null;
+  unit_id?: string | null;
+  image_url?: string | null;
+};
+
+type ConsumableUpdateInput = Partial<ConsumableCreateInput> & { id: string };
+
 export const useBusinessConsumableMutations = () => {
   const { businessUser } = useBusinessAuth();
   const queryClient = useQueryClient();
 
   const createConsumable = useMutation({
-    mutationFn: async (consumable: Omit<BusinessConsumable, 'id' | 'business_id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (consumable: ConsumableCreateInput) => {
       if (!businessUser?.business_id) {
         throw new Error('Business ID is missing');
       }
@@ -43,7 +53,7 @@ export const useBusinessConsumableMutations = () => {
   });
 
   const updateConsumable = useMutation({
-    mutationFn: async (consumable: Partial<BusinessConsumable> & { id: string }) => {
+    mutationFn: async (consumable: ConsumableUpdateInput) => {
       const { id, ...updateData } = consumable;
 
       const { data, error } = await supabase

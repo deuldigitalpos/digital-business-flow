@@ -33,7 +33,9 @@ export const useBusinessSuppliers = () => {
   return {
     suppliers: query.data || [],
     isLoading: query.isLoading,
-    error: query.error
+    error: query.error,
+    refetch: query.refetch,
+    isError: query.isError
   };
 };
 

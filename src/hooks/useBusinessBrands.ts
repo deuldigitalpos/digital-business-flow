@@ -33,7 +33,8 @@ export const useBusinessBrands = () => {
   return {
     brands: query.data || [],
     isLoading: query.isLoading,
-    error: query.error
+    error: query.error,
+    refetch: query.refetch
   };
 };
 

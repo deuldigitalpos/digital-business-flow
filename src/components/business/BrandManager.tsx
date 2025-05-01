@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +26,7 @@ import EditBrandForm from "./EditBrandForm";
 import { Plus } from "lucide-react";
 
 const BrandManager: React.FC = () => {
-  const { data: brands, isLoading } = useBusinessBrands();
+  const { brands, isLoading } = useBusinessBrands();
   const { deleteBrand } = useBusinessBrandMutations();
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);

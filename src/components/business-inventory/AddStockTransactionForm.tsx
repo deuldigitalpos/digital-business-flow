@@ -96,6 +96,30 @@ const paymentStatusOptions = [
   { value: 'refunded', label: 'Refunded' }
 ];
 
+// Define a type for stock transaction
+interface StockTransaction {
+  transaction_type: 'consumable' | 'ingredient' | 'addon' | 'product';
+  item_id: string;
+  supplier_id: string | null;
+  transaction_date: string;
+  quantity: number;
+  unit_id: string | null;
+  cost_per_unit: number;
+  total_cost: number;
+  status: 'delivered' | 'ordered' | 'damaged' | 'returned';
+  payment_status: 'paid' | 'unpaid' | 'partial' | 'refunded';
+  discount: number;
+  paid_amount: number;
+  unpaid_amount: number;
+  due_date: string | null;
+  brand_id: string | null;
+  warranty_id: string | null;
+  expiration_date: string | null;
+  notes: string | null;
+  reference_id: string | null;
+  created_by: string | null;
+}
+
 const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({ 
   onClose,
   defaultTransactionType = 'consumable'
@@ -324,7 +348,8 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
         warranty_id: data.warranty_id || null,
         expiration_date: data.expiration_date ? data.expiration_date.toISOString() : null,
         notes: data.notes || null,
-        reference_id: data.reference_id || null
+        reference_id: data.reference_id || null,
+        created_by: businessUser?.id || null
       });
       
       onClose();

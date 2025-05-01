@@ -14,48 +14,73 @@ export interface BusinessConsumable {
   created_at: string;
   updated_at: string;
   quantity?: number;
+  average_cost?: number;
   total_value?: number;
+  category?: { id: string; name: string } | null;
+  unit?: { id: string; name: string; short_name: string } | null;
 }
 
 export const useBusinessConsumables = () => {
   const { businessUser } = useBusinessAuth();
   
-  const { data, isLoading, error } = useQuery({
+  const query = useQuery({
     queryKey: ['business-consumables'],
     queryFn: async (): Promise<BusinessConsumable[]> => {
       if (!businessUser?.business_id) {
         return [];
       }
       
-      const { data, error } = await supabase
+      // First, fetch the consumables
+      const { data: consumables, error: consumablesError } = await supabase
         .from('business_consumables')
         .select(`
           *,
-          business_inventory_quantities!inner(quantity, average_cost, total_value)
+          category:business_categories(id, name),
+          unit:business_units(id, name, short_name)
         `)
-        .eq('business_id', businessUser.business_id)
-        .eq('business_inventory_quantities.item_type', 'consumable');
+        .eq('business_id', businessUser.business_id);
       
-      if (error) {
-        console.error('Error fetching consumables:', error);
-        throw error;
+      if (consumablesError) {
+        console.error('Error fetching consumables:', consumablesError);
+        throw consumablesError;
       }
 
-      // Process the data to flatten the structure
-      return data.map(item => ({
-        ...item,
-        quantity: item.business_inventory_quantities?.quantity || 0,
-        average_cost: item.business_inventory_quantities?.average_cost || 0,
-        total_value: item.business_inventory_quantities?.total_value || 0
+      // Then get the quantities from inventory table
+      const { data: quantities, error: quantitiesError } = await supabase
+        .from('business_inventory_quantities')
+        .select('*')
+        .eq('business_id', businessUser.business_id)
+        .eq('item_type', 'consumable');
+      
+      if (quantitiesError) {
+        console.error('Error fetching quantities:', quantitiesError);
+        throw quantitiesError;
+      }
+
+      // Merge the data
+      const quantityMap: Record<string, any> = {};
+      quantities?.forEach(item => {
+        quantityMap[item.item_id] = item;
+      });
+
+      // Process the data to add quantities
+      const processedConsumables = consumables.map(consumable => ({
+        ...consumable,
+        quantity: quantityMap[consumable.id]?.quantity || 0,
+        average_cost: quantityMap[consumable.id]?.average_cost || 0,
+        total_value: quantityMap[consumable.id]?.total_value || 0
       }));
+
+      return processedConsumables as BusinessConsumable[];
     },
     enabled: !!businessUser?.business_id
   });
 
   return {
-    consumables: data || [],
-    isLoading,
-    error
+    consumables: query.data || [],
+    isLoading: query.isLoading,
+    error: query.error,
+    refetch: query.refetch
   };
 };
 

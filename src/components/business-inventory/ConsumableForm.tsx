@@ -93,17 +93,17 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
           id: consumable.id,
           name: data.name,
           description: data.description || '',
-          category_id: data.category_id,
-          unit_id: data.unit_id,
-          image_url: data.image_url
+          category_id: data.category_id || null,
+          unit_id: data.unit_id || null,
+          image_url: data.image_url || null
         });
       } else {
         await createConsumable.mutateAsync({
           name: data.name,
           description: data.description || '',
-          category_id: data.category_id,
-          unit_id: data.unit_id,
-          image_url: data.image_url
+          category_id: data.category_id || null,
+          unit_id: data.unit_id || null,
+          image_url: data.image_url || null
         });
       }
       onClose();

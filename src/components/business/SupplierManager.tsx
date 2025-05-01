@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { useBusinessSuppliers } from '@/hooks/useBusinessSuppliers';
@@ -20,7 +19,7 @@ interface SupplierManagerProps {
   business: Business | null;
 }
 
-const SupplierManager: React.FC<SupplierManagerProps> = ({ business }) => {
+const SupplierManager: React.FC = () => {
   const { businessUser } = useBusinessAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -29,7 +28,7 @@ const SupplierManager: React.FC<SupplierManagerProps> = ({ business }) => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { data: suppliers, isLoading, isError } = useBusinessSuppliers();
+  const { suppliers, isLoading, error } = useBusinessSuppliers();
   
   // Filter suppliers based on search term
   const filteredSuppliers = suppliers?.filter(supplier => {
@@ -71,7 +70,7 @@ const SupplierManager: React.FC<SupplierManagerProps> = ({ business }) => {
     );
   }
   
-  if (isError) {
+  if (error) {
     return (
       <Card className="p-6">
         <div className="text-center">

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useBusinessWarranties, useWarrantyProductsCount } from "@/hooks/useBusinessWarranties";
+import { useBusinessWarranties, useWarrantyProductsCount, useExpiredWarranties } from "@/hooks/useBusinessWarranties";
 import { useBusinessWarrantyMutations } from "@/hooks/useBusinessWarrantyMutations";
 import { BusinessWarranty } from "@/types/business-warranty";
 import WarrantyList from "./WarrantyList";
@@ -26,11 +25,10 @@ import AddWarrantyForm from "./AddWarrantyForm";
 import EditWarrantyForm from "./EditWarrantyForm";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Plus } from "lucide-react";
-import { useExpiredWarranties } from "@/hooks/useBusinessWarranties";
 import { Badge } from "@/components/ui/badge";
 
 const WarrantyManager: React.FC = () => {
-  const { data: warranties, isLoading } = useBusinessWarranties();
+  const { warranties, isLoading } = useBusinessWarranties();
   const { data: productCounts = {} } = useWarrantyProductsCount();
   const { data: expiredWarranties = [] } = useExpiredWarranties();
   const { deleteWarranty } = useBusinessWarrantyMutations();
