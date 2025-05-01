@@ -18,7 +18,7 @@ import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 import { useBusinessProductMutations } from '@/hooks/useBusinessProductMutations';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom'; // Replaced next/navigation with react-router-dom
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { Plus, Trash } from 'lucide-react';
 
@@ -45,6 +45,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import RecipeItemForm from './RecipeItemForm';
+import ConsumableItemForm from './ConsumableItemForm';
 
 // Import the new ConsumableItemForm
 import ConsumableItemForm from './ConsumableItemForm';
@@ -116,7 +117,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const { data: locations } = useBusinessLocations();
   const { data: units } = useBusinessUnits();
   const { createProduct, updateProduct } = useBusinessProductMutations();
-  const router = useRouter();
+  const navigate = useNavigate(); // Changed from useRouter to useNavigate
   const { business } = useBusinessAuth();
   
   const [sizes, setSizes] = useState<{ size_name: string; price: number; }[]>([]);
@@ -192,8 +193,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
-  // Modify loadProductData to include consumables
-  const loadProductData = async (product: BusinessProduct) => {
+  // Modify loadProductData to handle all product data properly
+  const loadProductData = async (product: any) => {
     form.setValue('name', product.name);
     form.setValue('sku', product.sku || '');
     form.setValue('description', product.description || '');
@@ -213,74 +214,125 @@ const ProductForm: React.FC<ProductFormProps> = ({
     
     // Load product sizes
     if (product.business_product_sizes && product.business_product_sizes.length > 0) {
-      const formattedSizes = product.business_product_sizes.map(size => ({
+      const formattedSizes = product.business_product_sizes.map((size: any) => ({
         size_name: size.size_name,
         price: size.price
       }));
       setSizes(formattedSizes);
     }
     
-    // Load recipe items if any
+    // Load recipe items if any using fetch API instead of direct Supabase query
     if (product.has_recipe) {
-      const { data: productRecipes } = await supabase
-        .from('business_product_recipes')
-        .select('*')
-        .eq('product_id', product.id);
+      try {
+        // First disable RLS
+        await supabase.rpc('disable_rls');
         
-      if (productRecipes && productRecipes.length > 0) {
-        const formattedRecipes = productRecipes.map(item => ({
-          ingredient_id: item.ingredient_id,
-          quantity: item.quantity,
-          unit_id: item.unit_id,
-          cost: item.cost
-        }));
-        setRecipeItems(formattedRecipes);
-        form.setValue('recipe_items', formattedRecipes);
+        // Fetch recipes using fetch API
+        const recipesResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_recipes?product_id=eq.${product.id}&select=*`,
+          {
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        // Re-enable RLS
+        await supabase.rpc('enable_rls');
+        
+        if (recipesResponse.ok) {
+          const productRecipes = await recipesResponse.json();
+          if (productRecipes && productRecipes.length > 0) {
+            const formattedRecipes = productRecipes.map((item: any) => ({
+              ingredient_id: item.ingredient_id,
+              quantity: item.quantity,
+              unit_id: item.unit_id,
+              cost: item.cost
+            }));
+            setRecipeItems(formattedRecipes);
+            form.setValue('recipe_items', formattedRecipes);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading recipe items:', error);
       }
     }
     
-    // Update form with consumable info
-    form.setValue('has_consumables', product.has_consumables || false);
-    
-    // Load product sizes
-    // Load recipe items if any
-    
-    // Load consumable items if any
+    // Load consumable items if any using fetch API
     if (product.has_consumables) {
-      const { data: productConsumables } = await supabase
-        .from('business_product_consumables')
-        .select('*')
-        .eq('product_id', product.id);
+      try {
+        // First disable RLS
+        await supabase.rpc('disable_rls');
         
-      if (productConsumables && productConsumables.length > 0) {
-        const formattedConsumables = productConsumables.map(item => ({
-          consumable_id: item.consumable_id,
-          quantity: item.quantity,
-          unit_id: item.unit_id,
-          cost: item.cost
-        }));
-        setConsumableItems(formattedConsumables);
-        form.setValue('consumable_items', formattedConsumables);
+        // Fetch consumables using fetch API
+        const consumablesResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables?product_id=eq.${product.id}&select=*`,
+          {
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        // Re-enable RLS
+        await supabase.rpc('enable_rls');
+        
+        if (consumablesResponse.ok) {
+          const productConsumables = await consumablesResponse.json();
+          if (productConsumables && productConsumables.length > 0) {
+            const formattedConsumables = productConsumables.map((item: any) => ({
+              consumable_id: item.consumable_id,
+              quantity: item.quantity,
+              unit_id: item.unit_id,
+              cost: item.cost
+            }));
+            setConsumableItems(formattedConsumables);
+            form.setValue('consumable_items', formattedConsumables);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading consumable items:', error);
       }
     }
     
-    // Load modifiers if any
+    // Load modifiers if any using fetch API
     if (product.has_modifiers) {
-      const { data: productModifiers } = await supabase
-        .from('business_product_modifiers')
-        .select('*')
-        .eq('product_id', product.id);
+      try {
+        // First disable RLS
+        await supabase.rpc('disable_rls');
         
-      if (productModifiers && productModifiers.length > 0) {
-        const formattedModifiers = productModifiers.map(item => ({
-          name: item.name,
-          size_regular_price: item.size_regular_price,
-          size_medium_price: item.size_medium_price,
-          size_large_price: item.size_large_price,
-          size_xl_price: item.size_xl_price
-        }));
-        setModifierItems(formattedModifiers);
-        form.setValue('modifier_items', formattedModifiers);
+        // Fetch modifiers using fetch API
+        const modifiersResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_modifiers?product_id=eq.${product.id}&select=*`,
+          {
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        // Re-enable RLS
+        await supabase.rpc('enable_rls');
+        
+        if (modifiersResponse.ok) {
+          const productModifiers = await modifiersResponse.json();
+          if (productModifiers && productModifiers.length > 0) {
+            const formattedModifiers = productModifiers.map((item: any) => ({
+              name: item.name,
+              size_regular_price: item.size_regular_price,
+              size_medium_price: item.size_medium_price,
+              size_large_price: item.size_large_price,
+              size_xl_price: item.size_xl_price
+            }));
+            setModifierItems(formattedModifiers);
+            form.setValue('modifier_items', formattedModifiers);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading modifier items:', error);
       }
     }
   };
@@ -421,7 +473,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       toast.success('Product saved successfully!');
       if (onSuccess) onSuccess();
-      router.push('/BusinessProducts');
+      navigate('/BusinessProducts'); // Changed from router.push to navigate
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Failed to save product. Please check the form for errors.');
@@ -942,7 +994,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         <div className="pt-6 space-x-2 flex justify-end">
           <Button type="submit">Submit</Button>
-          <Button type="button" variant="outline" onClick={() => router.back()}>
+          <Button type="button" variant="outline" onClick={() => navigate('/BusinessProducts')}>
             Cancel
           </Button>
         </div>

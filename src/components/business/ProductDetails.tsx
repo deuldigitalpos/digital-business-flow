@@ -5,8 +5,6 @@ import { useBusinessCategory } from '@/hooks/useBusinessCategory';
 import { useBusinessBrand } from '@/hooks/useBusinessBrand';
 import { useBusinessWarranty } from '@/hooks/useBusinessWarranty';
 import { useBusinessLocation } from '@/hooks/useBusinessLocations';
-import { useBusinessIngredient } from '@/hooks/useBusinessIngredients';
-import { useBusinessConsumable } from '@/hooks/useBusinessConsumables';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Archive, Calendar, Pencil, Package, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import ProductForm from './ProductForm';
+import { useProductRecipes, useProductConsumables } from '@/hooks/useBusinessProductRecipeModifiers';
 
 interface ProductDetailsProps {
   productId: string;
@@ -26,8 +25,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
   const { data: brand } = useBusinessBrand(product?.brand_id);
   const { data: warranty } = useBusinessWarranty(product?.warranty_id);
   const { data: location } = useBusinessLocation(product?.location_id);
-  const { data: ingredient } = useBusinessIngredient(product?.ingredient_id);
-  const { data: consumable } = useBusinessConsumable(product?.consumable_id);
+  const { data: recipes = [] } = useProductRecipes(productId);
+  const { data: consumables = [] } = useProductConsumables(productId);
   
   const [isEditing, setIsEditing] = useState(false);
 
@@ -47,7 +46,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
           <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
         </CardHeader>
         <CardContent>
-          <ProductForm product={product} onSuccess={() => setIsEditing(false)} />
+          <ProductForm productId={product.id} onSuccess={() => setIsEditing(false)} />
         </CardContent>
       </Card>
     );
@@ -191,28 +190,54 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
             <CardTitle className="text-lg">Product Composition</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {product.is_raw_ingredient ? (
+            {product.is_consumable ? (
               <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-2">Raw Ingredient</h4>
-                <div className="p-3 bg-blue-50 rounded-md">
-                  <div className="font-medium">{ingredient?.name || 'Unknown Ingredient'}</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Unit Price: {ingredient?.unit_price} | Available: {ingredient?.quantity_available}
-                  </div>
-                </div>
-              </div>
-            ) : product.is_consumable ? (
-              <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-2">Consumable</h4>
+                <h4 className="text-sm font-medium text-gray-500 mb-2">Consumable Item</h4>
                 <div className="p-3 bg-purple-50 rounded-md">
-                  <div className="font-medium">{consumable?.name || 'Unknown Consumable'}</div>
+                  <div className="font-medium">{product.name}</div>
                   <div className="text-xs text-gray-500 mt-1">
-                    Unit Price: {consumable?.unit_price} | Available: {consumable?.quantity_available}
+                    Unit Price: {product.unit_price} | Available: {product.quantity_available}
                   </div>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-500">This product is not linked to any ingredient or consumable.</p>
+              <div>
+                {product.has_recipe && recipes.length > 0 ? (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Recipe Components</h4>
+                    <div className="space-y-2">
+                      {recipes.map((recipe: any) => (
+                        <div key={recipe.id} className="p-2 bg-blue-50 rounded-md">
+                          <div className="font-medium">
+                            {recipe.ingredient?.name || 'Unknown Ingredient'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Quantity: {recipe.quantity} {recipe.unit?.short_name || ''} | Cost: {recipe.cost}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {product.has_consumables && consumables.length > 0 ? (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Required Consumables</h4>
+                    <div className="space-y-2">
+                      {consumables.map((consumable: any) => (
+                        <div key={consumable.id} className="p-2 bg-purple-50 rounded-md">
+                          <div className="font-medium">
+                            {consumable.consumable?.name || 'Unknown Consumable'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Quantity: {consumable.quantity} {consumable.unit?.short_name || ''} | Cost: {consumable.cost}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             )}
 
             <Separator />

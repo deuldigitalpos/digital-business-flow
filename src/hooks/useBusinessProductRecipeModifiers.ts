@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BusinessProductRecipe, BusinessProductModifier } from '@/types/business-product';
+import { BusinessProductRecipe, BusinessProductModifier, BusinessProductConsumable } from '@/types/business-product';
 
 // Hook to get product recipes
 export function useProductRecipes(productId: string | undefined) {
@@ -102,7 +102,7 @@ export function useProductConsumables(productId: string | undefined) {
       }
       
       const data = await response.json();
-      return data as any[]; // Will need to define BusinessProductConsumable type
+      return data as BusinessProductConsumable[];
     },
     enabled: !!productId
   });
