@@ -113,9 +113,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
 
   // Load existing product sizes if editing
   useEffect(() => {
-    if (product && product.business_product_sizes && product.business_product_sizes.length > 0) {
+    if (product?.business_product_sizes && product.business_product_sizes.length > 0) {
       // Convert product sizes to expected format and set the state
-      const productSizes = product.business_product_sizes.map((size: any) => ({
+      const productSizes = product.business_product_sizes.map((size) => ({
         size_name: size.size_name,
         price: size.price
       }));
@@ -149,6 +149,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
       // Add sizes to the form data
       const formData: ProductFormValues = {
         ...values,
+        name: values.name, // Ensure name is explicitly set to fix type error
         sizes: sizes.filter(size => size.size_name.trim() !== '')
       };
 

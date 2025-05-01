@@ -22,6 +22,7 @@ export interface BusinessProduct {
   consumable_id: string | null;
   created_at: string;
   updated_at: string;
+  business_product_sizes?: BusinessProductSize[];
 }
 
 export interface BusinessProductSize {

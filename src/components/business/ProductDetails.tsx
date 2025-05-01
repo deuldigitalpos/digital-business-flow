@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { useBusinessProduct } from '@/hooks/useBusinessProducts';
-import { useBusinessCategory } from '@/hooks/useBusinessCategories';
-import { useBusinessBrand } from '@/hooks/useBusinessBrands';
-import { useBusinessWarranty } from '@/hooks/useBusinessWarranties';
+import { useBusinessCategory } from '@/hooks/useBusinessCategory';
+import { useBusinessBrand } from '@/hooks/useBusinessBrand';
+import { useBusinessWarranty } from '@/hooks/useBusinessWarranty';
 import { useBusinessLocation } from '@/hooks/useBusinessLocations';
 import { useBusinessIngredient } from '@/hooks/useBusinessIngredients';
 import { useBusinessConsumable } from '@/hooks/useBusinessConsumables';
