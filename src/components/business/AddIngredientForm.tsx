@@ -48,6 +48,7 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { businessUser } = useBusinessAuth();
   const submitTimeRef = useRef<number | null>(null);
+  const formProcessingRef = useRef<boolean>(false);
   
   // Add debug logging for business user
   console.log('Current business user in AddIngredientForm:', businessUser);
@@ -64,25 +65,34 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
   });
 
   const onSubmit = async (data: IngredientFormValues) => {
-    // Prevent double submission with both state and time-based check
-    if (isSubmitting) {
-      console.log('Form submission already in progress');
+    // Multiple safeguards against double submission
+    if (isSubmitting || formProcessingRef.current) {
+      console.log('Form submission already in progress, ignoring duplicate submission');
       return;
     }
     
-    // Additional time-based debounce for double click issues
+    // Advanced time-based debounce for double click issues
     const now = Date.now();
-    if (submitTimeRef.current && now - submitTimeRef.current < 1000) {
-      console.log('Submission too soon after previous submission, ignoring');
+    if (submitTimeRef.current && now - submitTimeRef.current < 2000) {
+      console.log('Submission too soon after previous submission (within 2s), ignoring');
       return;
     }
     
+    // Set multiple flags to prevent duplicate submissions
     submitTimeRef.current = now;
     setIsSubmitting(true);
+    formProcessingRef.current = true;
+    
+    // Show immediate feedback
+    toast.loading('Adding ingredient...');
 
     try {
       console.log('Submitting ingredient form data:', data);
       console.log('Current business user ID:', businessUser?.id);
+      
+      if (!businessUser?.id) {
+        throw new Error('Business user ID is not available. Please log in again.');
+      }
       
       // Ensure quantity_available is at least 0
       const formData = {
@@ -95,20 +105,22 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
       console.log('Ingredient created successfully');
       
       form.reset();
+      toast.dismiss();
       if (onSuccess) onSuccess();
-      toast.success('Ingredient added successfully');
     } catch (error) {
       console.error('Error submitting ingredient form:', error);
+      toast.dismiss();
       if (onError) {
         onError(error);
       } else {
         toast.error(`Failed to add ingredient: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } finally {
-      // Small delay before allowing another submission
+      // Longer delay before allowing another submission
       setTimeout(() => {
         setIsSubmitting(false);
-      }, 500);
+        formProcessingRef.current = false;
+      }, 1000);
     }
   };
 
@@ -213,7 +225,7 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
         <Button 
           type="submit" 
           className="w-full"
-          disabled={isSubmitting || createIngredient.isPending}
+          disabled={isSubmitting || createIngredient.isPending || formProcessingRef.current}
         >
           {(isSubmitting || createIngredient.isPending) ? (
             <>

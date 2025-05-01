@@ -48,6 +48,7 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onErro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { businessUser } = useBusinessAuth();
   const submitTimeRef = useRef<number | null>(null);
+  const formProcessingRef = useRef<boolean>(false);
   
   // Add debug logging for business user
   console.log('Current business user in AddConsumableForm:', businessUser);
@@ -64,25 +65,34 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onErro
   });
 
   const onSubmit = async (data: ConsumableFormValues) => {
-    // Prevent double submission with both state and time-based check
-    if (isSubmitting) {
-      console.log('Form submission already in progress');
+    // Multiple safeguards against double submission
+    if (isSubmitting || formProcessingRef.current) {
+      console.log('Form submission already in progress, ignoring duplicate submission');
       return;
     }
     
-    // Additional time-based debounce for double click issues
+    // Advanced time-based debounce for double click issues
     const now = Date.now();
-    if (submitTimeRef.current && now - submitTimeRef.current < 1000) {
-      console.log('Submission too soon after previous submission, ignoring');
+    if (submitTimeRef.current && now - submitTimeRef.current < 2000) {
+      console.log('Submission too soon after previous submission (within 2s), ignoring');
       return;
     }
     
+    // Set multiple flags to prevent duplicate submissions
     submitTimeRef.current = now;
     setIsSubmitting(true);
+    formProcessingRef.current = true;
+    
+    // Show immediate feedback
+    toast.loading('Adding consumable...');
 
     try {
       console.log('Submitting form data:', data);
       console.log('Current business user ID:', businessUser?.id);
+      
+      if (!businessUser?.id) {
+        throw new Error('Business user ID is not available. Please log in again.');
+      }
       
       // Ensure quantity_available is at least 0 if undefined
       const formData = {
@@ -95,19 +105,22 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onErro
       console.log('Consumable created successfully');
       
       form.reset();
+      toast.dismiss(); 
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
+      toast.dismiss();
       if (onError) {
         onError(error);
       } else {
         toast.error(`Failed to add consumable: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } finally {
-      // Small delay before allowing another submission
+      // Longer delay before allowing another submission
       setTimeout(() => {
         setIsSubmitting(false);
-      }, 500);
+        formProcessingRef.current = false;
+      }, 1000);
     }
   };
 
@@ -212,7 +225,7 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onErro
         <Button 
           type="submit" 
           className="w-full"
-          disabled={isSubmitting || createConsumable.isPending}
+          disabled={isSubmitting || createConsumable.isPending || formProcessingRef.current}
         >
           {(isSubmitting || createConsumable.isPending) ? (
             <>
