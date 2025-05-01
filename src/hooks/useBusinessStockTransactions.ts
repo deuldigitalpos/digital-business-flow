@@ -14,7 +14,7 @@ export function useBusinessStockTransactions() {
         return [];
       }
 
-      // First, fetch the stock transactions
+      // Fetch the stock transactions
       const { data: transactions, error } = await supabase
         .from('business_stock_transactions')
         .select('*')
