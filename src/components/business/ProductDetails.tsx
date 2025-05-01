@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBusinessProduct } from '@/hooks/useBusinessProducts';
 import { useBusinessCategory } from '@/hooks/useBusinessCategory';
@@ -251,7 +250,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId }) => {
               </div>
             </div>
 
-            {product.is_consumable ? (
+            {product.has_consumables ? (
               <div>
                 <h4 className="text-sm font-medium text-gray-500 mb-2">Consumable Item</h4>
                 <div className="p-3 bg-purple-50 rounded-md">

@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues } from '@/types/business-product';
@@ -41,11 +42,9 @@ export function useBusinessProductMutations() {
           image_url: productData.image_url,
           expiration_date: expiration_date,
           alert_quantity: productData.alert_quantity || 10,
-          is_consumable: productData.is_consumable || false,
           unit_price: productData.unit_price || 0,
           selling_price: productData.selling_price || 0,
           has_recipe: productData.has_recipe || false,
-          has_modifiers: productData.has_modifiers || false,
           has_consumables: productData.has_consumables || false,
           quantity_available: 0, // Initial stock is 0
           quantity_sold: 0
@@ -64,7 +63,6 @@ export function useBusinessProductMutations() {
         unit_price: newProduct.unit_price ?? 0,
         selling_price: newProduct.selling_price ?? 0,
         has_recipe: newProduct.has_recipe ?? false,
-        has_modifiers: newProduct.has_modifiers ?? false,
         has_consumables: newProduct.has_consumables ?? false,
         auto_generate_sku: newProduct.auto_generate_sku ?? false,
         warning_flags: newProduct.warning_flags ?? null
@@ -162,44 +160,6 @@ export function useBusinessProductMutations() {
         }
       }
 
-      // If there are modifiers, add them
-      if (productData.has_modifiers && productData.modifier_items && productData.modifier_items.length > 0 && newProduct) {
-        const modifierItems = productData.modifier_items.map(item => ({
-          product_id: newProduct.id,
-          name: item.name,
-          size_regular_price: item.size_regular_price,
-          size_medium_price: item.size_medium_price,
-          size_large_price: item.size_large_price,
-          size_xl_price: item.size_xl_price
-        }));
-
-        // Disable RLS for the operation
-        await supabase.rpc('disable_rls');
-        
-        // Using fetch API directly to insert modifier items
-        const modifiersResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_modifiers`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify(modifierItems)
-          }
-        );
-
-        // Re-enable RLS
-        await supabase.rpc('enable_rls');
-        
-        if (!modifiersResponse.ok) {
-          const error = new Error(`Failed to insert modifier items: ${modifiersResponse.statusText}`);
-          console.error('Error creating product modifiers:', error);
-          throw error;
-        }
-      }
-
       return typedProduct;
     },
     onSuccess: () => {
@@ -240,11 +200,9 @@ export function useBusinessProductMutations() {
           image_url: data.image_url,
           expiration_date: expiration_date,
           alert_quantity: data.alert_quantity,
-          is_consumable: data.is_consumable,
           unit_price: data.unit_price || 0,
           selling_price: data.selling_price || 0,
           has_recipe: data.has_recipe || false,
-          has_modifiers: data.has_modifiers || false,
           has_consumables: data.has_consumables || false
         })
         .eq('id', id)
@@ -454,98 +412,12 @@ export function useBusinessProductMutations() {
         }
       }
 
-      // Handle modifiers if this product has modifiers
-      if (data.has_modifiers && data.modifier_items) {
-        // Disable RLS for the operation
-        await supabase.rpc('disable_rls');
-        
-        // Delete existing modifiers
-        const deleteModifiersResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_modifiers?product_id=eq.${id}`,
-          {
-            method: 'DELETE',
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Prefer': 'return=minimal'
-            }
-          }
-        );
-
-        if (!deleteModifiersResponse.ok) {
-          const deleteModifiersError = new Error(`Failed to delete modifiers: ${deleteModifiersResponse.statusText}`);
-          console.error('Error deleting product modifiers:', deleteModifiersError);
-          
-          // Re-enable RLS before throwing error
-          await supabase.rpc('enable_rls');
-          throw deleteModifiersError;
-        }
-
-        // Insert new modifiers if any
-        if (data.modifier_items.length > 0) {
-          const modifierItems = data.modifier_items.map(item => ({
-            product_id: id,
-            name: item.name,
-            size_regular_price: item.size_regular_price,
-            size_medium_price: item.size_medium_price,
-            size_large_price: item.size_large_price,
-            size_xl_price: item.size_xl_price
-          }));
-
-          const insertModifiersResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_modifiers`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Prefer': 'return=minimal'
-              },
-              body: JSON.stringify(modifierItems)
-            }
-          );
-          
-          // Re-enable RLS
-          await supabase.rpc('enable_rls');
-
-          if (!insertModifiersResponse.ok) {
-            const insertModifiersError = new Error(`Failed to insert modifiers: ${insertModifiersResponse.statusText}`);
-            console.error('Error inserting product modifiers:', insertModifiersError);
-            throw insertModifiersError;
-          }
-        } else {
-          // Re-enable RLS if no items to insert
-          await supabase.rpc('enable_rls');
-        }
-      } else {
-        // If product no longer has modifiers, delete any existing modifiers
-        await supabase.rpc('disable_rls');
-        
-        const deleteModifiersResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_modifiers?product_id=eq.${id}`,
-          {
-            method: 'DELETE',
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Prefer': 'return=minimal'
-            }
-          }
-        );
-        
-        await supabase.rpc('enable_rls');
-
-        if (!deleteModifiersResponse.ok) {
-          console.error('Error deleting product modifiers:', deleteModifiersResponse.statusText);
-          // Non-fatal, continue execution
-        }
-      }
-
       // Create a properly typed product with defaults
       const typedProduct = {
         ...updatedProduct,
         unit_price: updatedProduct.unit_price ?? 0,
         selling_price: updatedProduct.selling_price ?? 0,
         has_recipe: updatedProduct.has_recipe ?? false,
-        has_modifiers: updatedProduct.has_modifiers ?? false,
         has_consumables: updatedProduct.has_consumables ?? false,
         auto_generate_sku: updatedProduct.auto_generate_sku ?? false,
         warning_flags: updatedProduct.warning_flags ?? null
