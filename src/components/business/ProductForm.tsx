@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -689,7 +690,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Requires Consumables</FormLabel>
                     <FormDescription>
-                      Does this product use consumables like packaging, napkins, etc?\n                    </FormDescription>
+                      Does this product use consumables like packaging, napkins, etc?
+                    </FormDescription>
                   </div>
                   <FormControl>
                     <Switch
@@ -709,7 +711,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Is Consumable</FormLabel>
                     <FormDescription>
-                      Is this product a consumable item?\n                    </FormDescription>
+                      Is this product a consumable item?
+                    </FormDescription>
                   </div>
                   <FormControl>
                     <Switch
@@ -944,4 +947,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
         </Card>
 
         <div className="pt-6 space-x-2 flex justify-end">
-          <Button type="
+          <Button type="submit">Submit</Button>
+          <Button type="button" variant="outline" onClick={() => navigate('/BusinessProducts')}>
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+};
+
+export default ProductForm;
