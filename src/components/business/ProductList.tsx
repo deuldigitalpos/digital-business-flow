@@ -114,10 +114,15 @@ const ProductList = ({ filter = 'all' }: ProductListProps) => {
                 <TableCell className="relative">
                   {product.selling_price}
                   {hasPricingWarning && (
-                    <AlertTriangle 
-                      className="h-4 w-4 text-amber-500 inline-block ml-1" 
-                      title="Selling price is below cost price"
-                    />
+                    <div className="inline-flex items-center ml-1 group relative">
+                      <AlertTriangle 
+                        className="h-4 w-4 text-amber-500" 
+                      />
+                      <span className="sr-only">Warning</span>
+                      <span className="absolute hidden group-hover:block bg-amber-100 text-amber-800 text-xs p-1 rounded whitespace-nowrap left-full ml-2">
+                        Selling price is below cost price
+                      </span>
+                    </div>
                   )}
                 </TableCell>
                 <TableCell>
