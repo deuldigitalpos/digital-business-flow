@@ -86,7 +86,10 @@ const BusinessConsumables: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
                     {categories?.map(category => (
-                      <SelectItem key={category.id} value={category.id || "no-category"}>
+                      <SelectItem 
+                        key={category.id} 
+                        value={category.id || "no-category"}
+                      >
                         {category.name}
                       </SelectItem>
                     ))}
