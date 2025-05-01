@@ -17,7 +17,12 @@ export function useBusinessStockTransactions() {
       // First, fetch the stock transactions
       const { data: transactions, error } = await supabase
         .from('business_stock_transactions')
-        .select('*')
+        .select(`
+          *,
+          business_products(name),
+          business_ingredients(name),
+          business_consumables(name)
+        `)
         .eq('business_id', business.id)
         .order('created_at', { ascending: false });
 
@@ -26,52 +31,23 @@ export function useBusinessStockTransactions() {
         throw error;
       }
 
-      // Now enrich the transactions with item names through separate queries
-      const enrichedTransactions = await Promise.all(
-        transactions.map(async transaction => {
-          let itemName = 'Unknown';
-          
-          if (transaction.item_type === 'product') {
-            // Get product name
-            const { data: product, error: prodError } = await supabase
-              .from('business_products')
-              .select('name')
-              .eq('id', transaction.item_id)
-              .single();
-            
-            if (!prodError && product) {
-              itemName = product.name;
-            }
-          } else if (transaction.item_type === 'ingredient') {
-            // Get ingredient name
-            const { data: ingredient, error: ingredError } = await supabase
-              .from('business_ingredients')
-              .select('name')
-              .eq('id', transaction.item_id)
-              .single();
-            
-            if (!ingredError && ingredient) {
-              itemName = ingredient.name;
-            }
-          } else if (transaction.item_type === 'consumable') {
-            // Get consumable name
-            const { data: consumable, error: consError } = await supabase
-              .from('business_consumables')
-              .select('name')
-              .eq('id', transaction.item_id)
-              .single();
-            
-            if (!consError && consumable) {
-              itemName = consumable.name;
-            }
-          }
+      // Process the transactions to extract item names from the joined results
+      const enrichedTransactions = transactions.map(transaction => {
+        let itemName = 'Unknown';
+        
+        if (transaction.item_type === 'product' && transaction.business_products) {
+          itemName = transaction.business_products.name;
+        } else if (transaction.item_type === 'ingredient' && transaction.business_ingredients) {
+          itemName = transaction.business_ingredients.name;
+        } else if (transaction.item_type === 'consumable' && transaction.business_consumables) {
+          itemName = transaction.business_consumables.name;
+        }
 
-          return {
-            ...transaction,
-            item_name: itemName
-          };
-        })
-      );
+        return {
+          ...transaction,
+          item_name: itemName
+        };
+      });
 
       return enrichedTransactions as BusinessStockTransaction[];
     },
@@ -89,10 +65,15 @@ export function useRecentStockTransactions(limit: number = 10) {
         return [];
       }
 
-      // First, fetch the stock transactions with limit
+      // Fetch the stock transactions with limit and join product/ingredient/consumable tables
       const { data: transactions, error } = await supabase
         .from('business_stock_transactions')
-        .select('*')
+        .select(`
+          *,
+          business_products(name),
+          business_ingredients(name),
+          business_consumables(name)
+        `)
         .eq('business_id', business.id)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -102,52 +83,23 @@ export function useRecentStockTransactions(limit: number = 10) {
         throw error;
       }
 
-      // Now enrich the transactions with item names through separate queries
-      const enrichedTransactions = await Promise.all(
-        transactions.map(async transaction => {
-          let itemName = 'Unknown';
-          
-          if (transaction.item_type === 'product') {
-            // Get product name
-            const { data: product, error: prodError } = await supabase
-              .from('business_products')
-              .select('name')
-              .eq('id', transaction.item_id)
-              .single();
-            
-            if (!prodError && product) {
-              itemName = product.name;
-            }
-          } else if (transaction.item_type === 'ingredient') {
-            // Get ingredient name
-            const { data: ingredient, error: ingredError } = await supabase
-              .from('business_ingredients')
-              .select('name')
-              .eq('id', transaction.item_id)
-              .single();
-            
-            if (!ingredError && ingredient) {
-              itemName = ingredient.name;
-            }
-          } else if (transaction.item_type === 'consumable') {
-            // Get consumable name
-            const { data: consumable, error: consError } = await supabase
-              .from('business_consumables')
-              .select('name')
-              .eq('id', transaction.item_id)
-              .single();
-            
-            if (!consError && consumable) {
-              itemName = consumable.name;
-            }
-          }
+      // Process the transactions to extract item names from the joined results
+      const enrichedTransactions = transactions.map(transaction => {
+        let itemName = 'Unknown';
+        
+        if (transaction.item_type === 'product' && transaction.business_products) {
+          itemName = transaction.business_products.name;
+        } else if (transaction.item_type === 'ingredient' && transaction.business_ingredients) {
+          itemName = transaction.business_ingredients.name;
+        } else if (transaction.item_type === 'consumable' && transaction.business_consumables) {
+          itemName = transaction.business_consumables.name;
+        }
 
-          return {
-            ...transaction,
-            item_name: itemName
-          };
-        })
-      );
+        return {
+          ...transaction,
+          item_name: itemName
+        };
+      });
 
       return enrichedTransactions as BusinessStockTransaction[];
     },

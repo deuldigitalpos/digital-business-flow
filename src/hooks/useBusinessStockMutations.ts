@@ -18,9 +18,8 @@ export function useBusinessStockMutations() {
       console.log('Creating stock transaction with business user ID:', businessUser.id);
       
       try {
-        // Before attempting to insert, let's disable Row Level Security for this operation
-        // This is necessary because our RLS policy might be causing the issue
-        await supabase.rpc('disable_rls');
+        // Instead of trying to disable RLS, we'll insert data with proper authentication
+        // The Supabase client is already authenticated via the headers set in BusinessAuthContext
         
         // Create the stock transaction record
         const { data, error } = await supabase
@@ -35,17 +34,20 @@ export function useBusinessStockMutations() {
             reason: stockData.reason,
             updated_by: businessUser.id
           })
-          .select()
-          .single();
-
-        // Re-enable Row Level Security after our operation
-        await supabase.rpc('enable_rls');
+          .select();
 
         if (error) {
           console.error('Error creating stock transaction:', error);
           throw error;
         }
 
+        if (!data || data.length === 0) {
+          throw new Error('No data returned from transaction');
+        }
+
+        // Use the first row from the returned data
+        const transaction = data[0];
+        
         // Our database trigger should handle the stock update, but we'll double-check
         // by getting the updated quantity
         let updatedQuantity: number | null = null;
@@ -95,7 +97,7 @@ export function useBusinessStockMutations() {
         console.log(`Updated quantity for ${stockData.item_type} (${itemName}): ${updatedQuantity}`);
         
         return {
-          ...data,
+          ...transaction,
           updatedQuantity,
           itemName
         };
