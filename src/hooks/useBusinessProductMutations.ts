@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues, BusinessProductSize } from '@/types/business-product';
@@ -14,6 +15,11 @@ export function useBusinessProductMutations() {
         throw new Error('Business ID is required');
       }
 
+      // Ensure expiration_date is converted to string if it's a Date object
+      const expiration_date = productData.expiration_date instanceof Date 
+        ? productData.expiration_date.toISOString() 
+        : productData.expiration_date;
+
       // First, create the product
       const { data: newProduct, error: productError } = await supabase
         .from('business_products')
@@ -27,7 +33,7 @@ export function useBusinessProductMutations() {
           warranty_id: productData.warranty_id,
           location_id: productData.location_id,
           image_url: productData.image_url,
-          expiration_date: productData.expiration_date,
+          expiration_date: expiration_date,
           alert_quantity: productData.alert_quantity || 10,
           is_raw_ingredient: productData.is_raw_ingredient || false,
           is_consumable: productData.is_consumable || false,
@@ -76,6 +82,11 @@ export function useBusinessProductMutations() {
 
   const updateProduct = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ProductFormValues }) => {
+      // Ensure expiration_date is converted to string if it's a Date object
+      const expiration_date = data.expiration_date instanceof Date 
+        ? data.expiration_date.toISOString() 
+        : data.expiration_date;
+
       // First, update the product
       const { data: updatedProduct, error: productError } = await supabase
         .from('business_products')
@@ -88,7 +99,7 @@ export function useBusinessProductMutations() {
           warranty_id: data.warranty_id,
           location_id: data.location_id,
           image_url: data.image_url,
-          expiration_date: data.expiration_date,
+          expiration_date: expiration_date,
           alert_quantity: data.alert_quantity,
           is_raw_ingredient: data.is_raw_ingredient,
           is_consumable: data.is_consumable,
