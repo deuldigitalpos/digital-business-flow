@@ -119,14 +119,23 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // Use the RPC function we created for inserting recipe items
-          const { error: recipeError } = await supabase.rpc(
-            'insert_product_recipes',
-            { items: recipeItems }
+          // Use a fetch call directly instead of rpc
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/insert_product_recipes`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+              },
+              body: JSON.stringify({ items: recipeItems })
+            }
           );
           
-          if (recipeError) {
-            const error = new Error(`Failed to insert recipe items: ${recipeError.message}`);
+          if (!response.ok) {
+            const errorData = await response.json();
+            const error = new Error(`Failed to insert recipe items: ${JSON.stringify(errorData)}`);
             console.error('Error creating product recipe items:', error);
             throw error;
           }
@@ -144,14 +153,23 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // Use the RPC function we created for inserting consumable items
-          const { error: consumablesError } = await supabase.rpc(
-            'insert_product_consumables',
-            { items: consumableItems }
+          // Use a fetch call directly instead of rpc
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/insert_product_consumables`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+              },
+              body: JSON.stringify({ items: consumableItems })
+            }
           );
           
-          if (consumablesError) {
-            const error = new Error(`Failed to insert consumable items: ${consumablesError.message}`);
+          if (!response.ok) {
+            const errorData = await response.json();
+            const error = new Error(`Failed to insert consumable items: ${JSON.stringify(errorData)}`);
             console.error('Error creating product consumables:', error);
             throw error;
           }
@@ -256,11 +274,23 @@ export function useBusinessProductMutations() {
         await supabase.rpc('disable_rls');
         
         try {
-          // Delete existing recipe items using our function
-          await supabase.rpc(
-            'delete_product_recipes',
-            { product_id_param: id }
+          // Delete existing recipe items using a direct fetch
+          const deleteResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_recipes`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+              },
+              body: JSON.stringify({ product_id_param: id })
+            }
           );
+          
+          if (!deleteResponse.ok) {
+            throw new Error(`Failed to delete recipe items: ${await deleteResponse.text()}`);
+          }
           
           // Insert new recipe items if any
           if (data.recipe_items.length > 0) {
@@ -272,13 +302,21 @@ export function useBusinessProductMutations() {
               cost: item.cost
             }));
             
-            const { error: insertRecipeError } = await supabase.rpc(
-              'insert_product_recipes',
-              { items: recipeItems }
+            const insertResponse = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/insert_product_recipes`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                  'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                },
+                body: JSON.stringify({ items: recipeItems })
+              }
             );
             
-            if (insertRecipeError) {
-              throw new Error(`Failed to insert recipe items: ${insertRecipeError.message}`);
+            if (!insertResponse.ok) {
+              throw new Error(`Failed to insert recipe items: ${await insertResponse.text()}`);
             }
           }
         } catch (error) {
@@ -292,9 +330,17 @@ export function useBusinessProductMutations() {
         // If product no longer has a recipe, delete any existing recipe items
         await supabase.rpc('disable_rls');
         try {
-          await supabase.rpc(
-            'delete_product_recipes',
-            { product_id_param: id }
+          await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_recipes`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+              },
+              body: JSON.stringify({ product_id_param: id })
+            }
           );
         } catch (error) {
           console.error('Error deleting product recipe items:', error);
@@ -310,11 +356,23 @@ export function useBusinessProductMutations() {
         await supabase.rpc('disable_rls');
         
         try {
-          // Delete existing consumable items using our function
-          await supabase.rpc(
-            'delete_product_consumables',
-            { product_id_param: id }
+          // Delete existing consumable items using a direct fetch
+          const deleteResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_consumables`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+              },
+              body: JSON.stringify({ product_id_param: id })
+            }
           );
+          
+          if (!deleteResponse.ok) {
+            throw new Error(`Failed to delete consumable items: ${await deleteResponse.text()}`);
+          }
           
           // Insert new consumable items if any
           if (data.consumable_items.length > 0) {
@@ -326,13 +384,21 @@ export function useBusinessProductMutations() {
               cost: item.cost
             }));
             
-            const { error: insertConsumablesError } = await supabase.rpc(
-              'insert_product_consumables',
-              { items: consumableItems }
+            const insertResponse = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/insert_product_consumables`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                  'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                },
+                body: JSON.stringify({ items: consumableItems })
+              }
             );
             
-            if (insertConsumablesError) {
-              throw new Error(`Failed to insert consumable items: ${insertConsumablesError.message}`);
+            if (!insertResponse.ok) {
+              throw new Error(`Failed to insert consumable items: ${await insertResponse.text()}`);
             }
           }
         } catch (error) {
@@ -346,9 +412,17 @@ export function useBusinessProductMutations() {
         // If product no longer has consumables, delete any existing consumable items
         await supabase.rpc('disable_rls');
         try {
-          await supabase.rpc(
-            'delete_product_consumables',
-            { product_id_param: id }
+          await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_consumables`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+              },
+              body: JSON.stringify({ product_id_param: id })
+            }
           );
         } catch (error) {
           console.error('Error deleting product consumable items:', error);
