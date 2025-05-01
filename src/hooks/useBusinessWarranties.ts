@@ -43,43 +43,46 @@ export const useBusinessWarranties = () => {
 export const useWarrantyProductsCount = () => {
   const { businessUser } = useBusinessAuth();
   
-  return useQuery({
+  const query = useQuery({
     queryKey: ['warranty-products-count'],
-    queryFn: async () => {
+    queryFn: async (): Promise<Record<string, number>> => {
       if (!businessUser?.business_id) {
         return {};
       }
       
+      // Modified approach: fetch all warranty products and count them in JS
       const { data, error } = await supabase
         .from('business_warranty_products')
-        .select(`
-          warranty_id,
-          count(*)
-        `)
-        .eq('warranty_id', businessUser.business_id)
-        .group('warranty_id');
+        .select('warranty_id');
       
       if (error) {
         console.error('Error fetching warranty product counts:', error);
         throw error;
       }
       
+      // Count products per warranty
       const counts: Record<string, number> = {};
       data.forEach(item => {
-        counts[item.warranty_id] = parseInt(item.count);
+        if (counts[item.warranty_id]) {
+          counts[item.warranty_id] += 1;
+        } else {
+          counts[item.warranty_id] = 1;
+        }
       });
       
       return counts;
     },
     enabled: !!businessUser?.business_id
   });
+
+  return query;
 };
 
 // Hook to fetch expired warranties
 export const useExpiredWarranties = () => {
   const { businessUser } = useBusinessAuth();
   
-  return useQuery({
+  const query = useQuery({
     queryKey: ['expired-warranties'],
     queryFn: async (): Promise<BusinessWarrantyProduct[]> => {
       if (!businessUser?.business_id) {
@@ -106,6 +109,8 @@ export const useExpiredWarranties = () => {
     },
     enabled: !!businessUser?.business_id
   });
+
+  return query;
 };
 
 export default useBusinessWarranties;

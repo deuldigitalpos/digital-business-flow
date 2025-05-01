@@ -82,8 +82,8 @@ const BusinessSuppliers = () => {
     );
   }
   
-  // User has full access
-  return <SupplierManager business={business} />;
+  // User has full access - remove the business prop since it's not needed
+  return <SupplierManager />;
 };
 
 export default BusinessSuppliers;
