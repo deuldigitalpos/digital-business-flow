@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -7,7 +8,6 @@ import {
   ProductFormValues, 
   BusinessProductSize, 
   RecipeItem, 
-  ModifierItem,
   ConsumableItem 
 } from '@/types/business-product';
 import { useBusinessCategories } from '@/hooks/useBusinessCategories';
@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { Plus, Trash, AlertTriangle } from 'lucide-react';
+import { Plus, Trash, AlertTriangle, Upload, Image } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,11 +61,9 @@ const formSchema = z.object({
   image_url: z.string().optional(),
   expiration_date: z.string().optional(),
   alert_quantity: z.coerce.number().optional(),
-  is_consumable: z.boolean().default(false).optional(),
   unit_price: z.coerce.number().optional(),
   selling_price: z.coerce.number().optional(),
   has_recipe: z.boolean().default(false).optional(),
-  has_modifiers: z.boolean().default(false).optional(),
   has_consumables: z.boolean().default(false).optional(),
   sizes: z.array(
     z.object({
@@ -79,15 +77,6 @@ const formSchema = z.object({
       quantity: z.number(),
       unit_id: z.string().nullable(),
       cost: z.number()
-    })
-  ).optional(),
-  modifier_items: z.array(
-    z.object({
-      name: z.string(),
-      size_regular_price: z.number(),
-      size_medium_price: z.number().nullable(),
-      size_large_price: z.number().nullable(),
-      size_xl_price: z.number().nullable()
     })
   ).optional(),
   consumable_items: z.array(
@@ -124,16 +113,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [recipeItems, setRecipeItems] = useState<RecipeItem[]>([
     { ingredient_id: '', quantity: 0, unit_id: null, cost: 0 }
   ]);
-  const [modifierItems, setModifierItems] = useState<ModifierItem[]>([
-    { name: '', size_regular_price: 0, size_medium_price: null, size_large_price: null, size_xl_price: null }
-  ]);
-  
   const [consumableItems, setConsumableItems] = useState<ConsumableItem[]>([
     { consumable_id: '', quantity: 0, unit_id: null, cost: 0 }
   ]);
 
   const [totalRecipeCost, setTotalRecipeCost] = useState(0);
   const [belowCostWarning, setBelowCostWarning] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
@@ -150,15 +139,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
       image_url: '',
       expiration_date: '',
       alert_quantity: 10,
-      is_consumable: false,
       unit_price: 0,
       selling_price: 0,
       has_recipe: false,
-      has_modifiers: false,
       has_consumables: false,
       sizes: [],
       recipe_items: [],
-      modifier_items: [],
       consumable_items: []
     }
   });
@@ -196,6 +182,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
     if (initialValues) {
       form.reset(initialValues);
       setSizes(initialValues.sizes || []);
+      
+      // Set image preview if image_url exists
+      if (initialValues.image_url) {
+        setImagePreview(initialValues.image_url);
+      }
     }
 
     if (productId) {
@@ -240,12 +231,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
     form.setValue('image_url', product.image_url || '');
     form.setValue('expiration_date', product.expiration_date || '');
     form.setValue('alert_quantity', product.alert_quantity || 10);
-    form.setValue('is_consumable', product.is_consumable || false);
     form.setValue('unit_price', product.unit_price || 0);
     form.setValue('selling_price', product.selling_price || 0);
     form.setValue('has_recipe', product.has_recipe || false);
-    form.setValue('has_modifiers', product.has_modifiers || false);
     form.setValue('has_consumables', product.has_consumables || false);
+    
+    // Set image preview if image_url exists
+    if (product.image_url) {
+      setImagePreview(product.image_url);
+    }
     
     // Load product sizes
     if (product.business_product_sizes && product.business_product_sizes.length > 0) {
@@ -331,44 +325,58 @@ const ProductForm: React.FC<ProductFormProps> = ({
         console.error('Error loading consumable items:', error);
       }
     }
+  };
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const selectedFile = event.target.files[0];
+      setImageFile(selectedFile);
+      
+      // Create a preview URL
+      const objectUrl = URL.createObjectURL(selectedFile);
+      setImagePreview(objectUrl);
+      
+      // Clear the input value to allow re-selection of the same file
+      event.target.value = '';
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!imageFile || !business) return null;
     
-    // Load modifiers if any using fetch API
-    if (product.has_modifiers) {
-      try {
-        // First disable RLS
-        await supabase.rpc('disable_rls');
-        
-        // Fetch modifiers using fetch API
-        const modifiersResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_modifiers?product_id=eq.${product.id}&select=*`,
-          {
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        // Re-enable RLS
-        await supabase.rpc('enable_rls');
-        
-        if (modifiersResponse.ok) {
-          const productModifiers = await modifiersResponse.json();
-          if (productModifiers && productModifiers.length > 0) {
-            const formattedModifiers = productModifiers.map((item: any) => ({
-              name: item.name,
-              size_regular_price: item.size_regular_price,
-              size_medium_price: item.size_medium_price,
-              size_large_price: item.size_large_price,
-              size_xl_price: item.size_xl_price
-            }));
-            setModifierItems(formattedModifiers);
-            form.setValue('modifier_items', formattedModifiers);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading modifier items:', error);
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `${business.id}/products/${fileName}`;
+      
+      const { data, error } = await supabase.storage
+        .from('business_images')
+        .upload(filePath, imageFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+      
+      if (error) {
+        throw error;
       }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('business_images')
+        .getPublicUrl(filePath);
+      
+      setUploadProgress(100);
+      setIsUploading(false);
+      
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+      setIsUploading(false);
+      return null;
     }
   };
 
@@ -440,34 +448,41 @@ const ProductForm: React.FC<ProductFormProps> = ({
     form.setValue('consumable_items', newConsumableItems);
   };
 
-  const handleAddModifier = () => {
-    setModifierItems([
-      ...modifierItems,
-      { name: '', size_regular_price: 0, size_medium_price: null, size_large_price: null, size_xl_price: null }
-    ]);
+  // Fix the expiration_date field handling
+  const handleExpireDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Always store as string, not as Date object
+    form.setValue('expiration_date', e.target.value);
   };
 
-  const handleRemoveModifier = (index: number) => {
-    const newModifierItems = [...modifierItems];
-    newModifierItems.splice(index, 1);
-    setModifierItems(newModifierItems);
-  };
-
-  const handleModifierChange = (index: number, field: string, value: string | number | null) => {
-    const newModifierItems = [...modifierItems];
+  // Calculate profit margin
+  const calculateProfitMargin = () => {
+    const costPrice = form.watch('unit_price') || 0;
+    const sellingPrice = form.watch('selling_price') || 0;
     
-    if (field === 'size_regular_price' || field === 'size_medium_price' || field === 'size_large_price' || field === 'size_xl_price') {
-      newModifierItems[index][field] = value !== null ? Number(value) : null;
-    } else {
-      newModifierItems[index][field] = value as string;
-    }
+    if (costPrice <= 0 || sellingPrice <= 0) return 0;
     
-    setModifierItems(newModifierItems);
+    const profit = sellingPrice - costPrice;
+    const margin = (profit / sellingPrice) * 100;
+    
+    return margin.toFixed(2);
   };
 
   // Add consumable form preparation before submit
   const onSubmit = async (values: ProductFormValues) => {
     try {
+      // Upload image if exists
+      let imageUrl = values.image_url;
+      if (imageFile) {
+        imageUrl = await uploadImage();
+        if (!imageUrl) {
+          toast.error('Failed to upload image');
+          return;
+        }
+      }
+      
+      // Update image_url with the uploaded image URL
+      values.image_url = imageUrl;
+      
       // Validate sizes to ensure size_name is not empty and price is a number
       if (sizes.some(size => !size.size_name || isNaN(Number(size.price)))) {
         toast.error('Please ensure all sizes have a name and a valid price.');
@@ -492,13 +507,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       } else {
         values.consumable_items = [];
       }
-      
-      // Prepare modifier items if any
-      if (values.has_modifiers && modifierItems) {
-        values.modifier_items = modifierItems.filter(item => item.name);
-      } else {
-        values.modifier_items = [];
-      }
 
       // If auto-generate SKU is enabled, ensure SKU is empty for the database function to work
       if (values.auto_generate_sku) {
@@ -520,25 +528,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       console.error('Error submitting form:', error);
       toast.error('Failed to save product. Please check the form for errors.');
     }
-  };
-
-  // Fix the expiration_date field handling
-  const handleExpireDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Always store as string, not as Date object
-    form.setValue('expiration_date', e.target.value);
-  };
-
-  // Calculate profit margin
-  const calculateProfitMargin = () => {
-    const costPrice = form.watch('unit_price') || 0;
-    const sellingPrice = form.watch('selling_price') || 0;
-    
-    if (costPrice <= 0 || sellingPrice <= 0) return 0;
-    
-    const profit = sellingPrice - costPrice;
-    const margin = (profit / sellingPrice) * 100;
-    
-    return margin.toFixed(2);
   };
 
   return (
@@ -676,10 +665,59 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 name="image_url"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Image URL" {...field} />
-                    </FormControl>
+                    <FormLabel>Product Image</FormLabel>
+                    <div className="space-y-4">
+                      <div className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-gray-400 transition-colors"
+                           onClick={() => document.getElementById('product-image-upload')?.click()}>
+                        <input
+                          type="file"
+                          id="product-image-upload"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                        />
+                        {imagePreview ? (
+                          <div className="relative w-full h-48">
+                            <img
+                              src={imagePreview}
+                              alt="Product preview"
+                              className="w-full h-full object-contain"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-2 right-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setImageFile(null);
+                                setImagePreview(null);
+                                form.setValue('image_url', '');
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center space-y-2">
+                            <Image className="h-12 w-12 text-gray-400" />
+                            <div className="text-center">
+                              <span className="font-medium text-blue-600">Click to upload</span> or drag and drop
+                              <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {isUploading && (
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div
+                            className="bg-blue-600 h-2.5 rounded-full"
+                            style={{ width: `${uploadProgress}%` }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -809,27 +847,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       System will mark product as "Low Stock" when quantity falls below this threshold
                     </FormDescription>
                     <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="is_consumable"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Is Consumable</FormLabel>
-                      <FormDescription>
-                        Is this product a consumable item?
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
                   </FormItem>
                 )}
               />
@@ -1058,7 +1075,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         
         {/* Consumables Section */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle>Consumables</CardTitle>
               <CardDescription>
@@ -1120,139 +1137,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
           </CardContent>
         </Card>
         
-        {/* Modifiers Section */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle>Modifiers</CardTitle>
-              <CardDescription>
-                Add price modifiers for different product variations
-              </CardDescription>
-            </div>
-            <FormField
-              control={form.control}
-              name="has_modifiers"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </CardHeader>
-          <CardContent>
-            {form.watch('has_modifiers') && (
-              <div className="space-y-4">
-                {modifierItems.map((modifier, index) => (
-                  <div key={index} className="border rounded-md p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-medium">Modifier {index + 1}</h4>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveModifier(index)}
-                        disabled={modifierItems.length === 1}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div>
-                          <FormItem>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Modifier name"
-                                value={modifier.name}
-                                onChange={(e) => handleModifierChange(index, 'name', e.target.value)}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                          <div>
-                            <FormItem>
-                              <FormLabel>Regular Size Price</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="Price"
-                                  value={modifier.size_regular_price}
-                                  onChange={(e) => handleModifierChange(index, 'size_regular_price', e.target.value)}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          </div>
-                          
-                          <div>
-                            <FormItem>
-                              <FormLabel>Medium Size Price</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="Price"
-                                  value={modifier.size_medium_price || ''}
-                                  onChange={(e) => handleModifierChange(index, 'size_medium_price', e.target.value || null)}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          </div>
-                          
-                          <div>
-                            <FormItem>
-                              <FormLabel>Large Size Price</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="Price"
-                                  value={modifier.size_large_price || ''}
-                                  onChange={(e) => handleModifierChange(index, 'size_large_price', e.target.value || null)}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          </div>
-                          
-                          <div>
-                            <FormItem>
-                              <FormLabel>XL Size Price</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="Price"
-                                  value={modifier.size_xl_price || ''}
-                                  onChange={(e) => handleModifierChange(index, 'size_xl_price', e.target.value || null)}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddModifier}
-                  className="mt-2"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Modifier
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        
         <div className="flex justify-end space-x-2">
           <Button variant="outline" type="button" onClick={() => navigate('/business-dashboard/products')}>
             Cancel
@@ -1265,3 +1149,4 @@ const ProductForm: React.FC<ProductFormProps> = ({
 };
 
 export default ProductForm;
+

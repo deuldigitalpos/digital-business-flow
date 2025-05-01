@@ -10,26 +10,23 @@ export interface BusinessProduct {
   brand_id: string | null;
   warranty_id: string | null;
   location_id: string | null;
-  unit_id: string | null; // Added unit_id field
+  unit_id: string | null;
   image_url: string | null;
   expiration_date: string | null; // ISO date string
   alert_quantity: number | null;
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
   quantity_sold: number;
   quantity_available: number;
-  is_consumable: boolean;
   unit_price: number | null;
   selling_price: number | null;
   has_recipe: boolean;
-  has_modifiers: boolean;
   has_consumables: boolean;
-  auto_generate_sku: boolean; // Added auto_generate_sku field
-  warning_flags: Record<string, any> | null; // Added warning_flags field
+  auto_generate_sku: boolean;
+  warning_flags: Record<string, any> | null;
   created_at: string;
   updated_at: string;
   business_product_sizes?: BusinessProductSize[];
   business_product_recipes?: BusinessProductRecipe[];
-  business_product_modifiers?: BusinessProductModifier[];
   business_product_consumables?: BusinessProductConsumable[];
 }
 
@@ -49,18 +46,6 @@ export interface BusinessProductRecipe {
   quantity: number;
   unit_id: string | null;
   cost: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface BusinessProductModifier {
-  id: string;
-  product_id: string;
-  name: string;
-  size_regular_price: number;
-  size_medium_price: number | null;
-  size_large_price: number | null;
-  size_xl_price: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -90,38 +75,27 @@ export interface ConsumableItem {
   cost: number;
 }
 
-export interface ModifierItem {
-  name: string;
-  size_regular_price: number;
-  size_medium_price: number | null;
-  size_large_price: number | null;
-  size_xl_price: number | null;
-}
-
 export type ProductFormValues = {
   name: string;
   sku?: string;
-  auto_generate_sku?: boolean; // Added auto_generate_sku field
+  auto_generate_sku?: boolean;
   description?: string;
   category_id?: string;
   brand_id?: string;
   warranty_id?: string;
   location_id?: string;
-  unit_id?: string; // Added unit_id field
+  unit_id?: string;
   image_url?: string;
   expiration_date?: string; // Only string type, not Date
   alert_quantity?: number;
-  is_consumable?: boolean;
   unit_price?: number;
   selling_price?: number;
   has_recipe?: boolean;
-  has_modifiers?: boolean;
   has_consumables?: boolean;
   sizes?: {
     size_name: string;
     price: number;
   }[];
   recipe_items?: RecipeItem[];
-  modifier_items?: ModifierItem[];
   consumable_items?: ConsumableItem[];
 };
