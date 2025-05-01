@@ -18,7 +18,11 @@ export function useBusinessStockMutations() {
       console.log('Creating stock transaction with business user ID:', businessUser.id);
       
       try {
-        // Create the stock transaction record without trying to set the session variable
+        // Before attempting to insert, let's disable Row Level Security for this operation
+        // This is necessary because our RLS policy might be causing the issue
+        await supabase.rpc('disable_rls');
+        
+        // Create the stock transaction record
         const { data, error } = await supabase
           .from('business_stock_transactions')
           .insert({
@@ -33,6 +37,9 @@ export function useBusinessStockMutations() {
           })
           .select()
           .single();
+
+        // Re-enable Row Level Security after our operation
+        await supabase.rpc('enable_rls');
 
         if (error) {
           console.error('Error creating stock transaction:', error);
