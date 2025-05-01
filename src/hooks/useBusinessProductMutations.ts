@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues } from '@/types/business-product';
@@ -26,44 +25,68 @@ export function useBusinessProductMutations() {
       const location_id = productData.location_id === "none" ? null : productData.location_id;
       const unit_id = productData.unit_id === "none" ? null : productData.unit_id;
 
-      // FIXED: Ensure alert_quantity is a number, not a string
-      const alert_quantity = productData.alert_quantity ? Number(productData.alert_quantity) : 10;
+      // Ensure alert_quantity is a number
+      const alert_quantity = Number(productData.alert_quantity || 10);
       
       console.log("Creating product with data:", {
         ...productData,
         alert_quantity,
         business_id: business.id,
-        businessUserId: businessUser?.id // Log for debugging
+        businessUserId: businessUser?.id
       });
       
       const productToCreate = {
         business_id: business.id,
         name: productData.name,
-        sku: productData.sku,
+        sku: productData.sku || null,
         auto_generate_sku: productData.auto_generate_sku || false,
-        description: productData.description,
+        description: productData.description || null,
         category_id: category_id,
         brand_id: brand_id,
         warranty_id: warranty_id,
         location_id: location_id,
         unit_id: unit_id,
-        image_url: productData.image_url,
-        alert_quantity: alert_quantity, // Use the numeric version
-        unit_price: productData.unit_price || 0,
-        selling_price: productData.selling_price || 0,
+        image_url: productData.image_url || null,
+        alert_quantity: alert_quantity,
+        unit_price: Number(productData.unit_price || 0),
+        selling_price: Number(productData.selling_price || 0),
         has_recipe: productData.has_recipe || false,
         has_consumables: productData.has_consumables || false,
-        quantity_available: 0, // Initial stock is 0
+        quantity_available: 0,
         quantity_sold: 0
       };
       
       try {
         console.log("Disabling RLS with business user ID:", businessUser.id);
-        // First, disable RLS to perform the operation
-        await supabase.rpc('disable_rls');
+        // First, disable RLS using direct fetch to avoid TypeScript issues
+        const session = await supabase.auth.getSession();
+        const accessToken = session.data.session?.access_token;
+        
+        if (!accessToken) {
+          throw new Error('No valid access token found');
+        }
+        
+        // Disable RLS
+        const disableRlsResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/disable_rls`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({})
+          }
+        );
+        
+        if (!disableRlsResponse.ok) {
+          throw new Error(`Failed to disable RLS: ${await disableRlsResponse.text()}`);
+        }
+        
         console.log("RLS disabled, proceeding with product creation");
-
-        // Create the product with explicit headers
+        
+        // Create the product
         const { data: newProduct, error: productError } = await supabase
           .from('business_products')
           .insert(productToCreate)
@@ -94,7 +117,7 @@ export function useBusinessProductMutations() {
           const sizesToInsert = productData.sizes.map(size => ({
             product_id: newProduct.id,
             size_name: size.size_name,
-            price: size.price
+            price: Number(size.price)
           }));
 
           const { error: sizesError } = await supabase
@@ -114,16 +137,13 @@ export function useBusinessProductMutations() {
           const recipeItems = productData.recipe_items.map(item => ({
             product_id: newProduct.id,
             ingredient_id: item.ingredient_id,
-            quantity: item.quantity,
+            quantity: Number(item.quantity),
             unit_id: item.unit_id,
-            cost: item.cost
+            cost: Number(item.cost)
           }));
           
-          // Use direct fetch instead of rpc to avoid TypeScript errors
-          const session = await supabase.auth.getSession();
-          const accessToken = session.data.session?.access_token;
-
-          const response = await fetch(
+          // Use direct fetch to insert recipe items
+          const recipeResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/insert_product_recipes`,
             {
               method: 'POST',
@@ -136,8 +156,8 @@ export function useBusinessProductMutations() {
             }
           );
           
-          if (!response.ok) {
-            const errorData = await response.json();
+          if (!recipeResponse.ok) {
+            const errorData = await recipeResponse.json();
             const error = new Error(`Failed to insert recipe items: ${JSON.stringify(errorData)}`);
             console.error('Error creating product recipe items:', error);
             throw error;
@@ -151,16 +171,13 @@ export function useBusinessProductMutations() {
           const consumableItems = productData.consumable_items.map(item => ({
             product_id: newProduct.id,
             consumable_id: item.consumable_id,
-            quantity: item.quantity,
+            quantity: Number(item.quantity),
             unit_id: item.unit_id,
-            cost: item.cost
+            cost: Number(item.cost)
           }));
           
-          // Use direct fetch instead of rpc to avoid TypeScript errors
-          const session = await supabase.auth.getSession();
-          const accessToken = session.data.session?.access_token;
-
-          const response = await fetch(
+          // Use direct fetch to insert consumables
+          const consumableResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/insert_product_consumables`,
             {
               method: 'POST',
@@ -173,8 +190,8 @@ export function useBusinessProductMutations() {
             }
           );
           
-          if (!response.ok) {
-            const errorData = await response.json();
+          if (!consumableResponse.ok) {
+            const errorData = await consumableResponse.json();
             const error = new Error(`Failed to insert consumable items: ${JSON.stringify(errorData)}`);
             console.error('Error creating product consumables:', error);
             throw error;
@@ -182,15 +199,55 @@ export function useBusinessProductMutations() {
           console.log("Consumable items added successfully");
         }
         
+        // Re-enable RLS
+        const enableRlsResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/enable_rls`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({})
+          }
+        );
+        
+        if (!enableRlsResponse.ok) {
+          console.warn(`Failed to enable RLS: ${await enableRlsResponse.text()}`);
+          // Continue execution even if re-enabling fails
+        } else {
+          console.log("RLS re-enabled");
+        }
+        
         return typedProduct;
       } catch (error) {
         console.error('Error in createProduct mutation:', error);
+        
+        // Attempt to re-enable RLS even in case of error
+        try {
+          const session = await supabase.auth.getSession();
+          const accessToken = session.data.session?.access_token;
+          
+          if (accessToken) {
+            await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/enable_rls`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                  'Authorization': `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify({})
+              }
+            );
+          }
+        } catch (rlsError) {
+          console.error('Failed to re-enable RLS after error:', rlsError);
+        }
+        
         throw error;
-      } finally {
-        // Always re-enable RLS when done, even if there was an error
-        console.log("Re-enabling RLS...");
-        await supabase.rpc('enable_rls');
-        console.log("RLS re-enabled");
       }
     },
     onSuccess: () => {
@@ -212,26 +269,34 @@ export function useBusinessProductMutations() {
       const location_id = data.location_id === "none" ? null : data.location_id;
       const unit_id = data.unit_id === "none" ? null : data.unit_id;
       
-      // CRITICAL FIX: Ensure alert_quantity is a number, not a string
-      const alert_quantity = data.alert_quantity ? Number(data.alert_quantity) : 10;
+      // Ensure alert_quantity is a number
+      const alert_quantity = Number(data.alert_quantity || 10);
+      
+      // Get auth session for API calls
+      const session = await supabase.auth.getSession();
+      const accessToken = session.data.session?.access_token;
+      
+      if (!accessToken) {
+        throw new Error('No valid access token found');
+      }
 
       // First, update the product
       const { data: updatedProduct, error: productError } = await supabase
         .from('business_products')
         .update({
           name: data.name,
-          sku: data.sku,
+          sku: data.sku || null,
           auto_generate_sku: data.auto_generate_sku || false,
-          description: data.description,
+          description: data.description || null,
           category_id: category_id,
           brand_id: brand_id,
           warranty_id: warranty_id,
           location_id: location_id,
           unit_id: unit_id,
-          image_url: data.image_url,
-          alert_quantity: alert_quantity, // Use the numeric version
-          unit_price: data.unit_price || 0,
-          selling_price: data.selling_price || 0,
+          image_url: data.image_url || null,
+          alert_quantity: alert_quantity,
+          unit_price: Number(data.unit_price || 0),
+          selling_price: Number(data.selling_price || 0),
           has_recipe: data.has_recipe || false,
           has_consumables: data.has_consumables || false
         })
@@ -261,7 +326,7 @@ export function useBusinessProductMutations() {
         const sizesToInsert = data.sizes.map(size => ({
           product_id: id,
           size_name: size.size_name,
-          price: size.price
+          price: Number(size.price)
         }));
 
         const { error: insertSizesError } = await supabase
@@ -276,14 +341,8 @@ export function useBusinessProductMutations() {
 
       // Handle recipe items if this product has a recipe
       if (data.has_recipe && data.recipe_items) {
-        // Disable RLS for the operation
-        await supabase.rpc('disable_rls');
-        
         try {
           // Delete existing recipe items using a direct fetch
-          const session = await supabase.auth.getSession();
-          const accessToken = session.data.session?.access_token;
-
           const deleteResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_recipes`,
             {
@@ -306,9 +365,9 @@ export function useBusinessProductMutations() {
             const recipeItems = data.recipe_items.map(item => ({
               product_id: id,
               ingredient_id: item.ingredient_id,
-              quantity: item.quantity,
+              quantity: Number(item.quantity),
               unit_id: item.unit_id,
-              cost: item.cost
+              cost: Number(item.cost)
             }));
             
             const insertResponse = await fetch(
@@ -331,17 +390,10 @@ export function useBusinessProductMutations() {
         } catch (error) {
           console.error('Error handling recipe items:', error);
           throw error;
-        } finally {
-          // Re-enable RLS
-          await supabase.rpc('enable_rls');
         }
       } else {
         // If product no longer has a recipe, delete any existing recipe items
-        await supabase.rpc('disable_rls');
         try {
-          const session = await supabase.auth.getSession();
-          const accessToken = session.data.session?.access_token;
-
           await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_recipes`,
             {
@@ -357,21 +409,13 @@ export function useBusinessProductMutations() {
         } catch (error) {
           console.error('Error deleting product recipe items:', error);
           // Non-fatal, continue execution
-        } finally {
-          await supabase.rpc('enable_rls');
         }
       }
 
       // Handle consumable items if this product has consumables
       if (data.has_consumables && data.consumable_items) {
-        // Disable RLS for the operation
-        await supabase.rpc('disable_rls');
-        
         try {
           // Delete existing consumable items using a direct fetch
-          const session = await supabase.auth.getSession();
-          const accessToken = session.data.session?.access_token;
-
           const deleteResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_consumables`,
             {
@@ -394,9 +438,9 @@ export function useBusinessProductMutations() {
             const consumableItems = data.consumable_items.map(item => ({
               product_id: id,
               consumable_id: item.consumable_id,
-              quantity: item.quantity,
+              quantity: Number(item.quantity),
               unit_id: item.unit_id,
-              cost: item.cost
+              cost: Number(item.cost)
             }));
             
             const insertResponse = await fetch(
@@ -419,17 +463,10 @@ export function useBusinessProductMutations() {
         } catch (error) {
           console.error('Error handling consumable items:', error);
           throw error;
-        } finally {
-          // Re-enable RLS
-          await supabase.rpc('enable_rls');
         }
       } else {
         // If product no longer has consumables, delete any existing consumable items
-        await supabase.rpc('disable_rls');
         try {
-          const session = await supabase.auth.getSession();
-          const accessToken = session.data.session?.access_token;
-
           await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_consumables`,
             {
@@ -445,8 +482,6 @@ export function useBusinessProductMutations() {
         } catch (error) {
           console.error('Error deleting product consumable items:', error);
           // Non-fatal, continue execution
-        } finally {
-          await supabase.rpc('enable_rls');
         }
       }
 

@@ -149,7 +149,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   // Calculate total recipe cost when recipe items change
   useEffect(() => {
     if (form.watch('has_recipe') && recipeItems.length > 0) {
-      const total = recipeItems.reduce((sum, item) => sum + (item.cost || 0), 0);
+      const total = recipeItems.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
       setTotalRecipeCost(total);
       
       // If recipe is enabled, update unit price based on recipe cost
@@ -161,8 +161,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   // Check if selling price is below cost
   useEffect(() => {
-    const unitPrice = form.watch('unit_price') || 0;
-    const sellingPrice = form.watch('selling_price') || 0;
+    const unitPrice = Number(form.watch('unit_price') || 0);
+    const sellingPrice = Number(form.watch('selling_price') || 0);
     
     setBelowCostWarning(sellingPrice < unitPrice && sellingPrice > 0);
   }, [form.watch('unit_price'), form.watch('selling_price')]);
@@ -442,8 +442,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   // Calculate profit margin
   const calculateProfitMargin = () => {
-    const costPrice = form.watch('unit_price') || 0;
-    const sellingPrice = form.watch('selling_price') || 0;
+    const costPrice = Number(form.watch('unit_price') || 0);
+    const sellingPrice = Number(form.watch('selling_price') || 0);
     
     if (costPrice <= 0 || sellingPrice <= 0) return 0;
     
@@ -481,16 +481,24 @@ const ProductForm: React.FC<ProductFormProps> = ({
       }
       
       // CRITICAL: Ensure alert_quantity is a number
-      values.alert_quantity = values.alert_quantity ? Number(values.alert_quantity) : 10;
-      console.log("Alert quantity (processed):", values.alert_quantity);
-      console.log("Alert quantity type (processed):", typeof values.alert_quantity);
+      values.alert_quantity = Number(values.alert_quantity || 10);
+      
+      // CRITICAL: Ensure proper numeric types for prices
+      values.unit_price = Number(values.unit_price || 0);
+      values.selling_price = Number(values.selling_price || 0);
 
       // Prepare sizes for submission
       values.sizes = sizes.filter(size => size.size_name && !isNaN(Number(size.price)));
       
       // Prepare recipe items if any
       if (values.has_recipe && recipeItems) {
-        values.recipe_items = recipeItems.filter(item => item.ingredient_id);
+        values.recipe_items = recipeItems
+          .filter(item => item.ingredient_id)
+          .map(item => ({
+            ...item,
+            quantity: Number(item.quantity),
+            cost: Number(item.cost)
+          }));
         // Update unit_price based on recipe cost
         values.unit_price = totalRecipeCost;
       } else {
@@ -499,7 +507,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
       
       // Prepare consumable items if any
       if (values.has_consumables && consumableItems) {
-        values.consumable_items = consumableItems.filter(item => item.consumable_id);
+        values.consumable_items = consumableItems
+          .filter(item => item.consumable_id)
+          .map(item => ({
+            ...item,
+            quantity: Number(item.quantity),
+            cost: Number(item.cost)
+          }));
       } else {
         values.consumable_items = [];
       }
@@ -1051,6 +1065,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                           type="number"
                           placeholder="Unit Cost"
                           {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value}
                           disabled={form.watch('has_recipe')}
                         />
                       </FormControl>
@@ -1077,6 +1093,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                           type="number"
                           placeholder="Selling Price"
                           {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value}
                           className={belowCostWarning ? "border-red-500" : ""}
                         />
                       </FormControl>
@@ -1097,16 +1115,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Cost Price</p>
-                  <p className="text-lg font-medium">{form.watch('unit_price') || 0}</p>
+                  <p className="text-lg font-medium">{Number(form.watch('unit_price') || 0).toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Selling Price</p>
-                  <p className="text-lg font-medium">{form.watch('selling_price') || 0}</p>
+                  <p className="text-lg font-medium">{Number(form.watch('selling_price') || 0).toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Profit</p>
                   <p className="text-lg font-medium">
-                    {(form.watch('selling_price') || 0) - (form.watch('unit_price') || 0)}
+                    {(Number(form.watch('selling_price') || 0) - Number(form.watch('unit_price') || 0)).toFixed(2)}
                   </p>
                 </div>
                 <div>

@@ -11,6 +11,7 @@ import ProductForm from '@/components/business/ProductForm';
 import { useLowStockProducts } from '@/hooks/useBusinessProducts';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const BusinessProducts: React.FC = () => {
   const { hasPermission } = useBusinessAuth();
@@ -23,6 +24,11 @@ const BusinessProducts: React.FC = () => {
   if (!hasAccess) {
     return <PermissionDenied />;
   }
+
+  const handleProductSuccess = () => {
+    // Close the dialog and reset state
+    setIsAddingProduct(false);
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -38,13 +44,15 @@ const BusinessProducts: React.FC = () => {
         </div>
       </div>
       
-      {/* Use Dialog instead of a Card for better mobile responsiveness */}
+      {/* Enhanced dialog with ScrollArea for better mobile responsiveness */}
       <Dialog open={isAddingProduct} onOpenChange={setIsAddingProduct}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Add New Product</DialogTitle>
           </DialogHeader>
-          <ProductForm onSuccess={() => setIsAddingProduct(false)} />
+          <ScrollArea className="max-h-[70vh] overflow-y-auto pr-4">
+            <ProductForm onSuccess={handleProductSuccess} />
+          </ScrollArea>
         </DialogContent>
       </Dialog>
       
