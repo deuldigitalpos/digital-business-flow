@@ -119,7 +119,10 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // Use a fetch call directly instead of rpc
+          // Use direct fetch instead of rpc to avoid TypeScript errors
+          const session = await supabase.auth.getSession();
+          const accessToken = session.data.session?.access_token;
+
           const response = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/insert_product_recipes`,
             {
@@ -127,7 +130,7 @@ export function useBusinessProductMutations() {
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                'Authorization': `Bearer ${accessToken}`,
               },
               body: JSON.stringify({ items: recipeItems })
             }
@@ -153,7 +156,10 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // Use a fetch call directly instead of rpc
+          // Use direct fetch instead of rpc to avoid TypeScript errors
+          const session = await supabase.auth.getSession();
+          const accessToken = session.data.session?.access_token;
+
           const response = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/insert_product_consumables`,
             {
@@ -161,7 +167,7 @@ export function useBusinessProductMutations() {
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                'Authorization': `Bearer ${accessToken}`,
               },
               body: JSON.stringify({ items: consumableItems })
             }
@@ -275,6 +281,9 @@ export function useBusinessProductMutations() {
         
         try {
           // Delete existing recipe items using a direct fetch
+          const session = await supabase.auth.getSession();
+          const accessToken = session.data.session?.access_token;
+
           const deleteResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_recipes`,
             {
@@ -282,7 +291,7 @@ export function useBusinessProductMutations() {
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                'Authorization': `Bearer ${accessToken}`,
               },
               body: JSON.stringify({ product_id_param: id })
             }
@@ -309,7 +318,7 @@ export function useBusinessProductMutations() {
                 headers: {
                   'Content-Type': 'application/json',
                   'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                  'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                  'Authorization': `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({ items: recipeItems })
               }
@@ -330,6 +339,9 @@ export function useBusinessProductMutations() {
         // If product no longer has a recipe, delete any existing recipe items
         await supabase.rpc('disable_rls');
         try {
+          const session = await supabase.auth.getSession();
+          const accessToken = session.data.session?.access_token;
+
           await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_recipes`,
             {
@@ -337,7 +349,7 @@ export function useBusinessProductMutations() {
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                'Authorization': `Bearer ${accessToken}`,
               },
               body: JSON.stringify({ product_id_param: id })
             }
@@ -357,6 +369,9 @@ export function useBusinessProductMutations() {
         
         try {
           // Delete existing consumable items using a direct fetch
+          const session = await supabase.auth.getSession();
+          const accessToken = session.data.session?.access_token;
+
           const deleteResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_consumables`,
             {
@@ -364,7 +379,7 @@ export function useBusinessProductMutations() {
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                'Authorization': `Bearer ${accessToken}`,
               },
               body: JSON.stringify({ product_id_param: id })
             }
@@ -391,7 +406,7 @@ export function useBusinessProductMutations() {
                 headers: {
                   'Content-Type': 'application/json',
                   'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                  'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                  'Authorization': `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({ items: consumableItems })
               }
@@ -412,6 +427,9 @@ export function useBusinessProductMutations() {
         // If product no longer has consumables, delete any existing consumable items
         await supabase.rpc('disable_rls');
         try {
+          const session = await supabase.auth.getSession();
+          const accessToken = session.data.session?.access_token;
+
           await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/delete_product_consumables`,
             {
@@ -419,7 +437,7 @@ export function useBusinessProductMutations() {
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+                'Authorization': `Bearer ${accessToken}`,
               },
               body: JSON.stringify({ product_id_param: id })
             }
@@ -452,7 +470,7 @@ export function useBusinessProductMutations() {
     },
     onError: (error) => {
       console.error('Failed to update product:', error);
-      toast.error('Failed to update product');
+      toast.error('Failed to update product: ' + (error as Error).message);
     }
   });
 
@@ -477,7 +495,7 @@ export function useBusinessProductMutations() {
     },
     onError: (error) => {
       console.error('Failed to delete product:', error);
-      toast.error('Failed to delete product');
+      toast.error('Failed to delete product: ' + (error as Error).message);
     }
   });
 

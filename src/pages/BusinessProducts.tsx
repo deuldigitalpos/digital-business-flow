@@ -10,6 +10,7 @@ import ProductList from '@/components/business/ProductList';
 import ProductForm from '@/components/business/ProductForm';
 import { useLowStockProducts } from '@/hooks/useBusinessProducts';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const BusinessProducts: React.FC = () => {
   const { hasPermission } = useBusinessAuth();
@@ -37,27 +38,17 @@ const BusinessProducts: React.FC = () => {
         </div>
       </div>
       
-      {isAddingProduct ? (
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>Add New Product</CardTitle>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsAddingProduct(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-            <CardDescription>
-              Create a new product in your inventory
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ProductForm onSuccess={() => setIsAddingProduct(false)} />
-          </CardContent>
-        </Card>
-      ) : (
+      {/* Use Dialog instead of a Card for better mobile responsiveness */}
+      <Dialog open={isAddingProduct} onOpenChange={setIsAddingProduct}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Add New Product</DialogTitle>
+          </DialogHeader>
+          <ProductForm onSuccess={() => setIsAddingProduct(false)} />
+        </DialogContent>
+      </Dialog>
+      
+      {!isAddingProduct && (
         <>
           <div className="bg-white rounded-lg shadow">
             <Tabs defaultValue="all-products" value={activeTab} onValueChange={setActiveTab}>
