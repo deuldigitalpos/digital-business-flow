@@ -27,7 +27,7 @@ export function useBusinessConsumableMutations() {
         console.log('Business user ID set successfully for consumable creation');
         
         // Insert the consumable with quantity_available defaulting to 0 if undefined
-        // and adding the business user ID directly to the data
+        // and ensuring the updated_by field is set
         const { data, error } = await supabase
           .from('business_consumables')
           .insert({
@@ -37,7 +37,7 @@ export function useBusinessConsumableMutations() {
             unit_id: consumableData.unit_id || null,
             unit_price: consumableData.unit_price,
             quantity_available: consumableData.quantity_available ?? 0,
-            updated_by: businessUser.id // Add business user ID directly to the data
+            updated_by: businessUser.id // Explicitly set updated_by field
           })
           .select()
           .single();
@@ -84,7 +84,7 @@ export function useBusinessConsumableMutations() {
             description: data.description || null,
             unit_id: data.unit_id || null,
             unit_price: data.unit_price,
-            updated_by: businessUser.id // Add business user ID directly to the update data
+            updated_by: businessUser.id // Explicitly set updated_by field
           })
           .eq('id', id)
           .select()

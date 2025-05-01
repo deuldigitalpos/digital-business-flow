@@ -97,7 +97,8 @@ const AddConsumableForm: React.FC<AddConsumableFormProps> = ({ onSuccess, onErro
       // Ensure quantity_available is at least 0 if undefined
       const formData = {
         ...data,
-        quantity_available: data.quantity_available ?? 0
+        quantity_available: data.quantity_available ?? 0,
+        updated_by: businessUser.id // Explicitly add the business user ID to the form data
       };
       
       console.log('Processed form data:', formData);

@@ -11,6 +11,7 @@ export interface BusinessConsumable {
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
   created_at: string;
   updated_at: string;
+  updated_by?: string;
 }
 
 export type ConsumableFormValues = {
@@ -19,4 +20,5 @@ export type ConsumableFormValues = {
   unit_id?: string;
   unit_price: number;
   quantity_available?: number;
+  updated_by?: string;
 };

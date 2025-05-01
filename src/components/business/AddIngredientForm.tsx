@@ -97,7 +97,8 @@ const AddIngredientForm: React.FC<AddIngredientFormProps> = ({ onSuccess, onErro
       // Ensure quantity_available is at least 0
       const formData = {
         ...data,
-        quantity_available: data.quantity_available ?? 0
+        quantity_available: data.quantity_available ?? 0,
+        updated_by: businessUser.id // Explicitly add business user ID
       };
       
       console.log('Processed ingredient form data:', formData);

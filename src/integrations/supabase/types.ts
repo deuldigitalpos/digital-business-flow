@@ -191,6 +191,7 @@ export type Database = {
           unit_id: string | null
           unit_price: number
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           business_id: string
@@ -204,6 +205,7 @@ export type Database = {
           unit_id?: string | null
           unit_price?: number
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           business_id?: string
@@ -217,6 +219,7 @@ export type Database = {
           unit_id?: string | null
           unit_price?: number
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -335,6 +338,7 @@ export type Database = {
           unit_id: string | null
           unit_price: number
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           business_id: string
@@ -348,6 +352,7 @@ export type Database = {
           unit_id?: string | null
           unit_price?: number
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           business_id?: string
@@ -361,6 +366,7 @@ export type Database = {
           unit_id?: string | null
           unit_price?: number
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {

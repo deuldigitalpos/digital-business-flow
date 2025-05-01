@@ -36,7 +36,6 @@ export function useBusinessIngredientMutations() {
             unit_id: ingredientData.unit_id,
             unit_price: ingredientData.unit_price,
             quantity_available: ingredientData.quantity_available ?? 0,
-            // Add business user ID directly to the data
             updated_by: businessUser.id
           })
           .select()
@@ -84,7 +83,6 @@ export function useBusinessIngredientMutations() {
             description: data.description,
             unit_id: data.unit_id,
             unit_price: data.unit_price,
-            // Add business user ID directly to the update data
             updated_by: businessUser.id
           })
           .eq('id', id)
