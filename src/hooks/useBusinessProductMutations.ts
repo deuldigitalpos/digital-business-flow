@@ -119,10 +119,11 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // FIX: Using raw SQL query instead of typed operations to avoid TypeScript errors
-          const { error: recipeError } = await supabase.rpc('insert_product_recipes', {
-            items: JSON.stringify(recipeItems)
-          });
+          // Use the RPC function we created for inserting recipe items
+          const { error: recipeError } = await supabase.rpc(
+            'insert_product_recipes',
+            { items: recipeItems }
+          );
           
           if (recipeError) {
             const error = new Error(`Failed to insert recipe items: ${recipeError.message}`);
@@ -143,10 +144,11 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // FIX: Using raw SQL query instead of typed operations to avoid TypeScript errors
-          const { error: consumablesError } = await supabase.rpc('insert_product_consumables', {
-            items: JSON.stringify(consumableItems)
-          });
+          // Use the RPC function we created for inserting consumable items
+          const { error: consumablesError } = await supabase.rpc(
+            'insert_product_consumables',
+            { items: consumableItems }
+          );
           
           if (consumablesError) {
             const error = new Error(`Failed to insert consumable items: ${consumablesError.message}`);
@@ -254,8 +256,11 @@ export function useBusinessProductMutations() {
         await supabase.rpc('disable_rls');
         
         try {
-          // Delete existing recipe items
-          await supabase.rpc('delete_product_recipes', { product_id_param: id });
+          // Delete existing recipe items using our function
+          await supabase.rpc(
+            'delete_product_recipes',
+            { product_id_param: id }
+          );
           
           // Insert new recipe items if any
           if (data.recipe_items.length > 0) {
@@ -267,9 +272,10 @@ export function useBusinessProductMutations() {
               cost: item.cost
             }));
             
-            const { error: insertRecipeError } = await supabase.rpc('insert_product_recipes', {
-              items: JSON.stringify(recipeItems)
-            });
+            const { error: insertRecipeError } = await supabase.rpc(
+              'insert_product_recipes',
+              { items: recipeItems }
+            );
             
             if (insertRecipeError) {
               throw new Error(`Failed to insert recipe items: ${insertRecipeError.message}`);
@@ -286,7 +292,10 @@ export function useBusinessProductMutations() {
         // If product no longer has a recipe, delete any existing recipe items
         await supabase.rpc('disable_rls');
         try {
-          await supabase.rpc('delete_product_recipes', { product_id_param: id });
+          await supabase.rpc(
+            'delete_product_recipes',
+            { product_id_param: id }
+          );
         } catch (error) {
           console.error('Error deleting product recipe items:', error);
           // Non-fatal, continue execution
@@ -301,8 +310,11 @@ export function useBusinessProductMutations() {
         await supabase.rpc('disable_rls');
         
         try {
-          // Delete existing consumable items
-          await supabase.rpc('delete_product_consumables', { product_id_param: id });
+          // Delete existing consumable items using our function
+          await supabase.rpc(
+            'delete_product_consumables',
+            { product_id_param: id }
+          );
           
           // Insert new consumable items if any
           if (data.consumable_items.length > 0) {
@@ -314,9 +326,10 @@ export function useBusinessProductMutations() {
               cost: item.cost
             }));
             
-            const { error: insertConsumablesError } = await supabase.rpc('insert_product_consumables', {
-              items: JSON.stringify(consumableItems)
-            });
+            const { error: insertConsumablesError } = await supabase.rpc(
+              'insert_product_consumables',
+              { items: consumableItems }
+            );
             
             if (insertConsumablesError) {
               throw new Error(`Failed to insert consumable items: ${insertConsumablesError.message}`);
@@ -333,7 +346,10 @@ export function useBusinessProductMutations() {
         // If product no longer has consumables, delete any existing consumable items
         await supabase.rpc('disable_rls');
         try {
-          await supabase.rpc('delete_product_consumables', { product_id_param: id });
+          await supabase.rpc(
+            'delete_product_consumables',
+            { product_id_param: id }
+          );
         } catch (error) {
           console.error('Error deleting product consumable items:', error);
           // Non-fatal, continue execution

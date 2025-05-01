@@ -1091,6 +1091,14 @@ export type Database = {
         }
         Returns: Json
       }
+      delete_product_consumables: {
+        Args: { product_id_param: string }
+        Returns: undefined
+      }
+      delete_product_recipes: {
+        Args: { product_id_param: string }
+        Returns: undefined
+      }
       disable_rls: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1124,6 +1132,14 @@ export type Database = {
         Returns: {
           location_id: string
         }[]
+      }
+      insert_product_consumables: {
+        Args: { items: Json }
+        Returns: undefined
+      }
+      insert_product_recipes: {
+        Args: { items: Json }
+        Returns: undefined
       }
       set_business_user_id: {
         Args: { business_user_id: string }
