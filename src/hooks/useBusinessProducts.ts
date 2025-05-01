@@ -15,38 +15,55 @@ export function useBusinessProducts(filter: 'all' | 'low-stock' | 'expiring' = '
       }
 
       console.log(`Fetching products with filter: ${filter}`);
-
-      let query = supabase
-        .from('business_products')
-        .select(`
-          *,
-          business_product_sizes(*)
-        `)
-        .eq('business_id', business.id);
-
+      
       if (filter === 'low-stock') {
-        console.log('Applying low-stock filter');
-        // Fixed filter for low stock products using proper parameter comparison
-        query = query.or('quantity_available.lt.alert_quantity,quantity_available.eq.0');
-      } else if (filter === 'expiring') {
-        console.log('Applying expiring filter');
-        // For expiring products
-        const nextMonth = new Date();
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-        
-        query = query.lt('expiration_date', nextMonth.toISOString());
+        console.log('Using low_stock_products view for low stock items');
+        // Use the view we created for low stock products
+        const { data, error } = await supabase
+          .from('low_stock_products')
+          .select(`
+            *,
+            business_product_sizes(*)
+          `)
+          .eq('business_id', business.id);
+
+        if (error) {
+          console.error('Error fetching low stock products:', error);
+          throw error;
+        }
+
+        console.log(`Fetched ${data?.length || 0} low stock products`);
+        return (data || []) as BusinessProduct[];
+      } else {
+        // Regular products query
+        let query = supabase
+          .from('business_products')
+          .select(`
+            *,
+            business_product_sizes(*)
+          `)
+          .eq('business_id', business.id);
+
+        if (filter === 'expiring') {
+          console.log('Applying expiring filter');
+          // For expiring products
+          const nextMonth = new Date();
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
+          
+          query = query.lt('expiration_date', nextMonth.toISOString());
+        }
+
+        console.log('Executing query');
+        const { data, error } = await query;
+
+        if (error) {
+          console.error('Error fetching products:', error);
+          throw error;
+        }
+
+        console.log(`Fetched ${data?.length || 0} products`);
+        return (data || []) as BusinessProduct[];
       }
-
-      console.log('Executing query');
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching products:', error);
-        throw error;
-      }
-
-      console.log(`Fetched ${data?.length || 0} products`);
-      return (data || []) as BusinessProduct[];
     },
     enabled: !!business?.id
   });

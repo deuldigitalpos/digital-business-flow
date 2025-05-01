@@ -488,6 +488,13 @@ export type Database = {
             referencedRelation: "business_products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "business_product_sizes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "low_stock_products"
+            referencedColumns: ["id"]
+          },
         ]
       }
       business_products: {
@@ -1080,7 +1087,148 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      low_stock_products: {
+        Row: {
+          alert_quantity: number | null
+          auto_generate_sku: boolean | null
+          brand_id: string | null
+          business_id: string | null
+          category_id: string | null
+          consumable_id: string | null
+          created_at: string | null
+          description: string | null
+          expiration_date: string | null
+          has_consumables: boolean | null
+          has_modifiers: boolean | null
+          has_recipe: boolean | null
+          id: string | null
+          image_url: string | null
+          ingredient_id: string | null
+          is_consumable: boolean | null
+          is_raw_ingredient: boolean | null
+          location_id: string | null
+          name: string | null
+          product_id: string | null
+          quantity_available: number | null
+          quantity_sold: number | null
+          selling_price: number | null
+          sku: string | null
+          status: string | null
+          unit_id: string | null
+          unit_price: number | null
+          updated_at: string | null
+          warning_flags: Json | null
+          warranty_id: string | null
+        }
+        Insert: {
+          alert_quantity?: number | null
+          auto_generate_sku?: boolean | null
+          brand_id?: string | null
+          business_id?: string | null
+          category_id?: string | null
+          consumable_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          expiration_date?: string | null
+          has_consumables?: boolean | null
+          has_modifiers?: boolean | null
+          has_recipe?: boolean | null
+          id?: string | null
+          image_url?: string | null
+          ingredient_id?: string | null
+          is_consumable?: boolean | null
+          is_raw_ingredient?: boolean | null
+          location_id?: string | null
+          name?: string | null
+          product_id?: string | null
+          quantity_available?: number | null
+          quantity_sold?: number | null
+          selling_price?: number | null
+          sku?: string | null
+          status?: string | null
+          unit_id?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
+          warning_flags?: Json | null
+          warranty_id?: string | null
+        }
+        Update: {
+          alert_quantity?: number | null
+          auto_generate_sku?: boolean | null
+          brand_id?: string | null
+          business_id?: string | null
+          category_id?: string | null
+          consumable_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          expiration_date?: string | null
+          has_consumables?: boolean | null
+          has_modifiers?: boolean | null
+          has_recipe?: boolean | null
+          id?: string | null
+          image_url?: string | null
+          ingredient_id?: string | null
+          is_consumable?: boolean | null
+          is_raw_ingredient?: boolean | null
+          location_id?: string | null
+          name?: string | null
+          product_id?: string | null
+          quantity_available?: number | null
+          quantity_sold?: number | null
+          selling_price?: number | null
+          sku?: string | null
+          status?: string | null
+          unit_id?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
+          warning_flags?: Json | null
+          warranty_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "business_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "business_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_warranty_id_fkey"
+            columns: ["warranty_id"]
+            isOneToOne: false
+            referencedRelation: "business_warranties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_business_user_with_locations: {
