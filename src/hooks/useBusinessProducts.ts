@@ -33,7 +33,7 @@ export function useBusinessProducts() {
         has_recipe: product.has_recipe ?? false,
         has_modifiers: product.has_modifiers ?? false,
         has_consumables: product.has_consumables ?? false,
-      })) as BusinessProduct[];
+      }) as BusinessProduct);
     },
     enabled: !!business?.id,
   });
@@ -68,7 +68,7 @@ export function useBusinessProduct(id: string | undefined) {
         has_recipe: data.has_recipe ?? false,
         has_modifiers: data.has_modifiers ?? false,
         has_consumables: data.has_consumables ?? false,
-      } as unknown as BusinessProduct;
+      } as BusinessProduct;
     },
     enabled: !!id && !!business?.id,
   });
@@ -103,7 +103,7 @@ export function useLowStockProducts() {
         has_recipe: product.has_recipe ?? false,
         has_modifiers: product.has_modifiers ?? false,
         has_consumables: product.has_consumables ?? false,
-      })) as unknown as BusinessProduct[];
+      }) as BusinessProduct);
     },
     enabled: !!business?.id,
   });
@@ -143,7 +143,7 @@ export function useExpiringProducts(daysThreshold: number = 30) {
         has_recipe: product.has_recipe ?? false,
         has_modifiers: product.has_modifiers ?? false,
         has_consumables: product.has_consumables ?? false,
-      })) as unknown as BusinessProduct[];
+      }) as BusinessProduct);
     },
     enabled: !!business?.id,
   });

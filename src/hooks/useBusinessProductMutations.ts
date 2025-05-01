@@ -55,6 +55,16 @@ export function useBusinessProductMutations() {
         throw productError;
       }
 
+      // Add missing properties for proper type conversion
+      const typedProduct = {
+        ...newProduct,
+        unit_price: newProduct.unit_price ?? 0,
+        selling_price: newProduct.selling_price ?? 0,
+        has_recipe: newProduct.has_recipe ?? false,
+        has_modifiers: newProduct.has_modifiers ?? false,
+        has_consumables: newProduct.has_consumables ?? false,
+      } as BusinessProduct;
+
       // Then, if there are sizes, add them
       if (productData.sizes && productData.sizes.length > 0 && newProduct) {
         const sizesToInsert = productData.sizes.map(size => ({
@@ -185,7 +195,7 @@ export function useBusinessProductMutations() {
         }
       }
 
-      return newProduct as BusinessProduct;
+      return typedProduct;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-products', business?.id] });
@@ -522,14 +532,16 @@ export function useBusinessProductMutations() {
       }
 
       // Add proper type assertion for the returned product
-      return {
+      const typedProduct = {
         ...updatedProduct,
-        unit_price: updatedProduct.unit_price || 0,
-        selling_price: updatedProduct.selling_price || 0,
-        has_recipe: updatedProduct.has_recipe || false,
-        has_modifiers: updatedProduct.has_modifiers || false,
-        has_consumables: updatedProduct.has_consumables || false,
-      } as unknown as BusinessProduct;
+        unit_price: updatedProduct.unit_price ?? 0,
+        selling_price: updatedProduct.selling_price ?? 0,
+        has_recipe: updatedProduct.has_recipe ?? false,
+        has_modifiers: updatedProduct.has_modifiers ?? false,
+        has_consumables: updatedProduct.has_consumables ?? false,
+      } as BusinessProduct;
+
+      return typedProduct;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['business-products', business?.id] });
