@@ -17,32 +17,91 @@ export function useBusinessStockMutations() {
 
       console.log('Creating stock transaction with business user ID:', businessUser.id);
       
-      // Set the business user ID in the session variable
-      await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+      try {
+        // Set the business user ID in the session variable
+        await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
+        
+        // Insert the stock transaction record
+        const { data, error } = await supabase
+          .from('business_stock_transactions')
+          .insert({
+            business_id: business.id,
+            item_type: stockData.item_type,
+            item_id: stockData.item_id,
+            transaction_type: stockData.transaction_type,
+            quantity: stockData.quantity,
+            adjustment_reason: stockData.adjustment_reason,
+            reason: stockData.reason,
+            updated_by: businessUser.id
+          })
+          .select()
+          .single();
 
-      const { data, error } = await supabase
-        .from('business_stock_transactions')
-        .insert({
-          business_id: business.id,
-          item_type: stockData.item_type,
-          item_id: stockData.item_id,
-          transaction_type: stockData.transaction_type,
-          quantity: stockData.quantity,
-          adjustment_reason: stockData.adjustment_reason,
-          reason: stockData.reason,
-          updated_by: businessUser.id
-        })
-        .select()
-        .single();
+        if (error) {
+          console.error('Error creating stock transaction:', error);
+          throw error;
+        }
 
-      if (error) {
-        console.error('Error creating stock transaction:', error);
+        // Our database trigger should handle the stock update, but we'll double-check
+        // by getting the updated quantity
+        let updatedQuantity: number | null = null;
+        let itemName: string | null = null;
+        
+        if (stockData.item_type === 'product') {
+          const { data: product, error: productError } = await supabase
+            .from('business_products')
+            .select('quantity_available, name')
+            .eq('id', stockData.item_id)
+            .single();
+          
+          if (productError) {
+            console.error('Error fetching updated product quantity:', productError);
+          } else {
+            updatedQuantity = product.quantity_available;
+            itemName = product.name;
+          }
+        } else if (stockData.item_type === 'ingredient') {
+          const { data: ingredient, error: ingredientError } = await supabase
+            .from('business_ingredients')
+            .select('quantity_available, name')
+            .eq('id', stockData.item_id)
+            .single();
+          
+          if (ingredientError) {
+            console.error('Error fetching updated ingredient quantity:', ingredientError);
+          } else {
+            updatedQuantity = ingredient.quantity_available;
+            itemName = ingredient.name;
+          }
+        } else if (stockData.item_type === 'consumable') {
+          const { data: consumable, error: consumableError } = await supabase
+            .from('business_consumables')
+            .select('quantity_available, name')
+            .eq('id', stockData.item_id)
+            .single();
+          
+          if (consumableError) {
+            console.error('Error fetching updated consumable quantity:', consumableError);
+          } else {
+            updatedQuantity = consumable.quantity_available;
+            itemName = consumable.name;
+          }
+        }
+        
+        console.log(`Updated quantity for ${stockData.item_type} (${itemName}): ${updatedQuantity}`);
+        
+        return {
+          ...data,
+          updatedQuantity,
+          itemName
+        };
+      } catch (error) {
+        console.error('Error in createStockTransaction:', error);
         throw error;
       }
-
-      return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (result, variables) => {
+      // Invalidate the stock transactions list
       queryClient.invalidateQueries({ 
         queryKey: ['business-stock-transactions', business?.id] 
       });
@@ -71,11 +130,14 @@ export function useBusinessStockMutations() {
         });
       }
       
-      toast.success('Stock updated successfully');
+      const actionType = variables.transaction_type === 'increase' ? 'increased' : 'decreased';
+      const updatedText = result.updatedQuantity !== null ? ` (New quantity: ${result.updatedQuantity})` : '';
+      
+      toast.success(`${result.itemName || 'Item'} stock ${actionType} by ${variables.quantity}${updatedText}`);
     },
     onError: (error) => {
       console.error('Failed to update stock:', error);
-      toast.error('Failed to update stock');
+      toast.error(`Failed to update stock: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 

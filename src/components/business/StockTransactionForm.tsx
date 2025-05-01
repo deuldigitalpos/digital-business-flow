@@ -33,9 +33,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Loader2, ArrowUp, ArrowDown, AlertTriangle } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z.object({
   item_type: z.enum(['product', 'ingredient', 'consumable'], {
@@ -67,10 +68,13 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
   const { data: products } = useBusinessProducts();
   const { data: ingredients } = useBusinessIngredients();
   const { data: consumables } = useBusinessConsumables();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const [selectedItemType, setSelectedItemType] = useState<'product' | 'ingredient' | 'consumable'>(
     itemType || 'product'
   );
+  const [selectedItemId, setSelectedItemId] = useState<string>(itemId || '');
+  const [currentQuantity, setCurrentQuantity] = useState<number | null>(null);
 
   const form = useForm<StockTransactionFormValues>({
     resolver: zodResolver(formSchema),
@@ -90,6 +94,7 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
       form.setValue('item_type', itemType);
       form.setValue('item_id', itemId);
       setSelectedItemType(itemType);
+      setSelectedItemId(itemId);
     }
   }, [itemType, itemId, form]);
 
@@ -100,8 +105,41 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
     // Reset item_id when changing item type (unless it's pre-selected)
     if (!itemId || watchItemType !== itemType) {
       form.setValue('item_id', '');
+      setSelectedItemId('');
+      setCurrentQuantity(null);
     }
   }, [watchItemType, form, itemId, itemType]);
+
+  // Watch the selected item ID
+  const watchItemId = form.watch('item_id');
+  useEffect(() => {
+    if (watchItemId !== selectedItemId) {
+      setSelectedItemId(watchItemId);
+      
+      // Fetch current quantity for the selected item
+      if (watchItemId) {
+        switch (selectedItemType) {
+          case 'product': {
+            const product = products?.find(p => p.id === watchItemId);
+            setCurrentQuantity(product ? product.quantity_available : null);
+            break;
+          }
+          case 'ingredient': {
+            const ingredient = ingredients?.find(i => i.id === watchItemId);
+            setCurrentQuantity(ingredient ? ingredient.quantity_available : null);
+            break;
+          }
+          case 'consumable': {
+            const consumable = consumables?.find(c => c.id === watchItemId);
+            setCurrentQuantity(consumable ? consumable.quantity_available : null);
+            break;
+          }
+        }
+      } else {
+        setCurrentQuantity(null);
+      }
+    }
+  }, [watchItemId, selectedItemId, selectedItemType, products, ingredients, consumables]);
 
   // Get the items based on the selected type
   const getItems = () => {
@@ -117,7 +155,28 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
     }
   };
 
+  // Watch transaction type and quantity for validation
+  const watchTransactionType = form.watch('transaction_type');
+  const watchQuantity = form.watch('quantity');
+  
+  useEffect(() => {
+    // Check if we're trying to decrease more than available
+    if (watchTransactionType === 'decrease' && currentQuantity !== null && watchQuantity > currentQuantity) {
+      setErrorMessage(`Warning: You are trying to decrease more than the current quantity (${currentQuantity})`);
+    } else {
+      setErrorMessage(null);
+    }
+  }, [watchTransactionType, watchQuantity, currentQuantity]);
+
   const onSubmit = async (data: StockTransactionFormValues) => {
+    setErrorMessage(null);
+    
+    // Extra validation for decrease transactions
+    if (data.transaction_type === 'decrease' && currentQuantity !== null && data.quantity > currentQuantity) {
+      setErrorMessage(`Error: You cannot decrease more than the current quantity (${currentQuantity})`);
+      return;
+    }
+    
     try {
       await createStockTransaction.mutateAsync(data);
       form.reset({
@@ -131,15 +190,40 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred');
     }
   };
 
+  const getItemTypeLabel = () => {
+    switch (selectedItemType) {
+      case 'product': return 'Product';
+      case 'ingredient': return 'Ingredient';
+      case 'consumable': return 'Consumable';
+      default: return 'Item';
+    }
+  };
+  
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Update Stock</CardTitle>
       </CardHeader>
       <CardContent>
+        {errorMessage && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+        
+        {currentQuantity !== null && (
+          <div className="mb-4 p-3 bg-muted rounded-md">
+            <p className="text-sm font-medium">
+              Current quantity: <span className="font-bold">{currentQuantity}</span>
+            </p>
+          </div>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             {/* Item Type Selection (hidden if pre-selected) */}
@@ -177,7 +261,7 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
               name="item_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Select Item</FormLabel>
+                  <FormLabel>Select {getItemTypeLabel()}</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     value={field.value}
@@ -191,7 +275,7 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
                     <SelectContent>
                       {getItems().map((item) => (
                         <SelectItem key={item.id} value={item.id}>
-                          {item.name}
+                          {item.name} {item.quantity_available !== undefined ? `(${item.quantity_available} in stock)` : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -250,7 +334,7 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
               )}
             />
 
-            {/* Adjustment Reason - Changed to text field */}
+            {/* Adjustment Reason */}
             <FormField
               control={form.control}
               name="adjustment_reason"
@@ -291,7 +375,7 @@ const StockTransactionForm: React.FC<StockTransactionFormProps> = ({
             <Button 
               type="submit" 
               className="w-full"
-              disabled={createStockTransaction.isPending}
+              disabled={createStockTransaction.isPending || (errorMessage !== null && errorMessage.startsWith('Error:'))}
             >
               {createStockTransaction.isPending ? (
                 <>
