@@ -28,11 +28,11 @@ export function useBusinessProducts() {
       // Add default values for properties that might be missing in the DB and cast to BusinessProduct
       return (data || []).map(product => ({
         ...product,
-        unit_price: product.unit_price || 0,
-        selling_price: product.selling_price || 0,
-        has_recipe: product.has_recipe || false,
-        has_modifiers: product.has_modifiers || false,
-        has_consumables: product.has_consumables || false,
+        unit_price: product.unit_price ?? 0,
+        selling_price: product.selling_price ?? 0,
+        has_recipe: product.has_recipe ?? false,
+        has_modifiers: product.has_modifiers ?? false,
+        has_consumables: product.has_consumables ?? false,
       })) as BusinessProduct[];
     },
     enabled: !!business?.id,
@@ -63,12 +63,12 @@ export function useBusinessProduct(id: string | undefined) {
       // Add default values for properties that might be missing in the DB and cast to BusinessProduct
       return {
         ...data,
-        unit_price: data.unit_price || 0,
-        selling_price: data.selling_price || 0,
-        has_recipe: data.has_recipe || false,
-        has_modifiers: data.has_modifiers || false,
-        has_consumables: data.has_consumables || false,
-      } as BusinessProduct;
+        unit_price: data.unit_price ?? 0,
+        selling_price: data.selling_price ?? 0,
+        has_recipe: data.has_recipe ?? false,
+        has_modifiers: data.has_modifiers ?? false,
+        has_consumables: data.has_consumables ?? false,
+      } as unknown as BusinessProduct;
     },
     enabled: !!id && !!business?.id,
   });
@@ -98,12 +98,12 @@ export function useLowStockProducts() {
       // Add default values for properties that might be missing in the DB and cast to BusinessProduct
       return (data || []).map(product => ({
         ...product,
-        unit_price: product.unit_price || 0,
-        selling_price: product.selling_price || 0,
-        has_recipe: product.has_recipe || false,
-        has_modifiers: product.has_modifiers || false,
-        has_consumables: product.has_consumables || false,
-      })) as BusinessProduct[];
+        unit_price: product.unit_price ?? 0,
+        selling_price: product.selling_price ?? 0,
+        has_recipe: product.has_recipe ?? false,
+        has_modifiers: product.has_modifiers ?? false,
+        has_consumables: product.has_consumables ?? false,
+      })) as unknown as BusinessProduct[];
     },
     enabled: !!business?.id,
   });
@@ -138,12 +138,12 @@ export function useExpiringProducts(daysThreshold: number = 30) {
       // Add default values for properties that might be missing in the DB and cast to BusinessProduct
       return (data || []).map(product => ({
         ...product,
-        unit_price: product.unit_price || 0,
-        selling_price: product.selling_price || 0,
-        has_recipe: product.has_recipe || false,
-        has_modifiers: product.has_modifiers || false,
-        has_consumables: product.has_consumables || false,
-      })) as BusinessProduct[];
+        unit_price: product.unit_price ?? 0,
+        selling_price: product.selling_price ?? 0,
+        has_recipe: product.has_recipe ?? false,
+        has_modifiers: product.has_modifiers ?? false,
+        has_consumables: product.has_consumables ?? false,
+      })) as unknown as BusinessProduct[];
     },
     enabled: !!business?.id,
   });

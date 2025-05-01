@@ -104,7 +104,7 @@ export type ProductFormValues = {
   warranty_id?: string;
   location_id?: string;
   image_url?: string;
-  expiration_date?: string; // Changed from string | Date to just string
+  expiration_date?: string; // Only string type, not Date
   alert_quantity?: number;
   is_consumable?: boolean;
   unit_price?: number;

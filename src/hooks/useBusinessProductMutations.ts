@@ -14,10 +14,8 @@ export function useBusinessProductMutations() {
         throw new Error('Business ID is required');
       }
 
-      // Ensure expiration_date is converted to string if it's a Date object
-      const expiration_date = productData.expiration_date instanceof Date 
-        ? productData.expiration_date.toISOString() 
-        : productData.expiration_date;
+      // Handle expiration date - ensure it's a string
+      const expiration_date = productData.expiration_date || null;
 
       // Process optional IDs, converting "none" to null
       const category_id = productData.category_id === "none" ? null : productData.category_id;
@@ -187,7 +185,7 @@ export function useBusinessProductMutations() {
         }
       }
 
-      return newProduct;
+      return newProduct as BusinessProduct;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-products', business?.id] });
@@ -201,10 +199,8 @@ export function useBusinessProductMutations() {
 
   const updateProduct = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ProductFormValues }) => {
-      // Ensure expiration_date is converted to string if it's a Date object
-      const expiration_date = data.expiration_date instanceof Date 
-        ? data.expiration_date.toISOString() 
-        : data.expiration_date;
+      // Handle expiration date - ensure it's a string
+      const expiration_date = data.expiration_date || null;
 
       // Process optional IDs, converting "none" to null
       const category_id = data.category_id === "none" ? null : data.category_id;
@@ -525,7 +521,7 @@ export function useBusinessProductMutations() {
         }
       }
 
-      // Add type assertion for the returned product
+      // Add proper type assertion for the returned product
       return {
         ...updatedProduct,
         unit_price: updatedProduct.unit_price || 0,
@@ -533,7 +529,7 @@ export function useBusinessProductMutations() {
         has_recipe: updatedProduct.has_recipe || false,
         has_modifiers: updatedProduct.has_modifiers || false,
         has_consumables: updatedProduct.has_consumables || false,
-      } as BusinessProduct;
+      } as unknown as BusinessProduct;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['business-products', business?.id] });
