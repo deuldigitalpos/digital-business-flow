@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -990,7 +989,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         
         {/* Recipe Section */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle>Recipe</CardTitle>
               <CardDescription>
