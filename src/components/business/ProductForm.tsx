@@ -150,6 +150,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
       const formData: ProductFormValues = {
         ...values,
         name: values.name, // Ensure name is explicitly set to fix type error
+        // Convert Date object to ISO string if it exists
+        expiration_date: values.expiration_date ? values.expiration_date.toISOString() : undefined,
         sizes: sizes.filter(size => size.size_name.trim() !== '')
       };
 

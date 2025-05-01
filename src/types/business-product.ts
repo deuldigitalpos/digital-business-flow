@@ -43,7 +43,7 @@ export type ProductFormValues = {
   warranty_id?: string;
   location_id?: string;
   image_url?: string;
-  expiration_date?: string;
+  expiration_date?: string | Date; // Updated to accept both string and Date
   alert_quantity?: number;
   is_raw_ingredient?: boolean;
   is_consumable?: boolean;
