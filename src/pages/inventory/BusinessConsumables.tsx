@@ -26,7 +26,7 @@ const BusinessConsumables: React.FC = () => {
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [isStockFormOpen, setIsStockFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all"); // Initialize with 'all'
   const { data: categories } = useBusinessCategories();
 
   return (
@@ -86,7 +86,7 @@ const BusinessConsumables: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
                     {categories?.map(category => (
-                      <SelectItem key={category.id} value={category.id}>
+                      <SelectItem key={category.id} value={category.id || "no-category"}>
                         {category.name}
                       </SelectItem>
                     ))}

@@ -170,7 +170,7 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
                   </FormControl>
                   <SelectContent>
                     {categories?.map(category => (
-                      <SelectItem key={category.id} value={category.id}>
+                      <SelectItem key={category.id} value={category.id || "no-id"}>
                         {category.name}
                       </SelectItem>
                     ))}
@@ -198,7 +198,7 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
                   </FormControl>
                   <SelectContent>
                     {units?.map(unit => (
-                      <SelectItem key={unit.id} value={unit.id}>
+                      <SelectItem key={unit.id} value={unit.id || "no-id"}>
                         {unit.name} ({unit.short_name})
                       </SelectItem>
                     ))}
