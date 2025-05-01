@@ -14,6 +14,11 @@ import {
   BarChart2,
   PanelRight,
   ShoppingCart,
+  Package,
+  Database,
+  Box,
+  Ingredient,
+  Plus,
 } from 'lucide-react';
 
 export interface SidebarNavItem {
@@ -96,6 +101,43 @@ export const sidebarNavigation: SidebarNavSection[] = [
             href: '/business-dashboard/suppliers',
             icon: Store,
             permission: 'suppliers'
+          },
+        ],
+      },
+      {
+        title: 'Inventory',
+        icon: Database,
+        permission: 'inventory',
+        children: [
+          {
+            title: 'Products',
+            href: '/business-dashboard/inventory/products',
+            icon: Package,
+            permission: 'products'
+          },
+          {
+            title: 'Consumables',
+            href: '/business-dashboard/inventory/consumables',
+            icon: Box,
+            permission: 'inventory'
+          },
+          {
+            title: 'Raw Ingredients',
+            href: '/business-dashboard/inventory/ingredients',
+            icon: Ingredient,
+            permission: 'inventory'
+          },
+          {
+            title: 'Add-ons',
+            href: '/business-dashboard/inventory/addons',
+            icon: Plus,
+            permission: 'inventory'
+          },
+          {
+            title: 'Stock Management',
+            href: '/business-dashboard/inventory/stock',
+            icon: ShoppingCart,
+            permission: 'stock'
           },
         ],
       },
