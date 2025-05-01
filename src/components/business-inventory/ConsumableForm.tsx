@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -113,13 +114,13 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
     }
   };
 
-  // Enhanced function to ensure we never have empty string values
-  const getSafeValue = (value: string | null | undefined, prefix: string, name: string): string => {
+  // Robust function to ensure we never have empty string values
+  const getSafeValue = (value: string | null | undefined, prefix: string, name: string | null | undefined): string => {
     // If we have a valid ID and it's not an empty string, use it
     if (value && value.trim() !== '') return value;
     
-    // Otherwise, generate a unique fallback value
-    const safeName = name && name.trim() !== '' ? name : 'unnamed';
+    // Generate a unique fallback value with sanitized name
+    const safeName = name && name.trim() !== '' ? name.trim() : 'unnamed';
     return `${prefix}-${safeName}-${Math.random().toString(36).substring(2, 9)}`;
   };
 
@@ -178,14 +179,18 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {(categories || []).map(category => (
-                      <SelectItem 
-                        key={category.id || `cat-${category.name}`} 
-                        value={getSafeValue(category.id, 'category', category.name)}
-                      >
-                        {category.name}
-                      </SelectItem>
-                    ))}
+                    {(categories || []).map(category => {
+                      // Generate a guaranteed non-empty value for each category
+                      const safeValue = getSafeValue(category.id, 'category', category.name);
+                      return (
+                        <SelectItem 
+                          key={safeValue}
+                          value={safeValue}
+                        >
+                          {category.name || 'Unnamed Category'}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -209,14 +214,18 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {(units || []).map(unit => (
-                      <SelectItem 
-                        key={unit.id || `unit-${unit.name}`} 
-                        value={getSafeValue(unit.id, 'unit', unit.name)}
-                      >
-                        {unit.name} ({unit.short_name})
-                      </SelectItem>
-                    ))}
+                    {(units || []).map(unit => {
+                      // Generate a guaranteed non-empty value for each unit
+                      const safeValue = getSafeValue(unit.id, 'unit', unit.name);
+                      return (
+                        <SelectItem
+                          key={safeValue}
+                          value={safeValue}
+                        >
+                          {unit.name || 'Unnamed Unit'} ({unit.short_name || '-'})
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <FormMessage />

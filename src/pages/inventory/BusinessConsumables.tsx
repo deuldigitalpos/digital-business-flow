@@ -29,12 +29,13 @@ const BusinessConsumables: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { data: categories = [] } = useBusinessCategories();
 
-  // Enhanced function to ensure we never have empty string values for categories
-  const getSafeCategoryValue = (id: string | null | undefined, name: string): string => {
+  // Robust function to ensure we never have empty string values for IDs
+  const getSafeCategoryValue = (id: string | null | undefined, name: string | null | undefined): string => {
     // If we have a valid ID and it's not an empty string, use it
     if (id && id.trim() !== '') return id;
-    // Generate a unique, non-empty fallback value
-    const safeName = name && name.trim() !== '' ? name : 'unnamed';
+    
+    // Generate a unique, non-empty fallback value using sanitized name or default
+    const safeName = name && name.trim() !== '' ? name.trim() : 'unnamed';
     return `category-${safeName}-${Math.random().toString(36).substring(2, 9)}`;
   };
 
@@ -94,14 +95,18 @@ const BusinessConsumables: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {(categories || []).map(category => (
-                      <SelectItem 
-                        key={category.id || `cat-${category.name}`} 
-                        value={getSafeCategoryValue(category.id, category.name)}
-                      >
-                        {category.name}
-                      </SelectItem>
-                    ))}
+                    {(categories || []).map(category => {
+                      // Generate a guaranteed non-empty value for each item
+                      const safeValue = getSafeCategoryValue(category.id, category.name);
+                      return (
+                        <SelectItem 
+                          key={safeValue}
+                          value={safeValue}
+                        >
+                          {category.name || 'Unnamed Category'}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>

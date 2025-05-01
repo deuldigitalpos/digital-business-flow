@@ -68,23 +68,23 @@ const ConsumableList: React.FC<ConsumableListProps> = ({
     }
   };
 
-  // Helper to check if a consumable's category matches the filter
+  // Comprehensive helper to check if a consumable's category matches the filter
   const categoryMatches = (consumable: BusinessConsumable, filter?: string) => {
+    // Case 1: No filter selected or "all" is selected
     if (!filter || filter === 'all') return true;
     
-    // Handle case where category_id exists
+    // Case 2: Direct category ID match
     if (consumable.category_id && filter.includes(consumable.category_id)) return true;
     
-    // Handle case where category_id is null but filter contains a generated ID
-    if (consumable.category_id === null && filter.includes('category-')) {
-      // If we're dealing with a generated ID (starts with "category-")
-      // and the consumable's category is null, this could be a match
-      if (consumable.category?.name) {
-        // If filter contains both "category-" and the category name, it's likely a match
-        return filter.toLowerCase().includes(consumable.category.name.toLowerCase());
-      }
-      // If there's no category name but the filter is for unnamed categories
-      return filter.includes('unnamed');
+    // Case 3: Handle generated ID matches - match based on category name in filter
+    if (filter.includes('category-') && consumable.category?.name) {
+      // If filter contains both "category-" and the category name, likely a match
+      return filter.toLowerCase().includes(consumable.category.name.toLowerCase());
+    }
+    
+    // Case 4: Handle unnamed categories
+    if (consumable.category_id === null && filter.includes('unnamed')) {
+      return true;
     }
     
     return false;
@@ -97,7 +97,7 @@ const ConsumableList: React.FC<ConsumableListProps> = ({
       consumable.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (consumable.description && consumable.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Filter by category using our helper function
+    // Filter by category using our comprehensive helper function
     const matchesCategory = categoryMatches(consumable, categoryFilter);
     
     return matchesSearch && matchesCategory;
