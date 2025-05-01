@@ -20,9 +20,15 @@ export interface BusinessProduct {
   is_consumable: boolean;
   ingredient_id: string | null;
   consumable_id: string | null;
+  unit_price: number | null;
+  selling_price: number | null;
+  has_recipe: boolean;
+  has_modifiers: boolean;
   created_at: string;
   updated_at: string;
   business_product_sizes?: BusinessProductSize[];
+  business_product_recipes?: BusinessProductRecipe[];
+  business_product_modifiers?: BusinessProductModifier[];
 }
 
 export interface BusinessProductSize {
@@ -32,6 +38,44 @@ export interface BusinessProductSize {
   price: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface BusinessProductRecipe {
+  id: string;
+  product_id: string;
+  ingredient_id: string;
+  quantity: number;
+  unit_id: string | null;
+  cost: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BusinessProductModifier {
+  id: string;
+  product_id: string;
+  name: string;
+  size_regular_price: number;
+  size_medium_price: number | null;
+  size_large_price: number | null;
+  size_xl_price: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecipeItem {
+  ingredient_id: string;
+  quantity: number;
+  unit_id: string | null;
+  cost: number;
+}
+
+export interface ModifierItem {
+  name: string;
+  size_regular_price: number;
+  size_medium_price: number | null;
+  size_large_price: number | null;
+  size_xl_price: number | null;
 }
 
 export type ProductFormValues = {
@@ -49,8 +93,14 @@ export type ProductFormValues = {
   is_consumable?: boolean;
   ingredient_id?: string;
   consumable_id?: string;
+  unit_price?: number;
+  selling_price?: number;
+  has_recipe?: boolean;
+  has_modifiers?: boolean;
   sizes?: {
     size_name: string;
     price: number;
   }[];
+  recipe_items?: RecipeItem[];
+  modifier_items?: ModifierItem[];
 };

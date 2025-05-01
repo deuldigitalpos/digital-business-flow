@@ -1,7 +1,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BusinessProduct, ProductFormValues, BusinessProductSize } from '@/types/business-product';
+import { BusinessProduct, ProductFormValues, BusinessProductSize, RecipeItem, ModifierItem } from '@/types/business-product';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { toast } from 'sonner';
 
@@ -47,6 +47,10 @@ export function useBusinessProductMutations() {
           is_consumable: productData.is_consumable || false,
           ingredient_id: ingredient_id,
           consumable_id: consumable_id,
+          unit_price: productData.unit_price || 0,
+          selling_price: productData.selling_price || 0,
+          has_recipe: productData.has_recipe || false,
+          has_modifiers: productData.has_modifiers || false,
           quantity_available: 0, // Initial stock is 0
           quantity_sold: 0
         })
@@ -73,6 +77,47 @@ export function useBusinessProductMutations() {
         if (sizesError) {
           console.error('Error creating product sizes:', sizesError);
           throw sizesError;
+        }
+      }
+
+      // If there's a recipe, add the recipe items
+      if (productData.has_recipe && productData.recipe_items && productData.recipe_items.length > 0 && newProduct) {
+        const recipeItems = productData.recipe_items.map(item => ({
+          product_id: newProduct.id,
+          ingredient_id: item.ingredient_id,
+          quantity: item.quantity,
+          unit_id: item.unit_id,
+          cost: item.cost
+        }));
+
+        const { error: recipeError } = await supabase
+          .from('business_product_recipes')
+          .insert(recipeItems);
+
+        if (recipeError) {
+          console.error('Error creating product recipe items:', recipeError);
+          throw recipeError;
+        }
+      }
+
+      // If there are modifiers, add them
+      if (productData.has_modifiers && productData.modifier_items && productData.modifier_items.length > 0 && newProduct) {
+        const modifierItems = productData.modifier_items.map(item => ({
+          product_id: newProduct.id,
+          name: item.name,
+          size_regular_price: item.size_regular_price,
+          size_medium_price: item.size_medium_price,
+          size_large_price: item.size_large_price,
+          size_xl_price: item.size_xl_price
+        }));
+
+        const { error: modifiersError } = await supabase
+          .from('business_product_modifiers')
+          .insert(modifierItems);
+
+        if (modifiersError) {
+          console.error('Error creating product modifiers:', modifiersError);
+          throw modifiersError;
         }
       }
 
@@ -120,7 +165,11 @@ export function useBusinessProductMutations() {
           is_raw_ingredient: data.is_raw_ingredient,
           is_consumable: data.is_consumable,
           ingredient_id: ingredient_id,
-          consumable_id: consumable_id
+          consumable_id: consumable_id,
+          unit_price: data.unit_price || 0,
+          selling_price: data.selling_price || 0,
+          has_recipe: data.has_recipe || false,
+          has_modifiers: data.has_modifiers || false
         })
         .eq('id', id)
         .select()
@@ -161,6 +210,97 @@ export function useBusinessProductMutations() {
         }
       }
 
+      // Handle recipe items if this product has a recipe
+      if (data.has_recipe && data.recipe_items) {
+        // Delete existing recipe items
+        const { error: deleteRecipeError } = await supabase
+          .from('business_product_recipes')
+          .delete()
+          .eq('product_id', id);
+
+        if (deleteRecipeError) {
+          console.error('Error deleting product recipe items:', deleteRecipeError);
+          throw deleteRecipeError;
+        }
+
+        // Insert new recipe items
+        if (data.recipe_items.length > 0) {
+          const recipeItems = data.recipe_items.map(item => ({
+            product_id: id,
+            ingredient_id: item.ingredient_id,
+            quantity: item.quantity,
+            unit_id: item.unit_id,
+            cost: item.cost
+          }));
+
+          const { error: insertRecipeError } = await supabase
+            .from('business_product_recipes')
+            .insert(recipeItems);
+
+          if (insertRecipeError) {
+            console.error('Error inserting product recipe items:', insertRecipeError);
+            throw insertRecipeError;
+          }
+        }
+      } else {
+        // If product no longer has a recipe, delete any existing recipe items
+        const { error: deleteRecipeError } = await supabase
+          .from('business_product_recipes')
+          .delete()
+          .eq('product_id', id);
+
+        if (deleteRecipeError) {
+          console.error('Error deleting product recipe items:', deleteRecipeError);
+          throw deleteRecipeError;
+        }
+      }
+
+      // Handle modifiers if this product has modifiers
+      if (data.has_modifiers && data.modifier_items) {
+        // Delete existing modifiers
+        const { error: deleteModifiersError } = await supabase
+          .from('business_product_modifiers')
+          .delete()
+          .eq('product_id', id);
+
+        if (deleteModifiersError) {
+          console.error('Error deleting product modifiers:', deleteModifiersError);
+          throw deleteModifiersError;
+        }
+
+        // Insert new modifiers
+        if (data.modifier_items.length > 0) {
+          const modifierItems = data.modifier_items.map(item => ({
+            product_id: id,
+            name: item.name,
+            size_regular_price: item.size_regular_price,
+            size_medium_price: item.size_medium_price,
+            size_large_price: item.size_large_price,
+            size_xl_price: item.size_xl_price
+          }));
+
+          const { error: insertModifiersError } = await supabase
+            .from('business_product_modifiers')
+            .insert(modifierItems);
+
+          if (insertModifiersError) {
+            console.error('Error inserting product modifiers:', insertModifiersError);
+            throw insertModifiersError;
+          }
+        }
+      } else {
+        // If product no longer has modifiers, delete any existing modifiers
+        const { error: deleteModifiersError } = await supabase
+          .from('business_product_modifiers')
+          .delete()
+          .eq('product_id', id);
+
+        if (deleteModifiersError) {
+          console.error('Error deleting product modifiers:', deleteModifiersError);
+          throw deleteModifiersError;
+        }
+      }
+
       return updatedProduct as BusinessProduct;
     },
     onSuccess: (_, variables) => {
@@ -176,7 +316,7 @@ export function useBusinessProductMutations() {
 
   const deleteProduct = useMutation({
     mutationFn: async (id: string) => {
-      // Delete will cascade to product sizes due to the foreign key constraint
+      // Delete will cascade to product sizes, recipes, and modifiers due to foreign key constraints
       const { error } = await supabase
         .from('business_products')
         .delete()

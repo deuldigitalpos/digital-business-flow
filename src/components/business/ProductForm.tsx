@@ -1,16 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useBusinessProductMutations } from '@/hooks/useBusinessProductMutations';
-import { BusinessProduct, ProductFormValues } from '@/types/business-product';
+import { BusinessProduct, ProductFormValues, RecipeItem, ModifierItem } from '@/types/business-product';
 import { useBusinessBrands } from '@/hooks/useBusinessBrands';
 import { useBusinessCategories } from '@/hooks/useBusinessCategories';
 import { useBusinessWarranties } from '@/hooks/useBusinessWarranties';
 import { useBusinessLocations } from '@/hooks/useBusinessLocations';
 import { useBusinessIngredients } from '@/hooks/useBusinessIngredients';
 import { useBusinessConsumables } from '@/hooks/useBusinessConsumables';
+import { useProductRecipes, useProductModifiers } from '@/hooks/useBusinessProductRecipeModifiers';
 import { toast } from 'sonner';
 
 import {
@@ -39,6 +40,9 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import RecipeItemForm from './RecipeItemForm';
+import ModifierItemForm from './ModifierItemForm';
 
 // Define the schema for the form validation
 const formSchema = z.object({
@@ -56,6 +60,10 @@ const formSchema = z.object({
   is_consumable: z.boolean().default(false),
   ingredient_id: z.string().optional(),
   consumable_id: z.string().optional(),
+  has_recipe: z.boolean().default(false),
+  has_modifiers: z.boolean().default(false),
+  unit_price: z.coerce.number().min(0).optional(),
+  selling_price: z.coerce.number().min(0).optional(),
   sizes: z.array(
     z.object({
       size_name: z.string().min(1, { message: 'Size name is required' }),
@@ -77,8 +85,21 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
   const { data: locations = [] } = useBusinessLocations();
   const { data: ingredients = [] } = useBusinessIngredients();
   const { data: consumables = [] } = useBusinessConsumables();
+  const { data: productRecipes = [] } = useProductRecipes(product?.id);
+  const { data: productModifiers = [] } = useProductModifiers(product?.id);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [totalRecipeCost, setTotalRecipeCost] = useState(0);
+
+  // Initialize recipe items
+  const [recipeItems, setRecipeItems] = useState<RecipeItem[]>([
+    { ingredient_id: '', quantity: 0, unit_id: null, cost: 0 }
+  ]);
+
+  // Initialize modifier items
+  const [modifierItems, setModifierItems] = useState<ModifierItem[]>([
+    { name: '', size_regular_price: 0, size_medium_price: null, size_large_price: null, size_xl_price: null }
+  ]);
 
   // Initialize the form with default values or values from the product being edited
   const form = useForm<z.infer<typeof formSchema>>({
@@ -98,13 +119,63 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
       is_consumable: product?.is_consumable || false,
       ingredient_id: product?.ingredient_id || '',
       consumable_id: product?.consumable_id || '',
+      has_recipe: product?.has_recipe || false,
+      has_modifiers: product?.has_modifiers || false,
+      unit_price: product?.unit_price || 0,
+      selling_price: product?.selling_price || 0,
       sizes: []
     }
   });
 
-  // Watch for changes in the is_raw_ingredient and is_consumable fields
+  // Watch for changes in form fields
   const isRawIngredient = form.watch('is_raw_ingredient');
   const isConsumable = form.watch('is_consumable');
+  const hasRecipe = form.watch('has_recipe');
+  const hasModifiers = form.watch('has_modifiers');
+  const unitPrice = form.watch('unit_price');
+
+  // Load existing product data if editing
+  useEffect(() => {
+    if (product) {
+      // Load recipe items if available
+      if (product.has_recipe && productRecipes.length > 0) {
+        const loadedRecipeItems: RecipeItem[] = productRecipes.map(recipe => ({
+          ingredient_id: recipe.ingredient_id,
+          quantity: recipe.quantity,
+          unit_id: recipe.unit_id,
+          cost: recipe.cost
+        }));
+        setRecipeItems(loadedRecipeItems);
+      }
+
+      // Load modifier items if available
+      if (product.has_modifiers && productModifiers.length > 0) {
+        const loadedModifierItems: ModifierItem[] = productModifiers.map(modifier => ({
+          name: modifier.name,
+          size_regular_price: modifier.size_regular_price,
+          size_medium_price: modifier.size_medium_price,
+          size_large_price: modifier.size_large_price,
+          size_xl_price: modifier.size_xl_price
+        }));
+        setModifierItems(loadedModifierItems);
+      }
+
+      // Update unit price field
+      form.setValue('unit_price', product.unit_price || 0);
+      form.setValue('selling_price', product.selling_price || 0);
+    }
+  }, [product, productRecipes, productModifiers]);
+
+  // Calculate total recipe cost whenever recipe items change
+  useEffect(() => {
+    const total = recipeItems.reduce((sum, item) => sum + (item.cost || 0), 0);
+    setTotalRecipeCost(total);
+    
+    // Update unit price with recipe cost if has recipe
+    if (hasRecipe && total > 0) {
+      form.setValue('unit_price', parseFloat(total.toFixed(2)));
+    }
+  }, [recipeItems, hasRecipe]);
 
   // State for product sizes
   const [sizes, setSizes] = useState<{ size_name: string; price: number }[]>([
@@ -142,6 +213,47 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
     setSizes(newSizes);
   };
 
+  // Add recipe item
+  const handleAddRecipeItem = () => {
+    setRecipeItems([...recipeItems, { ingredient_id: '', quantity: 0, unit_id: null, cost: 0 }]);
+  };
+
+  // Remove recipe item
+  const handleRemoveRecipeItem = (index: number) => {
+    const newRecipeItems = [...recipeItems];
+    newRecipeItems.splice(index, 1);
+    setRecipeItems(newRecipeItems);
+  };
+
+  // Update recipe item
+  const handleRecipeItemChange = (index: number, updatedItem: RecipeItem) => {
+    const newRecipeItems = [...recipeItems];
+    newRecipeItems[index] = updatedItem;
+    setRecipeItems(newRecipeItems);
+  };
+
+  // Add modifier item
+  const handleAddModifierItem = () => {
+    setModifierItems([
+      ...modifierItems,
+      { name: '', size_regular_price: 0, size_medium_price: null, size_large_price: null, size_xl_price: null }
+    ]);
+  };
+
+  // Remove modifier item
+  const handleRemoveModifierItem = (index: number) => {
+    const newModifierItems = [...modifierItems];
+    newModifierItems.splice(index, 1);
+    setModifierItems(newModifierItems);
+  };
+
+  // Update modifier item
+  const handleModifierItemChange = (index: number, updatedItem: ModifierItem) => {
+    const newModifierItems = [...modifierItems];
+    newModifierItems[index] = updatedItem;
+    setModifierItems(newModifierItems);
+  };
+
   // Handle form submission
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -152,7 +264,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
         name: values.name, // Ensure name is explicitly set to fix type error
         // Convert Date object to ISO string if it exists
         expiration_date: values.expiration_date ? values.expiration_date.toISOString() : undefined,
-        sizes: sizes.filter(size => size.size_name.trim() !== '')
+        sizes: sizes.filter(size => size.size_name.trim() !== ''),
+        recipe_items: hasRecipe ? recipeItems.filter(item => !!item.ingredient_id) : undefined,
+        modifier_items: hasModifiers ? modifierItems.filter(item => !!item.name) : undefined
       };
 
       if (product) {
@@ -251,7 +365,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {/* Changed from value="" to value="none" */}
                       <SelectItem value="none">None</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
@@ -281,7 +394,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {/* Changed from value="" to value="none" */}
                       <SelectItem value="none">None</SelectItem>
                       {brands.map((brand) => (
                         <SelectItem key={brand.id} value={brand.id}>
@@ -294,6 +406,54 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="unit_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Unit Price</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        disabled={hasRecipe}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {hasRecipe ? 'Auto-calculated from recipe' : 'Cost price per unit'}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="selling_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Selling Price</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -315,7 +475,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {/* Changed from value="" to value="none" */}
                       <SelectItem value="none">None</SelectItem>
                       {warranties.map((warranty) => (
                         <SelectItem key={warranty.id} value={warranty.id}>
@@ -345,7 +504,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {/* Changed from value="" to value="none" */}
                       <SelectItem value="none">None</SelectItem>
                       {locations.map((location) => (
                         <SelectItem key={location.id} value={location.id}>
@@ -483,6 +641,48 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="has_recipe"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Recipe</FormLabel>
+                    <FormDescription>
+                      Check if this product has a recipe
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="has_modifiers"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Modifiers</FormLabel>
+                    <FormDescription>
+                      Check if this product has modifiers
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </div>
 
           {isRawIngredient && (
@@ -502,7 +702,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {/* Changed from value="" to value="none" */}
                       <SelectItem value="none">None</SelectItem>
                       {ingredients.map((ingredient) => (
                         <SelectItem key={ingredient.id} value={ingredient.id}>
@@ -534,7 +733,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {/* Changed from value="" to value="none" */}
                       <SelectItem value="none">None</SelectItem>
                       {consumables.map((consumable) => (
                         <SelectItem key={consumable.id} value={consumable.id}>
@@ -550,6 +748,77 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
           )}
         </div>
 
+        {hasRecipe && (
+          <>
+            <Separator />
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Recipe Ingredients</h3>
+                <div className="flex items-center gap-4">
+                  <div className="text-sm font-medium">
+                    Total Cost: <span className="text-primary">{totalRecipeCost.toFixed(2)}</span>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleAddRecipeItem}
+                    className="gap-1"
+                  >
+                    <Plus className="h-4 w-4" /> Add Ingredient
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {recipeItems.map((item, index) => (
+                  <RecipeItemForm
+                    key={index}
+                    index={index}
+                    value={item}
+                    onChange={handleRecipeItemChange}
+                    onRemove={handleRemoveRecipeItem}
+                    isRemovable={recipeItems.length > 1}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+        
+        {hasModifiers && (
+          <>
+            <Separator />
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Product Modifiers</h3>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleAddModifierItem}
+                  className="gap-1"
+                >
+                  <Plus className="h-4 w-4" /> Add Modifier
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {modifierItems.map((item, index) => (
+                  <ModifierItemForm
+                    key={index}
+                    index={index}
+                    value={item}
+                    onChange={handleModifierItemChange}
+                    onRemove={handleRemoveModifierItem}
+                    isRemovable={modifierItems.length > 1}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+        
         <Separator />
 
         <div className="space-y-6">
