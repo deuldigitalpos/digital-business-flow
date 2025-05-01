@@ -18,10 +18,7 @@ export function useBusinessStockMutations() {
       console.log('Creating stock transaction with business user ID:', businessUser.id);
       
       try {
-        // Set the business user ID in the session variable
-        await supabase.rpc('set_business_user_id', { business_user_id: businessUser.id });
-        
-        // Insert the stock transaction record
+        // Create the stock transaction record without trying to set the session variable
         const { data, error } = await supabase
           .from('business_stock_transactions')
           .insert({
@@ -129,6 +126,11 @@ export function useBusinessStockMutations() {
           queryKey: ['business-consumable', variables.item_id]
         });
       }
+      
+      // Also invalidate the recent stock transactions
+      queryClient.invalidateQueries({
+        queryKey: ['recent-stock-transactions', business?.id]
+      });
       
       const actionType = variables.transaction_type === 'increase' ? 'increased' : 'decreased';
       const updatedText = result.updatedQuantity !== null ? ` (New quantity: ${result.updatedQuantity})` : '';
