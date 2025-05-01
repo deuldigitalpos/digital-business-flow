@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BusinessProduct, ProductFormValues, BusinessProductSize, RecipeItem, ModifierItem } from '@/types/business-product';
+import { BusinessProduct, ProductFormValues } from '@/types/business-product';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { toast } from 'sonner';
 
@@ -525,6 +525,7 @@ export function useBusinessProductMutations() {
         }
       }
 
+      // Add type assertion for the returned product
       return {
         ...updatedProduct,
         unit_price: updatedProduct.unit_price || 0,

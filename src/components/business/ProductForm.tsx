@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -478,6 +477,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
+  // Fix the expiration_date field handling
+  const handleExpireDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Always store as string, not as Date object
+    form.setValue('expiration_date', e.target.value);
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -655,7 +660,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <Input
                       type="date"
                       value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value)}
+                      onChange={handleExpireDateChange}
                     />
                   </FormControl>
                   <FormMessage />

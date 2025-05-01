@@ -25,7 +25,7 @@ export function useBusinessProducts() {
         throw error;
       }
 
-      // Add default values for new fields that might be missing in the DB
+      // Add default values for properties that might be missing in the DB and cast to BusinessProduct
       return (data || []).map(product => ({
         ...product,
         unit_price: product.unit_price || 0,
@@ -60,17 +60,15 @@ export function useBusinessProduct(id: string | undefined) {
         throw error;
       }
 
-      // Add default values for new fields that might be missing in the DB
-      const productWithDefaults = {
+      // Add default values for properties that might be missing in the DB and cast to BusinessProduct
+      return {
         ...data,
         unit_price: data.unit_price || 0,
         selling_price: data.selling_price || 0,
         has_recipe: data.has_recipe || false,
         has_modifiers: data.has_modifiers || false,
         has_consumables: data.has_consumables || false,
-      } as BusinessProduct & { business_product_sizes: any[] };
-
-      return productWithDefaults;
+      } as BusinessProduct;
     },
     enabled: !!id && !!business?.id,
   });
@@ -97,7 +95,7 @@ export function useLowStockProducts() {
         throw error;
       }
 
-      // Add default values for new fields that might be missing in the DB
+      // Add default values for properties that might be missing in the DB and cast to BusinessProduct
       return (data || []).map(product => ({
         ...product,
         unit_price: product.unit_price || 0,
@@ -137,7 +135,7 @@ export function useExpiringProducts(daysThreshold: number = 30) {
         throw error;
       }
 
-      // Add default values for new fields that might be missing in the DB
+      // Add default values for properties that might be missing in the DB and cast to BusinessProduct
       return (data || []).map(product => ({
         ...product,
         unit_price: product.unit_price || 0,
