@@ -243,7 +243,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                   <FormLabel>Category</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    value={field.value || ''}
+                    value={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -251,7 +251,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      {/* Changed from value="" to value="none" */}
+                      <SelectItem value="none">None</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
@@ -272,7 +273,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                   <FormLabel>Brand</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    value={field.value || ''}
+                    value={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -280,7 +281,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      {/* Changed from value="" to value="none" */}
+                      <SelectItem value="none">None</SelectItem>
                       {brands.map((brand) => (
                         <SelectItem key={brand.id} value={brand.id}>
                           {brand.name}
@@ -305,7 +307,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                   <FormLabel>Warranty</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    value={field.value || ''}
+                    value={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -313,7 +315,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      {/* Changed from value="" to value="none" */}
+                      <SelectItem value="none">None</SelectItem>
                       {warranties.map((warranty) => (
                         <SelectItem key={warranty.id} value={warranty.id}>
                           {warranty.name} ({warranty.duration} {warranty.duration_unit})
@@ -334,7 +337,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                   <FormLabel>Business Location</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    value={field.value || ''}
+                    value={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -342,7 +345,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      {/* Changed from value="" to value="none" */}
+                      <SelectItem value="none">None</SelectItem>
                       {locations.map((location) => (
                         <SelectItem key={location.id} value={location.id}>
                           {location.name}
@@ -490,7 +494,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                   <FormLabel>Select Ingredient</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    value={field.value || ''}
+                    value={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -498,7 +502,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      {/* Changed from value="" to value="none" */}
+                      <SelectItem value="none">None</SelectItem>
                       {ingredients.map((ingredient) => (
                         <SelectItem key={ingredient.id} value={ingredient.id}>
                           {ingredient.name} - {ingredient.unit_price} per unit ({ingredient.quantity_available} available)
@@ -521,7 +526,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                   <FormLabel>Select Consumable</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    value={field.value || ''}
+                    value={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -529,7 +534,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      {/* Changed from value="" to value="none" */}
+                      <SelectItem value="none">None</SelectItem>
                       {consumables.map((consumable) => (
                         <SelectItem key={consumable.id} value={consumable.id}>
                           {consumable.name} - {consumable.unit_price} per unit ({consumable.quantity_available} available)

@@ -20,6 +20,14 @@ export function useBusinessProductMutations() {
         ? productData.expiration_date.toISOString() 
         : productData.expiration_date;
 
+      // Process optional IDs, converting "none" to null
+      const category_id = productData.category_id === "none" ? null : productData.category_id;
+      const brand_id = productData.brand_id === "none" ? null : productData.brand_id;
+      const warranty_id = productData.warranty_id === "none" ? null : productData.warranty_id;
+      const location_id = productData.location_id === "none" ? null : productData.location_id;
+      const ingredient_id = productData.ingredient_id === "none" ? null : productData.ingredient_id;
+      const consumable_id = productData.consumable_id === "none" ? null : productData.consumable_id;
+
       // First, create the product
       const { data: newProduct, error: productError } = await supabase
         .from('business_products')
@@ -28,17 +36,17 @@ export function useBusinessProductMutations() {
           name: productData.name,
           sku: productData.sku,
           description: productData.description,
-          category_id: productData.category_id,
-          brand_id: productData.brand_id,
-          warranty_id: productData.warranty_id,
-          location_id: productData.location_id,
+          category_id: category_id,
+          brand_id: brand_id,
+          warranty_id: warranty_id,
+          location_id: location_id,
           image_url: productData.image_url,
           expiration_date: expiration_date,
           alert_quantity: productData.alert_quantity || 10,
           is_raw_ingredient: productData.is_raw_ingredient || false,
           is_consumable: productData.is_consumable || false,
-          ingredient_id: productData.ingredient_id,
-          consumable_id: productData.consumable_id,
+          ingredient_id: ingredient_id,
+          consumable_id: consumable_id,
           quantity_available: 0, // Initial stock is 0
           quantity_sold: 0
         })
@@ -87,6 +95,14 @@ export function useBusinessProductMutations() {
         ? data.expiration_date.toISOString() 
         : data.expiration_date;
 
+      // Process optional IDs, converting "none" to null
+      const category_id = data.category_id === "none" ? null : data.category_id;
+      const brand_id = data.brand_id === "none" ? null : data.brand_id;
+      const warranty_id = data.warranty_id === "none" ? null : data.warranty_id;
+      const location_id = data.location_id === "none" ? null : data.location_id;
+      const ingredient_id = data.ingredient_id === "none" ? null : data.ingredient_id;
+      const consumable_id = data.consumable_id === "none" ? null : data.consumable_id;
+
       // First, update the product
       const { data: updatedProduct, error: productError } = await supabase
         .from('business_products')
@@ -94,17 +110,17 @@ export function useBusinessProductMutations() {
           name: data.name,
           sku: data.sku,
           description: data.description,
-          category_id: data.category_id,
-          brand_id: data.brand_id,
-          warranty_id: data.warranty_id,
-          location_id: data.location_id,
+          category_id: category_id,
+          brand_id: brand_id,
+          warranty_id: warranty_id,
+          location_id: location_id,
           image_url: data.image_url,
           expiration_date: expiration_date,
           alert_quantity: data.alert_quantity,
           is_raw_ingredient: data.is_raw_ingredient,
           is_consumable: data.is_consumable,
-          ingredient_id: data.ingredient_id,
-          consumable_id: data.consumable_id
+          ingredient_id: ingredient_id,
+          consumable_id: consumable_id
         })
         .eq('id', id)
         .select()
