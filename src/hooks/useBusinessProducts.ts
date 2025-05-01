@@ -25,7 +25,7 @@ export function useBusinessProducts() {
         throw error;
       }
 
-      // Add default values for properties that might be missing in the DB and cast to BusinessProduct
+      // Cast data to BusinessProduct type with proper defaults
       return (data || []).map(product => ({
         ...product,
         unit_price: product.unit_price ?? 0,
@@ -60,7 +60,7 @@ export function useBusinessProduct(id: string | undefined) {
         throw error;
       }
 
-      // Add default values for properties that might be missing in the DB and cast to BusinessProduct
+      // Cast to BusinessProduct with proper defaults
       return {
         ...data,
         unit_price: data.unit_price ?? 0,
@@ -95,7 +95,7 @@ export function useLowStockProducts() {
         throw error;
       }
 
-      // Add default values for properties that might be missing in the DB and cast to BusinessProduct
+      // Cast to BusinessProduct with proper defaults
       return (data || []).map(product => ({
         ...product,
         unit_price: product.unit_price ?? 0,
@@ -135,7 +135,7 @@ export function useExpiringProducts(daysThreshold: number = 30) {
         throw error;
       }
 
-      // Add default values for properties that might be missing in the DB and cast to BusinessProduct
+      // Cast to BusinessProduct with proper defaults
       return (data || []).map(product => ({
         ...product,
         unit_price: product.unit_price ?? 0,

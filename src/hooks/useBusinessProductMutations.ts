@@ -55,7 +55,7 @@ export function useBusinessProductMutations() {
         throw productError;
       }
 
-      // Add missing properties for proper type conversion
+      // Create a properly typed product with defaults
       const typedProduct = {
         ...newProduct,
         unit_price: newProduct.unit_price ?? 0,
@@ -531,7 +531,7 @@ export function useBusinessProductMutations() {
         }
       }
 
-      // Add proper type assertion for the returned product
+      // Create a properly typed product with defaults
       const typedProduct = {
         ...updatedProduct,
         unit_price: updatedProduct.unit_price ?? 0,

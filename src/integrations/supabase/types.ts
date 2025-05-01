@@ -500,6 +500,9 @@ export type Database = {
           created_at: string
           description: string | null
           expiration_date: string | null
+          has_consumables: boolean | null
+          has_modifiers: boolean | null
+          has_recipe: boolean | null
           id: string
           image_url: string | null
           ingredient_id: string | null
@@ -510,8 +513,10 @@ export type Database = {
           product_id: string | null
           quantity_available: number | null
           quantity_sold: number | null
+          selling_price: number | null
           sku: string | null
           status: string | null
+          unit_price: number | null
           updated_at: string
           warranty_id: string | null
         }
@@ -524,6 +529,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           expiration_date?: string | null
+          has_consumables?: boolean | null
+          has_modifiers?: boolean | null
+          has_recipe?: boolean | null
           id?: string
           image_url?: string | null
           ingredient_id?: string | null
@@ -534,8 +542,10 @@ export type Database = {
           product_id?: string | null
           quantity_available?: number | null
           quantity_sold?: number | null
+          selling_price?: number | null
           sku?: string | null
           status?: string | null
+          unit_price?: number | null
           updated_at?: string
           warranty_id?: string | null
         }
@@ -548,6 +558,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           expiration_date?: string | null
+          has_consumables?: boolean | null
+          has_modifiers?: boolean | null
+          has_recipe?: boolean | null
           id?: string
           image_url?: string | null
           ingredient_id?: string | null
@@ -558,8 +571,10 @@ export type Database = {
           product_id?: string | null
           quantity_available?: number | null
           quantity_sold?: number | null
+          selling_price?: number | null
           sku?: string | null
           status?: string | null
+          unit_price?: number | null
           updated_at?: string
           warranty_id?: string | null
         }
