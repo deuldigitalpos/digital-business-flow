@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 export function useBusinessProductMutations() {
   const queryClient = useQueryClient();
-  const { business } = useBusinessAuth();
+  const { business, businessUser } = useBusinessAuth();
 
   const createProduct = useMutation({
     mutationFn: async (productData: ProductFormValues) => {
@@ -25,6 +25,9 @@ export function useBusinessProductMutations() {
       const alert_quantity = productData.alert_quantity ? Number(productData.alert_quantity) : 10;
       
       try {
+        // Log the business user ID for debugging
+        console.log("Business User ID:", businessUser?.id);
+        
         // First, disable RLS to perform the operation
         await supabase.rpc('disable_rls');
 

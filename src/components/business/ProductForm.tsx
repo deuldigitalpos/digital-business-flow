@@ -456,6 +456,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
   // Add consumable form preparation before submit
   const onSubmit = async (values: ProductFormValues) => {
     try {
+      console.log("Form values before submission:", values);
+      console.log("Alert quantity (raw):", values.alert_quantity);
+      console.log("Alert quantity type:", typeof values.alert_quantity);
+      
       // Upload image if exists
       let imageUrl = values.image_url;
       if (imageFile) {
@@ -474,6 +478,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
         toast.error('Please ensure all sizes have a name and a valid price.');
         return;
       }
+      
+      // IMPORTANT: Ensure alert_quantity is a number
+      values.alert_quantity = values.alert_quantity ? Number(values.alert_quantity) : 10;
+      console.log("Alert quantity (processed):", values.alert_quantity);
+      console.log("Alert quantity type (processed):", typeof values.alert_quantity);
 
       // Prepare sizes for submission
       values.sizes = sizes.filter(size => size.size_name && !isNaN(Number(size.price)));

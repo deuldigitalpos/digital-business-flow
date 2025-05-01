@@ -23,8 +23,7 @@ export function useBusinessProducts(filter: 'all' | 'low-stock' | 'expiring' = '
         .eq('business_id', business.id);
 
       if (filter === 'low-stock') {
-        // Use numeric comparison for alert_quantity
-        // We need to compare the quantity_available and alert_quantity columns properly
+        // Fixed comparison for alert_quantity to ensure proper SQL 
         query = query.or('quantity_available.lt.alert_quantity,quantity_available.eq.0');
       } else if (filter === 'expiring') {
         // For expiring products

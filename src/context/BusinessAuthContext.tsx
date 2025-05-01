@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BusinessUser } from '@/types/business-user';
 import { Business } from '@/types/business';
@@ -7,7 +8,7 @@ import { BusinessRole, BusinessRolePermissions } from '@/types/business-role';
 import { useNavigate } from 'react-router-dom';
 
 type BusinessAuthContextType = {
-  businessUser: BusinessUser | null;
+  businessUser: BusinessUser | null;  // Make sure this is explicitly exposed
   business: Business | null;
   isLoading: boolean;
   userPermissions: BusinessRolePermissions | null;
