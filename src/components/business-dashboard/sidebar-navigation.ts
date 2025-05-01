@@ -132,6 +132,12 @@ export const sidebarNavigation: SidebarNavSection[] = [
             icon: Clock,
             permission: 'warranties'
           },
+          {
+            title: 'Activity Log',
+            href: '/business-dashboard/activity-log',
+            icon: BarChart2,
+            permission: 'activity_log'
+          },
         ],
       },
     ],
