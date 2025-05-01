@@ -22,6 +22,7 @@ export function useBusinessUnitMutations() {
           name: values.name,
           short_name: values.short_name,
           description: values.description || null,
+          is_default: values.is_default || false,
         })
         .select('*')
         .single();
@@ -46,6 +47,23 @@ export function useBusinessUnitMutations() {
 
   const updateUnit = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: BusinessUnitFormValues }): Promise<BusinessUnit> => {
+      // Check if the unit is a default unit
+      const { data: unitData, error: unitError } = await supabase
+        .from('business_units')
+        .select('is_default')
+        .eq('id', id)
+        .single();
+
+      if (unitError) {
+        toast.error('Failed to verify unit status');
+        throw unitError;
+      }
+
+      if (unitData.is_default) {
+        toast.error('Default units cannot be modified');
+        throw new Error('Cannot modify default unit');
+      }
+
       const { data: updatedData, error } = await supabase
         .from('business_units')
         .update({
@@ -77,6 +95,23 @@ export function useBusinessUnitMutations() {
 
   const deleteUnit = useMutation({
     mutationFn: async (id: string): Promise<void> => {
+      // Check if the unit is a default unit
+      const { data: unitData, error: unitError } = await supabase
+        .from('business_units')
+        .select('is_default')
+        .eq('id', id)
+        .single();
+
+      if (unitError) {
+        toast.error('Failed to verify unit status');
+        throw unitError;
+      }
+
+      if (unitData.is_default) {
+        toast.error('Default units cannot be deleted');
+        throw new Error('Cannot delete default unit');
+      }
+      
       const { error } = await supabase
         .from('business_units')
         .delete()

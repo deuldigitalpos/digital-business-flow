@@ -6,8 +6,6 @@ import { useBusinessAuth } from "@/context/BusinessAuthContext";
 import PermissionGuard from "@/components/business/PermissionGuard";
 
 const BusinessUnits: React.FC = () => {
-  const { business } = useBusinessAuth();
-
   return (
     <PermissionGuard permission="products">
       <div className="space-y-6">
