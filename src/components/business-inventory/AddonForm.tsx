@@ -26,10 +26,10 @@ export const AddonForm: React.FC<AddonFormProps> = ({ addon, onClose }) => {
     resolver: zodResolver(addonFormSchema),
     defaultValues: {
       name: addon?.name || '',
-      description: addon?.description || '',
-      category_id: addon?.category_id || undefined,
-      unit_id: addon?.unit_id || undefined,
-      image_url: addon?.image_url || ''
+      description: addon?.description || null,
+      category_id: addon?.category_id || null,
+      unit_id: addon?.unit_id || null,
+      image_url: addon?.image_url || null
     }
   });
 
@@ -41,7 +41,15 @@ export const AddonForm: React.FC<AddonFormProps> = ({ addon, onClose }) => {
           ...values
         });
       } else {
-        await createAddon.mutateAsync(values);
+        // Make sure the form values match the expected type
+        const { name, description, category_id, unit_id, image_url } = values;
+        await createAddon.mutateAsync({
+          name, // This is guaranteed to be a string due to form validation
+          description,
+          category_id,
+          unit_id,
+          image_url
+        });
       }
       onClose();
       form.reset();

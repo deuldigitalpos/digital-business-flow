@@ -5,7 +5,8 @@ import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { toast } from 'sonner';
 import { BusinessAddon } from './useBusinessAddons';
 
-type AddonCreateInput = {
+// Update this type to match the form values
+export type AddonCreateInput = {
   name: string;
   description?: string | null;
   category_id?: string | null;
