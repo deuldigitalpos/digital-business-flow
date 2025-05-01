@@ -42,6 +42,64 @@ export type Database = {
         }
         Relationships: []
       }
+      business_addons: {
+        Row: {
+          business_id: string
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_addons_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_addons_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_addons_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_brands: {
         Row: {
           business_id: string
@@ -117,6 +175,64 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_consumables: {
+        Row: {
+          business_id: string
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_consumables_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_consumables_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_consumables_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
             referencedColumns: ["id"]
           },
         ]
@@ -208,6 +324,108 @@ export type Database = {
           },
         ]
       }
+      business_ingredients: {
+        Row: {
+          business_id: string
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_ingredients_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_ingredients_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_ingredients_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_inventory_quantities: {
+        Row: {
+          average_cost: number | null
+          business_id: string
+          id: string
+          item_id: string
+          item_type: string
+          minimum_quantity: number | null
+          quantity: number | null
+          total_value: number | null
+          updated_at: string
+        }
+        Insert: {
+          average_cost?: number | null
+          business_id: string
+          id?: string
+          item_id: string
+          item_type: string
+          minimum_quantity?: number | null
+          quantity?: number | null
+          total_value?: number | null
+          updated_at?: string
+        }
+        Update: {
+          average_cost?: number | null
+          business_id?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          minimum_quantity?: number | null
+          quantity?: number | null
+          total_value?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_inventory_quantities_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_leads: {
         Row: {
           business_id: string
@@ -278,6 +496,305 @@ export type Database = {
           },
         ]
       }
+      business_product_addons: {
+        Row: {
+          addon_id: string
+          cost: number | null
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+          unit_id: string | null
+        }
+        Insert: {
+          addon_id: string
+          cost?: number | null
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity: number
+          unit_id?: string | null
+        }
+        Update: {
+          addon_id?: string
+          cost?: number | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_product_addons_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "business_addons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_product_addons_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "business_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_product_addons_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_product_consumables: {
+        Row: {
+          consumable_id: string
+          cost: number | null
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+          unit_id: string | null
+        }
+        Insert: {
+          consumable_id: string
+          cost?: number | null
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity: number
+          unit_id?: string | null
+        }
+        Update: {
+          consumable_id?: string
+          cost?: number | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_product_consumables_consumable_id_fkey"
+            columns: ["consumable_id"]
+            isOneToOne: false
+            referencedRelation: "business_consumables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_product_consumables_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "business_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_product_consumables_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_product_recipes: {
+        Row: {
+          cost: number | null
+          created_at: string
+          id: string
+          ingredient_id: string
+          product_id: string
+          quantity: number
+          unit_id: string | null
+        }
+        Insert: {
+          cost?: number | null
+          created_at?: string
+          id?: string
+          ingredient_id: string
+          product_id: string
+          quantity: number
+          unit_id?: string | null
+        }
+        Update: {
+          cost?: number | null
+          created_at?: string
+          id?: string
+          ingredient_id?: string
+          product_id?: string
+          quantity?: number
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_product_recipes_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "business_ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_product_recipes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "business_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_product_recipes_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_product_sizes: {
+        Row: {
+          additional_price: number | null
+          created_at: string
+          id: string
+          name: string
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          additional_price?: number | null
+          created_at?: string
+          id?: string
+          name: string
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          additional_price?: number | null
+          created_at?: string
+          id?: string
+          name?: string
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_product_sizes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "business_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_products: {
+        Row: {
+          auto_generate_sku: boolean | null
+          brand_id: string | null
+          business_id: string
+          category_id: string | null
+          cost_price: number | null
+          created_at: string
+          description: string | null
+          has_addons: boolean | null
+          has_consumables: boolean | null
+          has_ingredients: boolean | null
+          has_sizes: boolean | null
+          id: string
+          image_url: string | null
+          name: string
+          product_id: string | null
+          selling_price: number | null
+          sku: string | null
+          total_sales: number | null
+          unit_id: string | null
+          updated_at: string
+          warranty_id: string | null
+        }
+        Insert: {
+          auto_generate_sku?: boolean | null
+          brand_id?: string | null
+          business_id: string
+          category_id?: string | null
+          cost_price?: number | null
+          created_at?: string
+          description?: string | null
+          has_addons?: boolean | null
+          has_consumables?: boolean | null
+          has_ingredients?: boolean | null
+          has_sizes?: boolean | null
+          id?: string
+          image_url?: string | null
+          name: string
+          product_id?: string | null
+          selling_price?: number | null
+          sku?: string | null
+          total_sales?: number | null
+          unit_id?: string | null
+          updated_at?: string
+          warranty_id?: string | null
+        }
+        Update: {
+          auto_generate_sku?: boolean | null
+          brand_id?: string | null
+          business_id?: string
+          category_id?: string | null
+          cost_price?: number | null
+          created_at?: string
+          description?: string | null
+          has_addons?: boolean | null
+          has_consumables?: boolean | null
+          has_ingredients?: boolean | null
+          has_sizes?: boolean | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          product_id?: string | null
+          selling_price?: number | null
+          sku?: string | null
+          total_sales?: number | null
+          unit_id?: string | null
+          updated_at?: string
+          warranty_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "business_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_warranty_id_fkey"
+            columns: ["warranty_id"]
+            isOneToOne: false
+            referencedRelation: "business_warranties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_roles: {
         Row: {
           business_id: string
@@ -309,6 +826,123 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_stock_transactions: {
+        Row: {
+          brand_id: string | null
+          business_id: string
+          cost_per_unit: number | null
+          created_at: string
+          created_by: string | null
+          discount: number | null
+          due_date: string | null
+          expiration_date: string | null
+          id: string
+          item_id: string
+          notes: string | null
+          paid_amount: number | null
+          payment_status: string
+          quantity: number
+          reference_id: string | null
+          status: string
+          supplier_id: string | null
+          total_cost: number | null
+          transaction_date: string
+          transaction_type: string
+          unit_id: string | null
+          unpaid_amount: number | null
+          updated_at: string
+          warranty_id: string | null
+        }
+        Insert: {
+          brand_id?: string | null
+          business_id: string
+          cost_per_unit?: number | null
+          created_at?: string
+          created_by?: string | null
+          discount?: number | null
+          due_date?: string | null
+          expiration_date?: string | null
+          id?: string
+          item_id: string
+          notes?: string | null
+          paid_amount?: number | null
+          payment_status: string
+          quantity: number
+          reference_id?: string | null
+          status: string
+          supplier_id?: string | null
+          total_cost?: number | null
+          transaction_date?: string
+          transaction_type: string
+          unit_id?: string | null
+          unpaid_amount?: number | null
+          updated_at?: string
+          warranty_id?: string | null
+        }
+        Update: {
+          brand_id?: string | null
+          business_id?: string
+          cost_per_unit?: number | null
+          created_at?: string
+          created_by?: string | null
+          discount?: number | null
+          due_date?: string | null
+          expiration_date?: string | null
+          id?: string
+          item_id?: string
+          notes?: string | null
+          paid_amount?: number | null
+          payment_status?: string
+          quantity?: number
+          reference_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          total_cost?: number | null
+          transaction_date?: string
+          transaction_type?: string
+          unit_id?: string | null
+          unpaid_amount?: number | null
+          updated_at?: string
+          warranty_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_stock_transactions_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "business_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_stock_transactions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businessdetails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_stock_transactions_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "business_suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_stock_transactions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_stock_transactions_warranty_id_fkey"
+            columns: ["warranty_id"]
+            isOneToOne: false
+            referencedRelation: "business_warranties"
             referencedColumns: ["id"]
           },
         ]
