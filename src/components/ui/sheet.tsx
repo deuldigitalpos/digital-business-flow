@@ -62,8 +62,8 @@ const SheetContent = React.forwardRef<
       ref={ref}
       className={cn(
         sheetVariants({ side }),
-        // Fixed: Enhanced max-height and overflow for better scrolling and responsiveness
-        "max-h-[100vh] overflow-y-auto overscroll-contain",
+        // FIXED: Enhanced overflow handling for better scrolling and responsiveness
+        "max-h-[100vh] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300",
         className
       )}
       {...props}

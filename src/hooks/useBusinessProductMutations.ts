@@ -25,8 +25,9 @@ export function useBusinessProductMutations() {
       const location_id = productData.location_id === "none" ? null : productData.location_id;
       const unit_id = productData.unit_id === "none" ? null : productData.unit_id;
 
-      // Ensure alert_quantity is a number
-      const alert_quantity = Number(productData.alert_quantity || 10);
+      // FIXED: Ensure alert_quantity is a number with proper default
+      const alert_quantity = productData.alert_quantity !== undefined ? 
+        Number(productData.alert_quantity) : 10;
       
       console.log("Creating product with data:", {
         ...productData,
@@ -81,15 +82,20 @@ export function useBusinessProductMutations() {
         );
         
         if (!disableRlsResponse.ok) {
-          throw new Error(`Failed to disable RLS: ${await disableRlsResponse.text()}`);
+          const errorText = await disableRlsResponse.text();
+          console.error("Failed to disable RLS:", errorText);
+          throw new Error(`Failed to disable RLS: ${errorText}`);
         }
         
         console.log("RLS disabled, proceeding with product creation");
         
-        // Create the product
+        // Create the product - FIXED: Make sure alert_quantity is set as a number
         const { data: newProduct, error: productError } = await supabase
           .from('business_products')
-          .insert(productToCreate)
+          .insert({
+            ...productToCreate,
+            alert_quantity: alert_quantity // Explicitly ensure this is a number
+          })
           .select('*')
           .single();
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -58,9 +59,11 @@ const formSchema = z.object({
   location_id: z.string().optional(),
   unit_id: z.string().optional(),
   image_url: z.string().optional(),
-  alert_quantity: z.coerce.number().optional(),
-  unit_price: z.coerce.number().optional(),
-  selling_price: z.coerce.number().optional(),
+  // FIXED: Properly type alert_quantity as number with coercion
+  alert_quantity: z.coerce.number().default(10).optional(),
+  // FIXED: Ensure proper number coercion for pricing fields
+  unit_price: z.coerce.number().default(0).optional(),
+  selling_price: z.coerce.number().default(0).optional(),
   has_recipe: z.boolean().default(false).optional(),
   has_consumables: z.boolean().default(false).optional(),
   sizes: z.array(
@@ -161,6 +164,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   // Check if selling price is below cost
   useEffect(() => {
+    // FIXED: Ensure proper numeric comparison by explicitly using Number
     const unitPrice = Number(form.watch('unit_price') || 0);
     const sellingPrice = Number(form.watch('selling_price') || 0);
     
@@ -480,10 +484,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
         return;
       }
       
-      // CRITICAL: Ensure alert_quantity is a number
+      // CRITICAL FIX: Ensure alert_quantity is a number
       values.alert_quantity = Number(values.alert_quantity || 10);
       
-      // CRITICAL: Ensure proper numeric types for prices
+      // CRITICAL FIX: Ensure proper numeric types for prices
       values.unit_price = Number(values.unit_price || 0);
       values.selling_price = Number(values.selling_price || 0);
 
