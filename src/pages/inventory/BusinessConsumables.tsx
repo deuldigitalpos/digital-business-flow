@@ -84,7 +84,7 @@ const BusinessConsumables: React.FC = () => {
                     <SelectValue placeholder="Filter by category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>All Categories</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
                     {categories?.map(category => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -104,7 +104,10 @@ const BusinessConsumables: React.FC = () => {
               </TabsList>
               
               <TabsContent value="list">
-                <ConsumableList />
+                <ConsumableList 
+                  searchTerm={searchTerm}
+                  categoryFilter={selectedCategory === "all" ? undefined : selectedCategory}
+                />
               </TabsContent>
               
               <TabsContent value="activity">

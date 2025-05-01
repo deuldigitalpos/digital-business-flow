@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Table,
@@ -22,7 +23,15 @@ import ConsumableForm from './ConsumableForm';
 import { Badge } from '@/components/ui/badge';
 import ConsumableTransactionHistory from './ConsumableTransactionHistory';
 
-const ConsumableList = () => {
+interface ConsumableListProps {
+  searchTerm?: string;
+  categoryFilter?: string;
+}
+
+const ConsumableList: React.FC<ConsumableListProps> = ({ 
+  searchTerm = '', 
+  categoryFilter 
+}) => {
   const { consumables, isLoading, refetch } = useBusinessConsumables();
   const { deleteConsumable } = useBusinessConsumableMutations();
   const [selectedConsumable, setSelectedConsumable] = useState<BusinessConsumable | null>(null);
@@ -59,6 +68,19 @@ const ConsumableList = () => {
     }
   };
 
+  // Filter consumables based on search term and category
+  const filteredConsumables = consumables.filter(consumable => {
+    // Filter by search term
+    const matchesSearch = !searchTerm || 
+      consumable.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (consumable.description && consumable.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Filter by category
+    const matchesCategory = !categoryFilter || consumable.category_id === categoryFilter;
+    
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -82,8 +104,8 @@ const ConsumableList = () => {
                 Loading consumables...
               </TableCell>
             </TableRow>
-          ) : consumables && consumables.length > 0 ? (
-            consumables.map((consumable) => (
+          ) : filteredConsumables && filteredConsumables.length > 0 ? (
+            filteredConsumables.map((consumable) => (
               <TableRow key={consumable.id}>
                 <TableCell className="font-medium">{consumable.name}</TableCell>
                 <TableCell>{consumable.description || '-'}</TableCell>
@@ -121,7 +143,9 @@ const ConsumableList = () => {
           ) : (
             <TableRow>
               <TableCell colSpan={9} className="h-24 text-center">
-                No consumables found. Add your first consumable.
+                {searchTerm || categoryFilter 
+                  ? 'No consumables match your search criteria.'
+                  : 'No consumables found. Add your first consumable.'}
               </TableCell>
             </TableRow>
           )}
