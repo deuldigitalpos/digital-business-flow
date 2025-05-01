@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues, BusinessProductSize, RecipeItem, ModifierItem } from '@/types/business-product';
@@ -526,7 +525,14 @@ export function useBusinessProductMutations() {
         }
       }
 
-      return updatedProduct as BusinessProduct;
+      return {
+        ...updatedProduct,
+        unit_price: updatedProduct.unit_price || 0,
+        selling_price: updatedProduct.selling_price || 0,
+        has_recipe: updatedProduct.has_recipe || false,
+        has_modifiers: updatedProduct.has_modifiers || false,
+        has_consumables: updatedProduct.has_consumables || false,
+      } as BusinessProduct;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['business-products', business?.id] });

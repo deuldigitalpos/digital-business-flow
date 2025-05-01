@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBusinessProducts, useLowStockProducts, useExpiringProducts } from '@/hooks/useBusinessProducts';
 import { BusinessProduct } from '@/types/business-product';
@@ -162,9 +161,6 @@ const ProductList: React.FC<ProductListProps> = ({ filter }) => {
                     <Badge className={`${getStatusBadgeColor(product.status || '')}`}>
                       {product.status || 'Unknown'}
                     </Badge>
-                    {product.is_raw_ingredient && (
-                      <Badge className="bg-blue-100 text-blue-800 ml-1">Ingredient</Badge>
-                    )}
                     {product.is_consumable && (
                       <Badge className="bg-purple-100 text-purple-800 ml-1">Consumable</Badge>
                     )}
@@ -207,7 +203,7 @@ const ProductList: React.FC<ProductListProps> = ({ filter }) => {
           </DialogHeader>
           {editingProduct && (
             <ProductForm 
-              product={editingProduct} 
+              productId={editingProduct.id}
               onSuccess={() => setEditingProduct(null)} 
             />
           )}

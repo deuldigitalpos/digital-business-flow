@@ -25,11 +25,15 @@ export function useBusinessProducts() {
         throw error;
       }
 
-      // Calculate expiration date for display as string
-      return (data as BusinessProduct[]).map(product => ({
+      // Add default values for new fields that might be missing in the DB
+      return (data || []).map(product => ({
         ...product,
-        // Add any calculated fields here if needed
-      }));
+        unit_price: product.unit_price || 0,
+        selling_price: product.selling_price || 0,
+        has_recipe: product.has_recipe || false,
+        has_modifiers: product.has_modifiers || false,
+        has_consumables: product.has_consumables || false,
+      })) as BusinessProduct[];
     },
     enabled: !!business?.id,
   });
@@ -56,7 +60,17 @@ export function useBusinessProduct(id: string | undefined) {
         throw error;
       }
 
-      return data as BusinessProduct & { business_product_sizes: any[] };
+      // Add default values for new fields that might be missing in the DB
+      const productWithDefaults = {
+        ...data,
+        unit_price: data.unit_price || 0,
+        selling_price: data.selling_price || 0,
+        has_recipe: data.has_recipe || false,
+        has_modifiers: data.has_modifiers || false,
+        has_consumables: data.has_consumables || false,
+      } as BusinessProduct & { business_product_sizes: any[] };
+
+      return productWithDefaults;
     },
     enabled: !!id && !!business?.id,
   });
@@ -83,7 +97,15 @@ export function useLowStockProducts() {
         throw error;
       }
 
-      return data as BusinessProduct[];
+      // Add default values for new fields that might be missing in the DB
+      return (data || []).map(product => ({
+        ...product,
+        unit_price: product.unit_price || 0,
+        selling_price: product.selling_price || 0,
+        has_recipe: product.has_recipe || false,
+        has_modifiers: product.has_modifiers || false,
+        has_consumables: product.has_consumables || false,
+      })) as BusinessProduct[];
     },
     enabled: !!business?.id,
   });
@@ -115,7 +137,15 @@ export function useExpiringProducts(daysThreshold: number = 30) {
         throw error;
       }
 
-      return data as BusinessProduct[];
+      // Add default values for new fields that might be missing in the DB
+      return (data || []).map(product => ({
+        ...product,
+        unit_price: product.unit_price || 0,
+        selling_price: product.selling_price || 0,
+        has_recipe: product.has_recipe || false,
+        has_modifiers: product.has_modifiers || false,
+        has_consumables: product.has_consumables || false,
+      })) as BusinessProduct[];
     },
     enabled: !!business?.id,
   });

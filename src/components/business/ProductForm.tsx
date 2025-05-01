@@ -18,7 +18,7 @@ import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 import { useBusinessProductMutations } from '@/hooks/useBusinessProductMutations';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom'; // Replaced next/navigation with react-router-dom
+import { useNavigate } from 'react-router-dom';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { Plus, Trash } from 'lucide-react';
 
@@ -45,9 +45,6 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import RecipeItemForm from './RecipeItemForm';
-import ConsumableItemForm from './ConsumableItemForm';
-
-// Import the new ConsumableItemForm
 import ConsumableItemForm from './ConsumableItemForm';
 
 const formSchema = z.object({
@@ -117,7 +114,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const { data: locations } = useBusinessLocations();
   const { data: units } = useBusinessUnits();
   const { createProduct, updateProduct } = useBusinessProductMutations();
-  const navigate = useNavigate(); // Changed from useRouter to useNavigate
+  const navigate = useNavigate();
   const { business } = useBusinessAuth();
   
   const [sizes, setSizes] = useState<{ size_name: string; price: number; }[]>([]);
@@ -473,7 +470,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       toast.success('Product saved successfully!');
       if (onSuccess) onSuccess();
-      navigate('/BusinessProducts'); // Changed from router.push to navigate
+      navigate('/BusinessProducts');
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Failed to save product. Please check the form for errors.');
@@ -656,7 +653,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <FormControl>
                     <Input
                       type="date"
-                      {...field}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -691,8 +689,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Requires Consumables</FormLabel>
                     <FormDescription>
-                      Does this product use consumables like packaging, napkins, etc?
-                    </FormDescription>
+                      Does this product use consumables like packaging, napkins, etc?\n                    </FormDescription>
                   </div>
                   <FormControl>
                     <Switch
@@ -712,8 +709,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Is Consumable</FormLabel>
                     <FormDescription>
-                      Is this product a consumable item?
-                    </FormDescription>
+                      Is this product a consumable item?\n                    </FormDescription>
                   </div>
                   <FormControl>
                     <Switch
@@ -814,7 +810,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           </div>
         )}
         
-        {/* Add Consumables section */}
+        {/* Consumables section */}
         {form.watch('has_consumables') && (
           <div className="border rounded-md p-4 space-y-4">
             <div className="flex justify-between items-center">
@@ -890,96 +886,51 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     </div>
                     <Separator />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name={`modifier_name_${index}`}
-                        render={() => (
-                          <FormItem>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="text"
-                                value={modifier.name}
-                                onChange={(e) => handleModifierChange(index, 'name', e.target.value)}
-                                placeholder="Modifier Name"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`modifier_size_regular_price_${index}`}
-                        render={() => (
-                          <FormItem>
-                            <FormLabel>Regular Price</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                value={modifier.size_regular_price}
-                                onChange={(e) => handleModifierChange(index, 'size_regular_price', e.target.value)}
-                                placeholder="Regular Price"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`modifier_size_medium_price_${index}`}
-                        render={() => (
-                          <FormItem>
-                            <FormLabel>Medium Price</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                value={modifier.size_medium_price || ''}
-                                onChange={(e) => handleModifierChange(index, 'size_medium_price', e.target.value === '' ? null : e.target.value)}
-                                placeholder="Medium Price"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`modifier_size_large_price_${index}`}
-                        render={() => (
-                          <FormItem>
-                            <FormLabel>Large Price</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                value={modifier.size_large_price || ''}
-                                onChange={(e) => handleModifierChange(index, 'size_large_price', e.target.value === '' ? null : e.target.value)}
-                                placeholder="Large Price"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`modifier_size_xl_price_${index}`}
-                        render={() => (
-                          <FormItem>
-                            <FormLabel>X-Large Price</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                value={modifier.size_xl_price || ''}
-                                onChange={(e) => handleModifierChange(index, 'size_xl_price', e.target.value === '' ? null : e.target.value)}
-                                placeholder="X-Large Price"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="form-item">
+                        <label className="text-sm font-medium">Name</label>
+                        <Input
+                          type="text"
+                          value={modifier.name}
+                          onChange={(e) => handleModifierChange(index, 'name', e.target.value)}
+                          placeholder="Modifier Name"
+                        />
+                      </div>
+                      <div className="form-item">
+                        <label className="text-sm font-medium">Regular Price</label>
+                        <Input
+                          type="number"
+                          value={modifier.size_regular_price}
+                          onChange={(e) => handleModifierChange(index, 'size_regular_price', e.target.value)}
+                          placeholder="Regular Price"
+                        />
+                      </div>
+                      <div className="form-item">
+                        <label className="text-sm font-medium">Medium Price</label>
+                        <Input
+                          type="number"
+                          value={modifier.size_medium_price || ''}
+                          onChange={(e) => handleModifierChange(index, 'size_medium_price', e.target.value === '' ? null : e.target.value)}
+                          placeholder="Medium Price"
+                        />
+                      </div>
+                      <div className="form-item">
+                        <label className="text-sm font-medium">Large Price</label>
+                        <Input
+                          type="number"
+                          value={modifier.size_large_price || ''}
+                          onChange={(e) => handleModifierChange(index, 'size_large_price', e.target.value === '' ? null : e.target.value)}
+                          placeholder="Large Price"
+                        />
+                      </div>
+                      <div className="form-item">
+                        <label className="text-sm font-medium">X-Large Price</label>
+                        <Input
+                          type="number"
+                          value={modifier.size_xl_price || ''}
+                          onChange={(e) => handleModifierChange(index, 'size_xl_price', e.target.value === '' ? null : e.target.value)}
+                          placeholder="X-Large Price"
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -993,14 +944,4 @@ const ProductForm: React.FC<ProductFormProps> = ({
         </Card>
 
         <div className="pt-6 space-x-2 flex justify-end">
-          <Button type="submit">Submit</Button>
-          <Button type="button" variant="outline" onClick={() => navigate('/BusinessProducts')}>
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </Form>
-  );
-};
-
-export default ProductForm;
+          <Button type="
