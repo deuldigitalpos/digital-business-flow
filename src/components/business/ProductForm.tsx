@@ -444,12 +444,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     form.setValue('consumable_items', newConsumableItems);
   };
 
-  // Fix the expiration_date field handling
-  const handleExpireDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Always store as string, not as Date object
-    form.setValue('expiration_date', e.target.value);
-  };
-
   // Calculate profit margin
   const calculateProfitMargin = () => {
     const costPrice = form.watch('unit_price') || 0;
