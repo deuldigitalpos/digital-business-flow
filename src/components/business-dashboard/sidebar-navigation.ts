@@ -17,7 +17,7 @@ import {
   Package,
   Database,
   Box,
-  Ingredient,
+  Utensils,
   Plus,
 } from 'lucide-react';
 
@@ -124,7 +124,7 @@ export const sidebarNavigation: SidebarNavSection[] = [
           {
             title: 'Raw Ingredients',
             href: '/business-dashboard/inventory/ingredients',
-            icon: Ingredient,
+            icon: Utensils,
             permission: 'inventory'
           },
           {
