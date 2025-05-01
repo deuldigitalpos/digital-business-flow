@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
@@ -9,53 +8,22 @@ import {
   DialogTitle,
   DialogFooter 
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { useBusinessConsumableMutations } from '@/hooks/useBusinessConsumableMutations';
-import { BusinessConsumable } from '@/hooks/useBusinessConsumables';
-import { useBusinessCategories } from '@/hooks/useBusinessCategories';
-import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 import { Loader2 } from 'lucide-react';
-
-interface ConsumableFormProps {
-  consumable: BusinessConsumable | null;
-  onClose: () => void;
-}
-
-const formSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().optional(),
-  category_id: z.string().optional().nullable(),
-  unit_id: z.string().optional().nullable(),
-  image_url: z.string().optional().nullable()
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import { ConsumableFormProps, ConsumableFormValues, consumableFormSchema } from './consumable-form/types';
+import { NameField } from './consumable-form/NameField';
+import { DescriptionField } from './consumable-form/DescriptionField';
+import { CategorySelect } from './consumable-form/CategorySelect';
+import { UnitSelect } from './consumable-form/UnitSelect';
 
 const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) => {
   const { createConsumable, updateConsumable } = useBusinessConsumableMutations();
-  const { data: categories = [] } = useBusinessCategories();
-  const { data: units = [] } = useBusinessUnits();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<ConsumableFormValues>({
+    resolver: zodResolver(consumableFormSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -85,7 +53,7 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
     }
   }, [consumable, form]);
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: ConsumableFormValues) => {
     setIsSubmitting(true);
     try {
       if (consumable) {
@@ -114,16 +82,6 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
     }
   };
 
-  // Robust function to ensure we never have empty string values
-  const getSafeValue = (value: string | null | undefined, prefix: string, name: string | null | undefined): string => {
-    // If we have a valid ID and it's not an empty string, use it
-    if (value && value.trim() !== '') return value;
-    
-    // Generate a unique fallback value with sanitized name
-    const safeName = name && name.trim() !== '' ? name.trim() : 'unnamed';
-    return `${prefix}-${safeName}-${Math.random().toString(36).substring(2, 9)}`;
-  };
-
   return (
     <DialogContent className="sm:max-w-[500px]">
       <DialogHeader>
@@ -131,107 +89,10 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
       </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter consumable name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Enter description (optional)" 
-                    {...field} 
-                    value={field.value || ''}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="category_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  value={field.value || undefined}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {(categories || []).map(category => {
-                      // Generate a guaranteed non-empty value for each category
-                      const safeValue = getSafeValue(category.id, 'category', category.name);
-                      return (
-                        <SelectItem 
-                          key={safeValue}
-                          value={safeValue}
-                        >
-                          {category.name || 'Unnamed Category'}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="unit_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Unit</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  value={field.value || undefined}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a unit" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {(units || []).map(unit => {
-                      // Generate a guaranteed non-empty value for each unit
-                      const safeValue = getSafeValue(unit.id, 'unit', unit.name);
-                      return (
-                        <SelectItem
-                          key={safeValue}
-                          value={safeValue}
-                        >
-                          {unit.name || 'Unnamed Unit'} ({unit.short_name || '-'})
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <NameField form={form} />
+          <DescriptionField form={form} />
+          <CategorySelect form={form} />
+          <UnitSelect form={form} />
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
