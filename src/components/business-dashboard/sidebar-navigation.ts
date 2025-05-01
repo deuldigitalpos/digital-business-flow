@@ -8,14 +8,12 @@ import {
   Activity,
   BadgePercent,
   Settings,
-  Home,
   Tags,
   Clock,
-  ShoppingCart,
-  CalendarClock,
-  PanelRight,
   Store,
   BarChart2,
+  PanelRight,
+  ShoppingCart,
 } from 'lucide-react';
 
 export interface SidebarNavItem {

@@ -31,13 +31,8 @@ import BusinessCategories from '@/pages/BusinessCategories';
 import BusinessUnits from '@/pages/BusinessUnits';
 import BusinessBrands from '@/pages/BusinessBrands';
 import BusinessWarranties from '@/pages/BusinessWarranties';
-import BusinessProducts from '@/pages/BusinessProducts';
-import BusinessIngredients from '@/pages/BusinessIngredients';
-import BusinessConsumables from '@/pages/BusinessConsumables';
-import BusinessStock from '@/pages/BusinessStock';
 import BusinessActivityLog from '@/pages/BusinessActivityLog';
 import { BusinessAuthProvider } from '@/context/BusinessAuthContext';
-import ProductDetailPage from "@/components/business/ProductDetailPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -98,11 +93,6 @@ function App() {
               <Route path="units" element={<BusinessUnits />} />
               <Route path="brands" element={<BusinessBrands />} />
               <Route path="warranties" element={<BusinessWarranties />} />
-              <Route path="products" element={<BusinessProducts />} />
-              <Route path="products/:productId" element={<ProductDetailPage />} />
-              <Route path="consumables" element={<BusinessConsumables />} />
-              <Route path="ingredients" element={<BusinessIngredients />} />
-              <Route path="stocks" element={<BusinessStock />} />
               <Route path="activity-log" element={<BusinessActivityLog />} />
               <Route path="no-permission" element={<PermissionDenied />} />
               <Route path="*" element={<PlaceholderPage />} />
