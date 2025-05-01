@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues } from '@/types/business-product';
@@ -22,141 +21,137 @@ export function useBusinessProductMutations() {
       const location_id = productData.location_id === "none" ? null : productData.location_id;
       const unit_id = productData.unit_id === "none" ? null : productData.unit_id;
 
-      // First, create the product
-      const { data: newProduct, error: productError } = await supabase
-        .from('business_products')
-        .insert({
-          business_id: business.id,
-          name: productData.name,
-          sku: productData.sku,
-          auto_generate_sku: productData.auto_generate_sku || false,
-          description: productData.description,
-          category_id: category_id,
-          brand_id: brand_id,
-          warranty_id: warranty_id,
-          location_id: location_id,
-          unit_id: unit_id,
-          image_url: productData.image_url,
-          alert_quantity: productData.alert_quantity || 10,
-          unit_price: productData.unit_price || 0,
-          selling_price: productData.selling_price || 0,
-          has_recipe: productData.has_recipe || false,
-          has_consumables: productData.has_consumables || false,
-          quantity_available: 0, // Initial stock is 0
-          quantity_sold: 0
-        })
-        .select()
-        .single();
-
-      if (productError) {
-        console.error('Error creating product:', productError);
-        throw productError;
-      }
-
-      // Create a properly typed product with defaults
-      const typedProduct = {
-        ...newProduct,
-        unit_price: newProduct.unit_price ?? 0,
-        selling_price: newProduct.selling_price ?? 0,
-        has_recipe: newProduct.has_recipe ?? false,
-        has_consumables: newProduct.has_consumables ?? false,
-        auto_generate_sku: newProduct.auto_generate_sku ?? false,
-        warning_flags: newProduct.warning_flags ?? null
-      } as BusinessProduct;
-
-      // Then, if there are sizes, add them
-      if (productData.sizes && productData.sizes.length > 0 && newProduct) {
-        const sizesToInsert = productData.sizes.map(size => ({
-          product_id: newProduct.id,
-          size_name: size.size_name,
-          price: size.price
-        }));
-
-        const { error: sizesError } = await supabase
-          .from('business_product_sizes')
-          .insert(sizesToInsert);
-
-        if (sizesError) {
-          console.error('Error creating product sizes:', sizesError);
-          throw sizesError;
-        }
-      }
-
-      // If there's a recipe, add the recipe items
-      if (productData.has_recipe && productData.recipe_items && productData.recipe_items.length > 0 && newProduct) {
-        const recipeItems = productData.recipe_items.map(item => ({
-          product_id: newProduct.id,
-          ingredient_id: item.ingredient_id,
-          quantity: item.quantity,
-          unit_id: item.unit_id,
-          cost: item.cost
-        }));
-
-        // Disable RLS to perform the operation
+      try {
+        // First, disable RLS to perform the operation
         await supabase.rpc('disable_rls');
-        
-        // Using fetch API directly to insert recipe items
-        const recipeResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_recipes`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify(recipeItems)
-          }
-        );
 
-        // Re-enable RLS
-        await supabase.rpc('enable_rls');
-        
-        if (!recipeResponse.ok) {
-          const error = new Error(`Failed to insert recipe items: ${recipeResponse.statusText}`);
-          console.error('Error creating product recipe items:', error);
-          throw error;
+        // Create the product
+        const { data: newProduct, error: productError } = await supabase
+          .from('business_products')
+          .insert({
+            business_id: business.id,
+            name: productData.name,
+            sku: productData.sku,
+            auto_generate_sku: productData.auto_generate_sku || false,
+            description: productData.description,
+            category_id: category_id,
+            brand_id: brand_id,
+            warranty_id: warranty_id,
+            location_id: location_id,
+            unit_id: unit_id,
+            image_url: productData.image_url,
+            alert_quantity: productData.alert_quantity || 10,
+            unit_price: productData.unit_price || 0,
+            selling_price: productData.selling_price || 0,
+            has_recipe: productData.has_recipe || false,
+            has_consumables: productData.has_consumables || false,
+            quantity_available: 0, // Initial stock is 0
+            quantity_sold: 0
+          })
+          .select()
+          .single();
+
+        if (productError) {
+          console.error('Error creating product:', productError);
+          throw productError;
         }
-      }
 
-      // If there are consumables, add them
-      if (productData.has_consumables && productData.consumable_items && productData.consumable_items.length > 0 && newProduct) {
-        const consumableItems = productData.consumable_items.map(item => ({
-          product_id: newProduct.id,
-          consumable_id: item.consumable_id,
-          quantity: item.quantity,
-          unit_id: item.unit_id,
-          cost: item.cost
-        }));
+        // Create a properly typed product with defaults
+        const typedProduct = {
+          ...newProduct,
+          unit_price: newProduct.unit_price ?? 0,
+          selling_price: newProduct.selling_price ?? 0,
+          has_recipe: newProduct.has_recipe ?? false,
+          has_consumables: newProduct.has_consumables ?? false,
+          auto_generate_sku: newProduct.auto_generate_sku ?? false,
+          warning_flags: newProduct.warning_flags ?? null
+        } as BusinessProduct;
 
-        // Disable RLS for the operation
-        await supabase.rpc('disable_rls');
-        
-        // Using fetch API directly to insert consumable items
-        const consumablesResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify(consumableItems)
+        // Then, if there are sizes, add them
+        if (productData.sizes && productData.sizes.length > 0 && newProduct) {
+          const sizesToInsert = productData.sizes.map(size => ({
+            product_id: newProduct.id,
+            size_name: size.size_name,
+            price: size.price
+          }));
+
+          const { error: sizesError } = await supabase
+            .from('business_product_sizes')
+            .insert(sizesToInsert);
+
+          if (sizesError) {
+            console.error('Error creating product sizes:', sizesError);
+            throw sizesError;
           }
-        );
-
-        // Re-enable RLS
-        await supabase.rpc('enable_rls');
-        
-        if (!consumablesResponse.ok) {
-          const error = new Error(`Failed to insert consumable items: ${consumablesResponse.statusText}`);
-          console.error('Error creating product consumables:', error);
-          throw error;
         }
-      }
 
-      return typedProduct;
+        // If there's a recipe, add the recipe items
+        if (productData.has_recipe && productData.recipe_items && productData.recipe_items.length > 0 && newProduct) {
+          const recipeItems = productData.recipe_items.map(item => ({
+            product_id: newProduct.id,
+            ingredient_id: item.ingredient_id,
+            quantity: item.quantity,
+            unit_id: item.unit_id,
+            cost: item.cost
+          }));
+          
+          // Using fetch API directly to insert recipe items
+          const recipeResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_recipes`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(recipeItems)
+            }
+          );
+          
+          if (!recipeResponse.ok) {
+            const error = new Error(`Failed to insert recipe items: ${recipeResponse.statusText}`);
+            console.error('Error creating product recipe items:', error);
+            throw error;
+          }
+        }
+
+        // If there are consumables, add them
+        if (productData.has_consumables && productData.consumable_items && productData.consumable_items.length > 0 && newProduct) {
+          const consumableItems = productData.consumable_items.map(item => ({
+            product_id: newProduct.id,
+            consumable_id: item.consumable_id,
+            quantity: item.quantity,
+            unit_id: item.unit_id,
+            cost: item.cost
+          }));
+          
+          // Using fetch API directly to insert consumable items
+          const consumablesResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(consumableItems)
+            }
+          );
+          
+          if (!consumablesResponse.ok) {
+            const error = new Error(`Failed to insert consumable items: ${consumablesResponse.statusText}`);
+            console.error('Error creating product consumables:', error);
+            throw error;
+          }
+        }
+        
+        return typedProduct;
+      } finally {
+        // Always re-enable RLS when done, even if there was an error
+        await supabase.rpc('enable_rls');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-products', business?.id] });
