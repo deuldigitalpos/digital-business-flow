@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -938,4 +939,330 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <div className="space-y-4">
               {sizes.map((size, index) => (
                 <div key={index} className="flex items-center space-x-4">
-                  <
+                  <div className="flex-1">
+                    <FormItem>
+                      <FormLabel>Size Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Size name"
+                          value={size.size_name}
+                          onChange={(e) => handleSizeChange(index, 'size_name', e.target.value)}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  </div>
+                  <div className="flex-1">
+                    <FormItem>
+                      <FormLabel>Price</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Price"
+                          value={size.price}
+                          onChange={(e) => handleSizeChange(index, 'price', e.target.value)}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="mt-8"
+                    onClick={() => handleRemoveSize(index)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddSize}
+                className="mt-2"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Size
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Recipe Section */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <CardTitle>Recipe</CardTitle>
+              <CardDescription>
+                Add ingredients to create a recipe for this product
+              </CardDescription>
+            </div>
+            <FormField
+              control={form.control}
+              name="has_recipe"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </CardHeader>
+          <CardContent>
+            {form.watch('has_recipe') && (
+              <div className="space-y-4">
+                <Alert>
+                  <AlertTitle className="flex items-center">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Recipe Cost Information
+                  </AlertTitle>
+                  <AlertDescription>
+                    The cost of this product will be automatically calculated based on the recipe ingredients.
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="space-y-4 mt-4">
+                  {recipeItems.map((item, index) => (
+                    <RecipeItemForm
+                      key={index}
+                      index={index}
+                      value={item}
+                      onChange={handleRecipeItemChange}
+                      onRemove={handleRemoveRecipeItem}
+                      isRemovable={recipeItems.length > 1}
+                    />
+                  ))}
+                </div>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAddRecipeItem}
+                  className="mt-2"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Ingredient
+                </Button>
+                
+                <div className="mt-4 bg-gray-50 p-4 rounded-md">
+                  <p className="text-sm font-medium text-gray-500">Total Recipe Cost</p>
+                  <p className="text-xl font-medium">{totalRecipeCost.toFixed(2)}</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Consumables Section */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <CardTitle>Consumables</CardTitle>
+              <CardDescription>
+                Add consumable items that are used with this product
+              </CardDescription>
+            </div>
+            <FormField
+              control={form.control}
+              name="has_consumables"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </CardHeader>
+          <CardContent>
+            {form.watch('has_consumables') && (
+              <div className="space-y-4">
+                <Alert>
+                  <AlertTitle className="flex items-center">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Consumables Information
+                  </AlertTitle>
+                  <AlertDescription>
+                    Consumables are items that are used with this product but not part of its recipe cost.
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="space-y-4 mt-4">
+                  {consumableItems.map((item, index) => (
+                    <ConsumableItemForm
+                      key={index}
+                      index={index}
+                      value={item}
+                      onChange={handleConsumableItemChange}
+                      onRemove={handleRemoveConsumableItem}
+                      isRemovable={consumableItems.length > 1}
+                    />
+                  ))}
+                </div>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAddConsumableItem}
+                  className="mt-2"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Consumable
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Modifiers Section */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <CardTitle>Modifiers</CardTitle>
+              <CardDescription>
+                Add price modifiers for different product variations
+              </CardDescription>
+            </div>
+            <FormField
+              control={form.control}
+              name="has_modifiers"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </CardHeader>
+          <CardContent>
+            {form.watch('has_modifiers') && (
+              <div className="space-y-4">
+                {modifierItems.map((modifier, index) => (
+                  <div key={index} className="border rounded-md p-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-medium">Modifier {index + 1}</h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveModifier(index)}
+                        disabled={modifierItems.length === 1}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 gap-4">
+                        <div>
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Modifier name"
+                                value={modifier.name}
+                                onChange={(e) => handleModifierChange(index, 'name', e.target.value)}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          <div>
+                            <FormItem>
+                              <FormLabel>Regular Size Price</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Price"
+                                  value={modifier.size_regular_price}
+                                  onChange={(e) => handleModifierChange(index, 'size_regular_price', e.target.value)}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          </div>
+                          
+                          <div>
+                            <FormItem>
+                              <FormLabel>Medium Size Price</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Price"
+                                  value={modifier.size_medium_price || ''}
+                                  onChange={(e) => handleModifierChange(index, 'size_medium_price', e.target.value || null)}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          </div>
+                          
+                          <div>
+                            <FormItem>
+                              <FormLabel>Large Size Price</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Price"
+                                  value={modifier.size_large_price || ''}
+                                  onChange={(e) => handleModifierChange(index, 'size_large_price', e.target.value || null)}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          </div>
+                          
+                          <div>
+                            <FormItem>
+                              <FormLabel>XL Size Price</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Price"
+                                  value={modifier.size_xl_price || ''}
+                                  onChange={(e) => handleModifierChange(index, 'size_xl_price', e.target.value || null)}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAddModifier}
+                  className="mt-2"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Modifier
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        <div className="flex justify-end space-x-2">
+          <Button variant="outline" type="button" onClick={() => navigate('/business-dashboard/products')}>
+            Cancel
+          </Button>
+          <Button type="submit">Save Product</Button>
+        </div>
+      </form>
+    </Form>
+  );
+};
+
+export default ProductForm;
