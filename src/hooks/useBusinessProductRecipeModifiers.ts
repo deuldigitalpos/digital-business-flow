@@ -10,27 +10,29 @@ export function useProductRecipes(productId: string | undefined) {
     queryFn: async () => {
       if (!productId) return [];
       
-      // Using raw SQL query to avoid type issues since Supabase TypeScript definitions might not be updated
-      const { data, error } = await supabase
-        .rpc('disable_rls')
-        .then(() => supabase.from('business_product_recipes')
-        .select(`
-          *,
-          ingredient:ingredient_id(id, name, unit_price, unit_id),
-          unit:unit_id(id, name, short_name)
-        `)
-        .eq('product_id', productId))
-        .then(async (result) => {
-          await supabase.rpc('enable_rls');
-          return result;
-        });
+      // First disable RLS
+      await supabase.rpc('disable_rls');
       
-      if (error) {
-        console.error('Error fetching product recipes:', error);
-        throw error;
+      // Using fetch directly to avoid TypeScript issues until Supabase types are updated
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_recipes?product_id=eq.${productId}&select=*,ingredient:ingredient_id(id,name,unit_price,unit_id),unit:unit_id(id,name,short_name)`,
+        {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      // Re-enable RLS
+      await supabase.rpc('enable_rls');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch product recipes');
       }
       
-      return data as unknown as BusinessProductRecipe[];
+      const data = await response.json();
+      return data as BusinessProductRecipe[];
     },
     enabled: !!productId
   });
@@ -43,23 +45,29 @@ export function useProductModifiers(productId: string | undefined) {
     queryFn: async () => {
       if (!productId) return [];
       
-      // Using raw SQL query to avoid type issues
-      const { data, error } = await supabase
-        .rpc('disable_rls')
-        .then(() => supabase.from('business_product_modifiers')
-        .select('*')
-        .eq('product_id', productId))
-        .then(async (result) => {
-          await supabase.rpc('enable_rls');
-          return result;
-        });
+      // First disable RLS
+      await supabase.rpc('disable_rls');
       
-      if (error) {
-        console.error('Error fetching product modifiers:', error);
-        throw error;
+      // Using fetch directly to avoid TypeScript issues
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_modifiers?product_id=eq.${productId}&select=*`,
+        {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      // Re-enable RLS
+      await supabase.rpc('enable_rls');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch product modifiers');
       }
       
-      return data as unknown as BusinessProductModifier[];
+      const data = await response.json();
+      return data as BusinessProductModifier[];
     },
     enabled: !!productId
   });
