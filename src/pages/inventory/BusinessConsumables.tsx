@@ -27,12 +27,13 @@ const BusinessConsumables: React.FC = () => {
   const [isStockFormOpen, setIsStockFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all"); // Initialize with 'all'
-  const { data: categories } = useBusinessCategories();
+  const { data: categories = [] } = useBusinessCategories();
 
-  // Generate safe unique values for empty IDs
+  // Generate safe unique values for empty IDs - guaranteed to never be empty strings
   const getSafeCategoryValue = (id: string | null | undefined, name: string): string => {
-    if (id) return id;
-    return `category-${name}-${Math.random().toString(36).substring(2, 9)}`;
+    if (id && id.trim() !== '') return id;
+    // Ensure unique, non-empty values even if name is empty
+    return `category-${name || 'unnamed'}-${Math.random().toString(36).substring(2, 9)}`;
   };
 
   return (
@@ -91,9 +92,9 @@ const BusinessConsumables: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {categories?.map(category => (
+                    {(categories || []).map(category => (
                       <SelectItem 
-                        key={category.id} 
+                        key={category.id || `cat-${category.name}`} 
                         value={getSafeCategoryValue(category.id, category.name)}
                       >
                         {category.name}

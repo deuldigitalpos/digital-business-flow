@@ -50,8 +50,8 @@ type FormValues = z.infer<typeof formSchema>;
 
 const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) => {
   const { createConsumable, updateConsumable } = useBusinessConsumableMutations();
-  const { data: categories } = useBusinessCategories();
-  const { data: units } = useBusinessUnits();
+  const { data: categories = [] } = useBusinessCategories();
+  const { data: units = [] } = useBusinessUnits();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
@@ -114,9 +114,9 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
     }
   };
 
-  // Generate safe unique values for empty IDs
+  // Generate safe unique values for empty IDs - ensuring we NEVER have empty string values
   const getSafeValue = (value: string | null | undefined, prefix: string, fallback: string): string => {
-    if (value) return value;
+    if (value && value.trim() !== '') return value;
     return `${prefix}-${fallback}-${Math.random().toString(36).substring(2, 9)}`;
   };
 
@@ -175,9 +175,9 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {categories?.map(category => (
+                    {(categories || []).map(category => (
                       <SelectItem 
-                        key={category.id} 
+                        key={category.id || `cat-${category.name}`} 
                         value={getSafeValue(category.id, 'category', category.name)}
                       >
                         {category.name}
@@ -206,9 +206,9 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {units?.map(unit => (
+                    {(units || []).map(unit => (
                       <SelectItem 
-                        key={unit.id} 
+                        key={unit.id || `unit-${unit.name}`} 
                         value={getSafeValue(unit.id, 'unit', unit.name)}
                       >
                         {unit.name} ({unit.short_name})

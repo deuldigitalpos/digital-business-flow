@@ -78,11 +78,16 @@ const ConsumableList: React.FC<ConsumableListProps> = ({
       consumable.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (consumable.description && consumable.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Filter by category - handling the case where categoryFilter might be a generated safe ID
-    const matchesCategory = !effectiveCategoryFilter || 
-                            effectiveCategoryFilter === 'all' || 
-                            (consumable.category_id && effectiveCategoryFilter.includes(consumable.category_id)) ||
-                            (consumable.category_id === null && effectiveCategoryFilter.includes('category-'));
+    // Enhanced filter by category logic handling various cases:
+    // 1. No category filter applied
+    // 2. Exact category ID match
+    // 3. Generated safe ID match (containing the original ID)
+    // 4. Null category handling (special case)
+    const matchesCategory = 
+      !effectiveCategoryFilter || 
+      effectiveCategoryFilter === 'all' || 
+      (consumable.category_id && effectiveCategoryFilter.includes(consumable.category_id)) ||
+      (consumable.category_id === null && effectiveCategoryFilter.includes('category-'));
     
     return matchesSearch && matchesCategory;
   });
