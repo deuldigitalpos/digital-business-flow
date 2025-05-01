@@ -349,7 +349,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       const filePath = `${business.id}/products/${fileName}`;
       
       const { data, error } = await supabase.storage
-        .from('business_images')
+        .from('business-logos') // Changed from 'business_images' to 'business-logos'
         .upload(filePath, imageFile, {
           cacheControl: '3600',
           upsert: false,
@@ -361,7 +361,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('business_images')
+        .from('business-logos') // Changed from 'business_images' to 'business-logos'
         .getPublicUrl(filePath);
       
       setUploadProgress(100);
@@ -374,10 +374,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       setIsUploading(false);
       return null;
     }
-  };
-
-  const handleSubmit = async (values: ProductFormValues) => {
-    console.log('Form values on submit:', values);
   };
 
   const handleAddSize = () => {
@@ -826,95 +822,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
           </Card>
         </div>
         
-        {/* Product Pricing Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Product Pricing</CardTitle>
-            <CardDescription>
-              Set the cost and selling price for this product
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <FormField
-                  control={form.control}
-                  name="unit_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Unit Cost Price</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Unit Cost"
-                          {...field}
-                          disabled={form.watch('has_recipe')}
-                        />
-                      </FormControl>
-                      {form.watch('has_recipe') && (
-                        <FormDescription>
-                          Cost is automatically calculated from recipe ingredients
-                        </FormDescription>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div>
-                <FormField
-                  control={form.control}
-                  name="selling_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Selling Price</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Selling Price"
-                          {...field}
-                          className={belowCostWarning ? "border-red-500" : ""}
-                        />
-                      </FormControl>
-                      {belowCostWarning && (
-                        <div className="text-red-500 text-xs mt-1 flex items-center">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          Selling price is below cost price
-                        </div>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-            
-            <div className="mt-4 p-4 bg-gray-50 rounded-md">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Cost Price</p>
-                  <p className="text-lg font-medium">{form.watch('unit_price') || 0}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Selling Price</p>
-                  <p className="text-lg font-medium">{form.watch('selling_price') || 0}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Profit</p>
-                  <p className="text-lg font-medium">
-                    {(form.watch('selling_price') || 0) - (form.watch('unit_price') || 0)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Profit Margin</p>
-                  <p className="text-lg font-medium">{calculateProfitMargin()}%</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
         {/* Product Sizes Section */}
         <Card>
           <CardHeader>
@@ -1106,6 +1013,95 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 </Button>
               </div>
             )}
+          </CardContent>
+        </Card>
+        
+        {/* Product Pricing Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Pricing</CardTitle>
+            <CardDescription>
+              Set the cost and selling price for this product
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <FormField
+                  control={form.control}
+                  name="unit_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit Cost Price</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Unit Cost"
+                          {...field}
+                          disabled={form.watch('has_recipe')}
+                        />
+                      </FormControl>
+                      {form.watch('has_recipe') && (
+                        <FormDescription>
+                          Cost is automatically calculated from recipe ingredients
+                        </FormDescription>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div>
+                <FormField
+                  control={form.control}
+                  name="selling_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Selling Price</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Selling Price"
+                          {...field}
+                          className={belowCostWarning ? "border-red-500" : ""}
+                        />
+                      </FormControl>
+                      {belowCostWarning && (
+                        <div className="text-red-500 text-xs mt-1 flex items-center">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Selling price is below cost price
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            
+            <div className="mt-4 p-4 bg-gray-50 rounded-md">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Cost Price</p>
+                  <p className="text-lg font-medium">{form.watch('unit_price') || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Selling Price</p>
+                  <p className="text-lg font-medium">{form.watch('selling_price') || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Profit</p>
+                  <p className="text-lg font-medium">
+                    {(form.watch('selling_price') || 0) - (form.watch('unit_price') || 0)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Profit Margin</p>
+                  <p className="text-lg font-medium">{calculateProfitMargin()}%</p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
         
