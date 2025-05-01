@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
@@ -120,21 +121,31 @@ interface StockTransaction {
   created_by: string | null;
 }
 
+// Helper function to ensure we never have empty string values for IDs
+const getSafeValue = (value: string | null | undefined, prefix: string, name: string | null | undefined): string => {
+  // If we have a valid ID and it's not an empty string, use it
+  if (value && value.trim() !== '') return value;
+  
+  // Generate a unique, non-empty fallback value using sanitized name or default
+  const safeName = name && name.trim() !== '' ? name.trim() : 'unnamed';
+  return `${prefix}-${safeName}-${Math.random().toString(36).substring(2, 9)}`;
+};
+
 const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({ 
   onClose,
   defaultTransactionType = 'consumable'
 }) => {
   const { businessUser } = useBusinessAuth();
   const { createStockTransaction } = useBusinessStockMutations();
-  const { data: categories } = useBusinessCategories();
-  const { data: units } = useBusinessUnits();
-  const { suppliers } = useBusinessSuppliers();
-  const { brands } = useBusinessBrands();
-  const { warranties } = useBusinessWarranties();
+  const { data: categories = [] } = useBusinessCategories();
+  const { data: units = [] } = useBusinessUnits();
+  const { suppliers = [] } = useBusinessSuppliers();
+  const { brands = [] } = useBusinessBrands();
+  const { warranties = [] } = useBusinessWarranties();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filteredItems, setFilteredItems] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const { consumables } = useBusinessConsumables();
+  const { consumables = [] } = useBusinessConsumables();
 
   // Hold all items of various types
   const [allItems, setAllItems] = useState<{
@@ -417,12 +428,15 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">All Categories</SelectItem>
-                      {categories?.map(category => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="all-categories">All Categories</SelectItem>
+                      {categories?.map(category => {
+                        const safeValue = getSafeValue(category.id, 'category', category.name);
+                        return (
+                          <SelectItem key={safeValue} value={safeValue}>
+                            {category.name || 'Unnamed Category'}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -447,11 +461,14 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {filteredItems.map(item => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
+                    {filteredItems.map(item => {
+                      const safeValue = getSafeValue(item.id, 'item', item.name);
+                      return (
+                        <SelectItem key={safeValue} value={safeValue}>
+                          {item.name || 'Unnamed Item'}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -523,11 +540,14 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {units?.map(unit => (
-                        <SelectItem key={unit.id} value={unit.id}>
-                          {unit.name} ({unit.short_name})
-                        </SelectItem>
-                      ))}
+                      {units?.map(unit => {
+                        const safeValue = getSafeValue(unit.id, 'unit', unit.name);
+                        return (
+                          <SelectItem key={safeValue} value={safeValue}>
+                            {unit.name || 'Unnamed Unit'} ({unit.short_name || '-'})
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -736,11 +756,14 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {suppliers?.map(supplier => (
-                        <SelectItem key={supplier.id} value={supplier.id}>
-                          {supplier.first_name} {supplier.last_name}
-                        </SelectItem>
-                      ))}
+                      {suppliers?.map(supplier => {
+                        const safeValue = getSafeValue(supplier.id, 'supplier', supplier.first_name);
+                        return (
+                          <SelectItem key={safeValue} value={safeValue}>
+                            {supplier.first_name || ''} {supplier.last_name || ''}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -764,11 +787,14 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {brands?.map(brand => (
-                        <SelectItem key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </SelectItem>
-                      ))}
+                      {brands?.map(brand => {
+                        const safeValue = getSafeValue(brand.id, 'brand', brand.name);
+                        return (
+                          <SelectItem key={safeValue} value={safeValue}>
+                            {brand.name || 'Unnamed Brand'}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -794,11 +820,14 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {warranties?.map(warranty => (
-                        <SelectItem key={warranty.id} value={warranty.id}>
-                          {warranty.name} ({warranty.duration} {warranty.duration_unit})
-                        </SelectItem>
-                      ))}
+                      {warranties?.map(warranty => {
+                        const safeValue = getSafeValue(warranty.id, 'warranty', warranty.name);
+                        return (
+                          <SelectItem key={safeValue} value={safeValue}>
+                            {warranty.name || 'Unnamed Warranty'} ({warranty.duration || '0'} {warranty.duration_unit || 'days'})
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
