@@ -25,8 +25,6 @@ export function useBusinessProductMutations() {
       const brand_id = productData.brand_id === "none" ? null : productData.brand_id;
       const warranty_id = productData.warranty_id === "none" ? null : productData.warranty_id;
       const location_id = productData.location_id === "none" ? null : productData.location_id;
-      const ingredient_id = productData.ingredient_id === "none" ? null : productData.ingredient_id;
-      const consumable_id = productData.consumable_id === "none" ? null : productData.consumable_id;
 
       // First, create the product
       const { data: newProduct, error: productError } = await supabase
@@ -43,14 +41,12 @@ export function useBusinessProductMutations() {
           image_url: productData.image_url,
           expiration_date: expiration_date,
           alert_quantity: productData.alert_quantity || 10,
-          is_raw_ingredient: productData.is_raw_ingredient || false,
           is_consumable: productData.is_consumable || false,
-          ingredient_id: ingredient_id,
-          consumable_id: consumable_id,
           unit_price: productData.unit_price || 0,
           selling_price: productData.selling_price || 0,
           has_recipe: productData.has_recipe || false,
           has_modifiers: productData.has_modifiers || false,
+          has_consumables: productData.has_consumables || false,
           quantity_available: 0, // Initial stock is 0
           quantity_sold: 0
         })
@@ -117,6 +113,43 @@ export function useBusinessProductMutations() {
         }
       }
 
+      // If there are consumables, add them
+      if (productData.has_consumables && productData.consumable_items && productData.consumable_items.length > 0 && newProduct) {
+        const consumableItems = productData.consumable_items.map(item => ({
+          product_id: newProduct.id,
+          consumable_id: item.consumable_id,
+          quantity: item.quantity,
+          unit_id: item.unit_id,
+          cost: item.cost
+        }));
+
+        // Disable RLS for the operation
+        await supabase.rpc('disable_rls');
+        
+        // Using fetch API directly to insert consumable items
+        const consumablesResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(consumableItems)
+          }
+        );
+
+        // Re-enable RLS
+        await supabase.rpc('enable_rls');
+        
+        if (!consumablesResponse.ok) {
+          const error = new Error(`Failed to insert consumable items: ${consumablesResponse.statusText}`);
+          console.error('Error creating product consumables:', error);
+          throw error;
+        }
+      }
+
       // If there are modifiers, add them
       if (productData.has_modifiers && productData.modifier_items && productData.modifier_items.length > 0 && newProduct) {
         const modifierItems = productData.modifier_items.map(item => ({
@@ -179,8 +212,6 @@ export function useBusinessProductMutations() {
       const brand_id = data.brand_id === "none" ? null : data.brand_id;
       const warranty_id = data.warranty_id === "none" ? null : data.warranty_id;
       const location_id = data.location_id === "none" ? null : data.location_id;
-      const ingredient_id = data.ingredient_id === "none" ? null : data.ingredient_id;
-      const consumable_id = data.consumable_id === "none" ? null : data.consumable_id;
 
       // First, update the product
       const { data: updatedProduct, error: productError } = await supabase
@@ -196,14 +227,12 @@ export function useBusinessProductMutations() {
           image_url: data.image_url,
           expiration_date: expiration_date,
           alert_quantity: data.alert_quantity,
-          is_raw_ingredient: data.is_raw_ingredient,
           is_consumable: data.is_consumable,
-          ingredient_id: ingredient_id,
-          consumable_id: consumable_id,
           unit_price: data.unit_price || 0,
           selling_price: data.selling_price || 0,
           has_recipe: data.has_recipe || false,
-          has_modifiers: data.has_modifiers || false
+          has_modifiers: data.has_modifiers || false,
+          has_consumables: data.has_consumables || false
         })
         .eq('id', id)
         .select()
@@ -324,6 +353,90 @@ export function useBusinessProductMutations() {
 
         if (!deleteRecipeResponse.ok) {
           console.error('Error deleting product recipe items:', deleteRecipeResponse.statusText);
+          // Non-fatal, continue execution
+        }
+      }
+
+      // Handle consumable items if this product has consumables
+      if (data.has_consumables && data.consumable_items) {
+        // Disable RLS for the operation
+        await supabase.rpc('disable_rls');
+        
+        // Delete existing consumable items using fetch API
+        const deleteConsumablesResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables?product_id=eq.${id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Prefer': 'return=minimal'
+            }
+          }
+        );
+
+        if (!deleteConsumablesResponse.ok) {
+          const deleteConsumablesError = new Error(`Failed to delete consumable items: ${deleteConsumablesResponse.statusText}`);
+          console.error('Error deleting product consumable items:', deleteConsumablesError);
+          
+          // Re-enable RLS before throwing error
+          await supabase.rpc('enable_rls');
+          throw deleteConsumablesError;
+        }
+
+        // Insert new consumable items if any
+        if (data.consumable_items.length > 0) {
+          const consumableItems = data.consumable_items.map(item => ({
+            product_id: id,
+            consumable_id: item.consumable_id,
+            quantity: item.quantity,
+            unit_id: item.unit_id,
+            cost: item.cost
+          }));
+
+          const insertConsumablesResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(consumableItems)
+            }
+          );
+          
+          // Re-enable RLS
+          await supabase.rpc('enable_rls');
+
+          if (!insertConsumablesResponse.ok) {
+            const insertConsumablesError = new Error(`Failed to insert consumable items: ${insertConsumablesResponse.statusText}`);
+            console.error('Error inserting product consumable items:', insertConsumablesError);
+            throw insertConsumablesError;
+          }
+        } else {
+          // Re-enable RLS if no items to insert
+          await supabase.rpc('enable_rls');
+        }
+      } else {
+        // If product no longer has consumables, delete any existing consumable items
+        await supabase.rpc('disable_rls');
+        
+        const deleteConsumablesResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables?product_id=eq.${id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Prefer': 'return=minimal'
+            }
+          }
+        );
+        
+        await supabase.rpc('enable_rls');
+
+        if (!deleteConsumablesResponse.ok) {
+          console.error('Error deleting product consumable items:', deleteConsumablesResponse.statusText);
           // Non-fatal, continue execution
         }
       }

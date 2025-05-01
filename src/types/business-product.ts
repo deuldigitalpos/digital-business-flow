@@ -16,19 +16,18 @@ export interface BusinessProduct {
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
   quantity_sold: number;
   quantity_available: number;
-  is_raw_ingredient: boolean;
   is_consumable: boolean;
-  ingredient_id: string | null;
-  consumable_id: string | null;
   unit_price: number | null;
   selling_price: number | null;
   has_recipe: boolean;
   has_modifiers: boolean;
+  has_consumables: boolean;
   created_at: string;
   updated_at: string;
   business_product_sizes?: BusinessProductSize[];
   business_product_recipes?: BusinessProductRecipe[];
   business_product_modifiers?: BusinessProductModifier[];
+  business_product_consumables?: BusinessProductConsumable[];
 }
 
 export interface BusinessProductSize {
@@ -63,8 +62,26 @@ export interface BusinessProductModifier {
   updated_at: string;
 }
 
+export interface BusinessProductConsumable {
+  id: string;
+  product_id: string;
+  consumable_id: string;
+  quantity: number;
+  unit_id: string | null;
+  cost: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface RecipeItem {
   ingredient_id: string;
+  quantity: number;
+  unit_id: string | null;
+  cost: number;
+}
+
+export interface ConsumableItem {
+  consumable_id: string;
   quantity: number;
   unit_id: string | null;
   cost: number;
@@ -89,18 +106,17 @@ export type ProductFormValues = {
   image_url?: string;
   expiration_date?: string | Date; // Updated to accept both string and Date
   alert_quantity?: number;
-  is_raw_ingredient?: boolean;
   is_consumable?: boolean;
-  ingredient_id?: string;
-  consumable_id?: string;
   unit_price?: number;
   selling_price?: number;
   has_recipe?: boolean;
   has_modifiers?: boolean;
+  has_consumables?: boolean;
   sizes?: {
     size_name: string;
     price: number;
   }[];
   recipe_items?: RecipeItem[];
   modifier_items?: ModifierItem[];
+  consumable_items?: ConsumableItem[];
 };
