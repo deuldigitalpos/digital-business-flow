@@ -68,26 +68,37 @@ const ConsumableList: React.FC<ConsumableListProps> = ({
     }
   };
 
+  // Helper to check if a consumable's category matches the filter
+  const categoryMatches = (consumable: BusinessConsumable, filter?: string) => {
+    if (!filter || filter === 'all') return true;
+    
+    // Handle case where category_id exists
+    if (consumable.category_id && filter.includes(consumable.category_id)) return true;
+    
+    // Handle case where category_id is null but filter contains a generated ID
+    if (consumable.category_id === null && filter.includes('category-')) {
+      // If we're dealing with a generated ID (starts with "category-")
+      // and the consumable's category is null, this could be a match
+      if (consumable.category?.name) {
+        // If filter contains both "category-" and the category name, it's likely a match
+        return filter.toLowerCase().includes(consumable.category.name.toLowerCase());
+      }
+      // If there's no category name but the filter is for unnamed categories
+      return filter.includes('unnamed');
+    }
+    
+    return false;
+  };
+
   // Filter consumables based on search term and category
   const filteredConsumables = consumables.filter(consumable => {
-    // Make sure categoryFilter is valid before comparison
-    const effectiveCategoryFilter = categoryFilter || '';
-    
     // Filter by search term
     const matchesSearch = !searchTerm || 
       consumable.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (consumable.description && consumable.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Enhanced filter by category logic handling various cases:
-    // 1. No category filter applied
-    // 2. Exact category ID match
-    // 3. Generated safe ID match (containing the original ID)
-    // 4. Null category handling (special case)
-    const matchesCategory = 
-      !effectiveCategoryFilter || 
-      effectiveCategoryFilter === 'all' || 
-      (consumable.category_id && effectiveCategoryFilter.includes(consumable.category_id)) ||
-      (consumable.category_id === null && effectiveCategoryFilter.includes('category-'));
+    // Filter by category using our helper function
+    const matchesCategory = categoryMatches(consumable, categoryFilter);
     
     return matchesSearch && matchesCategory;
   });

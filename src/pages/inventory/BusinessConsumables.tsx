@@ -26,14 +26,16 @@ const BusinessConsumables: React.FC = () => {
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [isStockFormOpen, setIsStockFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all"); // Initialize with 'all'
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { data: categories = [] } = useBusinessCategories();
 
-  // Generate safe unique values for empty IDs - guaranteed to never be empty strings
+  // Enhanced function to ensure we never have empty string values for categories
   const getSafeCategoryValue = (id: string | null | undefined, name: string): string => {
+    // If we have a valid ID and it's not an empty string, use it
     if (id && id.trim() !== '') return id;
-    // Ensure unique, non-empty values even if name is empty
-    return `category-${name || 'unnamed'}-${Math.random().toString(36).substring(2, 9)}`;
+    // Generate a unique, non-empty fallback value
+    const safeName = name && name.trim() !== '' ? name : 'unnamed';
+    return `category-${safeName}-${Math.random().toString(36).substring(2, 9)}`;
   };
 
   return (

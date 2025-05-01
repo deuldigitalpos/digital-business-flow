@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -114,10 +113,14 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
     }
   };
 
-  // Generate safe unique values for empty IDs - ensuring we NEVER have empty string values
-  const getSafeValue = (value: string | null | undefined, prefix: string, fallback: string): string => {
+  // Enhanced function to ensure we never have empty string values
+  const getSafeValue = (value: string | null | undefined, prefix: string, name: string): string => {
+    // If we have a valid ID and it's not an empty string, use it
     if (value && value.trim() !== '') return value;
-    return `${prefix}-${fallback}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    // Otherwise, generate a unique fallback value
+    const safeName = name && name.trim() !== '' ? name : 'unnamed';
+    return `${prefix}-${safeName}-${Math.random().toString(36).substring(2, 9)}`;
   };
 
   return (
