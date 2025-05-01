@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,6 +38,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 // Form validation schema
 const stockTransactionSchema = z.object({
@@ -76,6 +76,7 @@ interface AddStockTransactionModalProps {
 }
 
 const AddStockTransactionModal: React.FC<AddStockTransactionModalProps> = ({ isOpen, onClose }) => {
+  const { businessUser } = useBusinessAuth(); // Add this to access the business user
   const { createStockTransaction } = useBusinessStockMutations();
   const { consumables } = useBusinessConsumables();
   const { ingredients } = useBusinessIngredients();
@@ -135,6 +136,7 @@ const AddStockTransactionModal: React.FC<AddStockTransactionModalProps> = ({ isO
       const unpaidAmount = values.payment_status === 'paid' ? 0 : (totalCost - (values.paid_amount || 0));
       
       // Fix #2: Include all required properties from the StockTransaction type
+      // Fix #3: Add the created_by property from the business user
       const transactionData = {
         transaction_type: values.transaction_type,
         item_id: values.item_id,
@@ -155,7 +157,8 @@ const AddStockTransactionModal: React.FC<AddStockTransactionModalProps> = ({ isO
         brand_id: null,
         warranty_id: null,
         due_date: null,
-        expiration_date: null
+        expiration_date: null,
+        created_by: businessUser?.id || null
       };
       
       await createStockTransaction.mutateAsync(transactionData);
