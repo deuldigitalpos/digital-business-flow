@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues } from '@/types/business-product';
@@ -118,10 +119,10 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // Using supabase client directly to insert recipe items with headers
-          const { error: recipeError } = await supabase
-            .from('business_product_recipes')
-            .insert(recipeItems);
+          // FIX: Using raw SQL query instead of typed operations to avoid TypeScript errors
+          const { error: recipeError } = await supabase.rpc('insert_product_recipes', {
+            items: JSON.stringify(recipeItems)
+          });
           
           if (recipeError) {
             const error = new Error(`Failed to insert recipe items: ${recipeError.message}`);
@@ -142,10 +143,10 @@ export function useBusinessProductMutations() {
             cost: item.cost
           }));
           
-          // Using supabase client directly to insert consumable items
-          const { error: consumablesError } = await supabase
-            .from('business_product_consumables')
-            .insert(consumableItems);
+          // FIX: Using raw SQL query instead of typed operations to avoid TypeScript errors
+          const { error: consumablesError } = await supabase.rpc('insert_product_consumables', {
+            items: JSON.stringify(consumableItems)
+          });
           
           if (consumablesError) {
             const error = new Error(`Failed to insert consumable items: ${consumablesError.message}`);
@@ -252,82 +253,45 @@ export function useBusinessProductMutations() {
         // Disable RLS for the operation
         await supabase.rpc('disable_rls');
         
-        // Delete existing recipe items using fetch API
-        const deleteRecipeResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_recipes?product_id=eq.${id}`,
-          {
-            method: 'DELETE',
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Prefer': 'return=minimal'
+        try {
+          // Delete existing recipe items
+          await supabase.rpc('delete_product_recipes', { product_id_param: id });
+          
+          // Insert new recipe items if any
+          if (data.recipe_items.length > 0) {
+            const recipeItems = data.recipe_items.map(item => ({
+              product_id: id,
+              ingredient_id: item.ingredient_id,
+              quantity: item.quantity,
+              unit_id: item.unit_id,
+              cost: item.cost
+            }));
+            
+            const { error: insertRecipeError } = await supabase.rpc('insert_product_recipes', {
+              items: JSON.stringify(recipeItems)
+            });
+            
+            if (insertRecipeError) {
+              throw new Error(`Failed to insert recipe items: ${insertRecipeError.message}`);
             }
           }
-        );
-
-        if (!deleteRecipeResponse.ok) {
-          const deleteRecipeError = new Error(`Failed to delete recipe items: ${deleteRecipeResponse.statusText}`);
-          console.error('Error deleting product recipe items:', deleteRecipeError);
-          
-          // Re-enable RLS before throwing error
-          await supabase.rpc('enable_rls');
-          throw deleteRecipeError;
-        }
-
-        // Insert new recipe items if any
-        if (data.recipe_items.length > 0) {
-          const recipeItems = data.recipe_items.map(item => ({
-            product_id: id,
-            ingredient_id: item.ingredient_id,
-            quantity: item.quantity,
-            unit_id: item.unit_id,
-            cost: item.cost
-          }));
-
-          const insertRecipeResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_recipes`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Prefer': 'return=minimal'
-              },
-              body: JSON.stringify(recipeItems)
-            }
-          );
-          
+        } catch (error) {
+          console.error('Error handling recipe items:', error);
+          throw error;
+        } finally {
           // Re-enable RLS
-          await supabase.rpc('enable_rls');
-
-          if (!insertRecipeResponse.ok) {
-            const insertRecipeError = new Error(`Failed to insert recipe items: ${insertRecipeResponse.statusText}`);
-            console.error('Error inserting product recipe items:', insertRecipeError);
-            throw insertRecipeError;
-          }
-        } else {
-          // Re-enable RLS if no items to insert
           await supabase.rpc('enable_rls');
         }
       } else {
         // If product no longer has a recipe, delete any existing recipe items
         await supabase.rpc('disable_rls');
-        
-        const deleteRecipeResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_recipes?product_id=eq.${id}`,
-          {
-            method: 'DELETE',
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Prefer': 'return=minimal'
-            }
-          }
-        );
-        
-        await supabase.rpc('enable_rls');
-
-        if (!deleteRecipeResponse.ok) {
-          console.error('Error deleting product recipe items:', deleteRecipeResponse.statusText);
+        try {
+          await supabase.rpc('delete_product_recipes', { product_id_param: id });
+        } catch (error) {
+          console.error('Error deleting product recipe items:', error);
           // Non-fatal, continue execution
+        } finally {
+          await supabase.rpc('enable_rls');
         }
       }
 
@@ -336,82 +300,45 @@ export function useBusinessProductMutations() {
         // Disable RLS for the operation
         await supabase.rpc('disable_rls');
         
-        // Delete existing consumable items using fetch API
-        const deleteConsumablesResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables?product_id=eq.${id}`,
-          {
-            method: 'DELETE',
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Prefer': 'return=minimal'
+        try {
+          // Delete existing consumable items
+          await supabase.rpc('delete_product_consumables', { product_id_param: id });
+          
+          // Insert new consumable items if any
+          if (data.consumable_items.length > 0) {
+            const consumableItems = data.consumable_items.map(item => ({
+              product_id: id,
+              consumable_id: item.consumable_id,
+              quantity: item.quantity,
+              unit_id: item.unit_id,
+              cost: item.cost
+            }));
+            
+            const { error: insertConsumablesError } = await supabase.rpc('insert_product_consumables', {
+              items: JSON.stringify(consumableItems)
+            });
+            
+            if (insertConsumablesError) {
+              throw new Error(`Failed to insert consumable items: ${insertConsumablesError.message}`);
             }
           }
-        );
-
-        if (!deleteConsumablesResponse.ok) {
-          const deleteConsumablesError = new Error(`Failed to delete consumable items: ${deleteConsumablesResponse.statusText}`);
-          console.error('Error deleting product consumable items:', deleteConsumablesError);
-          
-          // Re-enable RLS before throwing error
-          await supabase.rpc('enable_rls');
-          throw deleteConsumablesError;
-        }
-
-        // Insert new consumable items if any
-        if (data.consumable_items.length > 0) {
-          const consumableItems = data.consumable_items.map(item => ({
-            product_id: id,
-            consumable_id: item.consumable_id,
-            quantity: item.quantity,
-            unit_id: item.unit_id,
-            cost: item.cost
-          }));
-
-          const insertConsumablesResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Prefer': 'return=minimal'
-              },
-              body: JSON.stringify(consumableItems)
-            }
-          );
-          
+        } catch (error) {
+          console.error('Error handling consumable items:', error);
+          throw error;
+        } finally {
           // Re-enable RLS
-          await supabase.rpc('enable_rls');
-
-          if (!insertConsumablesResponse.ok) {
-            const insertConsumablesError = new Error(`Failed to insert consumable items: ${insertConsumablesResponse.statusText}`);
-            console.error('Error inserting product consumable items:', insertConsumablesError);
-            throw insertConsumablesError;
-          }
-        } else {
-          // Re-enable RLS if no items to insert
           await supabase.rpc('enable_rls');
         }
       } else {
         // If product no longer has consumables, delete any existing consumable items
         await supabase.rpc('disable_rls');
-        
-        const deleteConsumablesResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/business_product_consumables?product_id=eq.${id}`,
-          {
-            method: 'DELETE',
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Prefer': 'return=minimal'
-            }
-          }
-        );
-        
-        await supabase.rpc('enable_rls');
-
-        if (!deleteConsumablesResponse.ok) {
-          console.error('Error deleting product consumable items:', deleteConsumablesResponse.statusText);
+        try {
+          await supabase.rpc('delete_product_consumables', { product_id_param: id });
+        } catch (error) {
+          console.error('Error deleting product consumable items:', error);
           // Non-fatal, continue execution
+        } finally {
+          await supabase.rpc('enable_rls');
         }
       }
 
