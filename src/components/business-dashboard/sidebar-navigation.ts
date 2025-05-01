@@ -9,19 +9,13 @@ import {
   BadgePercent,
   Settings,
   Home,
-  Package2,
   Tags,
   Clock,
   ShoppingCart,
   CalendarClock,
   PanelRight,
   Store,
-  Boxes,
-  Utensils,
-  PackageOpen,
   BarChart2,
-  History,
-  Coffee,
 } from 'lucide-react';
 
 export interface SidebarNavItem {
@@ -106,41 +100,6 @@ export const sidebarNavigation: SidebarNavSection[] = [
             permission: 'suppliers'
           },
         ],
-      },
-    ],
-  },
-  {
-    title: 'Inventory',
-    items: [
-      {
-        title: 'Products',
-        href: '/business-dashboard/products',
-        icon: Package2,
-        permission: 'products'
-      },
-      {
-        title: 'Ingredients',
-        href: '/business-dashboard/ingredients',
-        icon: Utensils,
-        permission: 'ingredients'
-      },
-      {
-        title: 'Consumables',
-        href: '/business-dashboard/consumables',
-        icon: Coffee,
-        permission: 'consumables'
-      },
-      {
-        title: 'Stock',
-        href: '/business-dashboard/stock',
-        icon: Boxes,
-        permission: 'stock'
-      },
-      {
-        title: 'Activity Log',
-        href: '/business-dashboard/activity-log',
-        icon: History,
-        permission: 'activity_log'
       },
     ],
   },
