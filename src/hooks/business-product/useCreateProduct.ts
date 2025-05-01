@@ -25,9 +25,8 @@ export function useCreateProduct(businessId: string | undefined, businessUserId:
       const location_id = productData.location_id === "none" ? null : productData.location_id;
       const unit_id = productData.unit_id === "none" ? null : productData.unit_id;
 
-      // Ensure alert_quantity is a number with proper default
-      const alert_quantity = productData.alert_quantity !== undefined ? 
-        Number(productData.alert_quantity) : 10;
+      // CRITICAL FIX: Ensure alert_quantity is properly converted to a number
+      const alert_quantity = Number(productData.alert_quantity || 10);
       
       console.log("Creating product with data:", {
         ...productData,
@@ -48,7 +47,7 @@ export function useCreateProduct(businessId: string | undefined, businessUserId:
         location_id: location_id,
         unit_id: unit_id,
         image_url: productData.image_url || null,
-        alert_quantity: alert_quantity,
+        alert_quantity: alert_quantity, // Ensure this is a number
         unit_price: Number(productData.unit_price || 0),
         selling_price: Number(productData.selling_price || 0),
         has_recipe: productData.has_recipe || false,
@@ -66,12 +65,12 @@ export function useCreateProduct(businessId: string | undefined, businessUserId:
         accessToken = await disableRLS();
         console.log("RLS disabled, proceeding with product creation");
         
-        // Create the product - Make sure alert_quantity is set as a number
+        // Create the product - CRITICAL FIX: Ensure alert_quantity is a number
         const { data: newProduct, error: productError } = await supabase
           .from('business_products')
           .insert({
             ...productToCreate,
-            alert_quantity: alert_quantity // Explicitly ensure this is a number
+            alert_quantity: alert_quantity  // Explicitly ensure this is a number
           })
           .select('*')
           .single();

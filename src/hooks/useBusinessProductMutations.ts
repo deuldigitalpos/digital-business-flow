@@ -7,9 +7,13 @@ import { useDeleteProduct } from './business-product/useDeleteProduct';
 export function useBusinessProductMutations() {
   const { business, businessUser } = useBusinessAuth();
   
-  const createProduct = useCreateProduct(business?.id, businessUser?.id);
-  const updateProduct = useUpdateProduct(business?.id);
-  const deleteProduct = useDeleteProduct(business?.id);
+  // Ensure businessId is defined before creating hooks
+  const businessId = business?.id;
+  const businessUserId = businessUser?.id;
+  
+  const createProduct = useCreateProduct(businessId, businessUserId);
+  const updateProduct = useUpdateProduct(businessId);
+  const deleteProduct = useDeleteProduct(businessId);
 
   return {
     createProduct,

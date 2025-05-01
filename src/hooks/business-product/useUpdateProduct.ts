@@ -22,7 +22,7 @@ export function useUpdateProduct(businessId: string | undefined) {
       const location_id = data.location_id === "none" ? null : data.location_id;
       const unit_id = data.unit_id === "none" ? null : data.unit_id;
       
-      // Ensure alert_quantity is a number
+      // CRITICAL FIX: Ensure alert_quantity is properly converted to a number
       const alert_quantity = Number(data.alert_quantity || 10);
       
       // Get auth session for API calls
@@ -33,7 +33,7 @@ export function useUpdateProduct(businessId: string | undefined) {
         throw new Error('No valid access token found');
       }
 
-      // First, update the product
+      // First, update the product with explicit number conversion for alert_quantity
       const { data: updatedProduct, error: productError } = await supabase
         .from('business_products')
         .update({
@@ -47,7 +47,7 @@ export function useUpdateProduct(businessId: string | undefined) {
           location_id: location_id,
           unit_id: unit_id,
           image_url: data.image_url || null,
-          alert_quantity: alert_quantity,
+          alert_quantity: alert_quantity, // Ensure this is a number
           unit_price: Number(data.unit_price || 0),
           selling_price: Number(data.selling_price || 0),
           has_recipe: data.has_recipe || false,
