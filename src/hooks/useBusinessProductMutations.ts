@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct, ProductFormValues } from '@/types/business-product';
@@ -21,6 +22,9 @@ export function useBusinessProductMutations() {
       const location_id = productData.location_id === "none" ? null : productData.location_id;
       const unit_id = productData.unit_id === "none" ? null : productData.unit_id;
 
+      // Ensure alert_quantity is a number, not a string (fixes the SQL error)
+      const alert_quantity = productData.alert_quantity ? Number(productData.alert_quantity) : 10;
+      
       try {
         // First, disable RLS to perform the operation
         await supabase.rpc('disable_rls');
@@ -40,7 +44,7 @@ export function useBusinessProductMutations() {
             location_id: location_id,
             unit_id: unit_id,
             image_url: productData.image_url,
-            alert_quantity: productData.alert_quantity || 10,
+            alert_quantity: alert_quantity, // Use the numeric version
             unit_price: productData.unit_price || 0,
             selling_price: productData.selling_price || 0,
             has_recipe: productData.has_recipe || false,
@@ -171,6 +175,9 @@ export function useBusinessProductMutations() {
       const warranty_id = data.warranty_id === "none" ? null : data.warranty_id;
       const location_id = data.location_id === "none" ? null : data.location_id;
       const unit_id = data.unit_id === "none" ? null : data.unit_id;
+      
+      // Ensure alert_quantity is a number, not a string (fixes the SQL error)
+      const alert_quantity = data.alert_quantity ? Number(data.alert_quantity) : 10;
 
       // First, update the product
       const { data: updatedProduct, error: productError } = await supabase
@@ -186,7 +193,7 @@ export function useBusinessProductMutations() {
           location_id: location_id,
           unit_id: unit_id,
           image_url: data.image_url,
-          alert_quantity: data.alert_quantity,
+          alert_quantity: alert_quantity, // Use the numeric version
           unit_price: data.unit_price || 0,
           selling_price: data.selling_price || 0,
           has_recipe: data.has_recipe || false,

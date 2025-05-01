@@ -3,152 +3,84 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessProduct } from '@/types/business-product';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { addDays, format } from 'date-fns';
 
-export function useBusinessProducts() {
+export function useBusinessProducts(filter: 'all' | 'low-stock' | 'expiring' = 'all') {
   const { business } = useBusinessAuth();
-
+  
   return useQuery({
-    queryKey: ['business-products', business?.id],
+    queryKey: ['business-products', business?.id, filter],
     queryFn: async () => {
       if (!business?.id) {
-        return [];
+        throw new Error('Business ID is required');
       }
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('business_products')
-        .select('*, business_product_sizes(*), business_units(*)')
+        .select(`
+          *,
+          business_product_sizes(*)
+        `)
         .eq('business_id', business.id);
+
+      if (filter === 'low-stock') {
+        // Use lt (less than) for number comparison and make sure alert_quantity is treated as a number
+        query = query.or(`quantity_available.lt.alert_quantity,quantity_available.eq.0`);
+      } else if (filter === 'expiring') {
+        // For expiring products (coming soon)
+        const nextMonth = new Date();
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        
+        query = query.lt('expiration_date', nextMonth.toISOString());
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching products:', error);
         throw error;
       }
 
-      // Cast data to BusinessProduct type with proper defaults
-      return (data || []).map(product => ({
-        ...product,
-        unit_price: product.unit_price ?? 0,
-        selling_price: product.selling_price ?? 0,
-        has_recipe: product.has_recipe ?? false,
-        has_modifiers: product.has_modifiers ?? false,
-        has_consumables: product.has_consumables ?? false,
-        auto_generate_sku: product.auto_generate_sku ?? false,
-        warning_flags: product.warning_flags ?? null
-      }) as BusinessProduct);
+      return (data || []) as BusinessProduct[];
     },
-    enabled: !!business?.id,
-  });
-}
-
-export function useBusinessProduct(id: string | undefined) {
-  const { business } = useBusinessAuth();
-
-  return useQuery({
-    queryKey: ['business-product', id],
-    queryFn: async () => {
-      if (!id || !business?.id) {
-        throw new Error('Product ID or business ID is missing');
-      }
-
-      const { data, error } = await supabase
-        .from('business_products')
-        .select('*, business_product_sizes(*), business_units(*)')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching product details:', error);
-        throw error;
-      }
-
-      // Cast to BusinessProduct with proper defaults
-      return {
-        ...data,
-        unit_price: data.unit_price ?? 0,
-        selling_price: data.selling_price ?? 0,
-        has_recipe: data.has_recipe ?? false,
-        has_modifiers: data.has_modifiers ?? false,
-        has_consumables: data.has_consumables ?? false,
-        auto_generate_sku: data.auto_generate_sku ?? false,
-        warning_flags: data.warning_flags ?? null
-      } as BusinessProduct;
-    },
-    enabled: !!id && !!business?.id,
+    enabled: !!business?.id
   });
 }
 
 export function useLowStockProducts() {
-  const { business } = useBusinessAuth();
-
-  return useQuery({
-    queryKey: ['low-stock-products', business?.id],
-    queryFn: async () => {
-      if (!business?.id) {
-        return [];
-      }
-
-      const { data, error } = await supabase
-        .from('business_products')
-        .select('*')
-        .eq('business_id', business.id)
-        .or('quantity_available.lt.alert_quantity,status.eq.Low Stock');
-
-      if (error) {
-        console.error('Error fetching low stock products:', error);
-        throw error;
-      }
-
-      // Cast to BusinessProduct with proper defaults
-      return (data || []).map(product => ({
-        ...product,
-        unit_price: product.unit_price ?? 0,
-        selling_price: product.selling_price ?? 0,
-        has_recipe: product.has_recipe ?? false,
-        has_modifiers: product.has_modifiers ?? false,
-        has_consumables: product.has_consumables ?? false,
-      }) as BusinessProduct);
-    },
-    enabled: !!business?.id,
-  });
+  return useBusinessProducts('low-stock');
 }
 
-export function useExpiringProducts(daysThreshold: number = 30) {
+export function useExpiringProducts() {
+  return useBusinessProducts('expiring');
+}
+
+export function useBusinessProduct(productId: string) {
   const { business } = useBusinessAuth();
 
   return useQuery({
-    queryKey: ['expiring-products', business?.id, daysThreshold],
+    queryKey: ['business-product', productId],
     queryFn: async () => {
-      if (!business?.id) {
-        return [];
+      if (!productId || !business?.id) {
+        throw new Error('Product ID and Business ID are required');
       }
-
-      // Calculate the date threshold
-      const thresholdDate = addDays(new Date(), daysThreshold);
-      const thresholdDateStr = format(thresholdDate, 'yyyy-MM-dd');
 
       const { data, error } = await supabase
         .from('business_products')
-        .select('*')
+        .select(`
+          *,
+          business_product_sizes(*)
+        `)
+        .eq('id', productId)
         .eq('business_id', business.id)
-        .not('expiration_date', 'is', null)
-        .lte('expiration_date', thresholdDateStr);
+        .single();
 
       if (error) {
-        console.error('Error fetching expiring products:', error);
+        console.error('Error fetching product:', error);
         throw error;
       }
 
-      // Cast to BusinessProduct with proper defaults
-      return (data || []).map(product => ({
-        ...product,
-        unit_price: product.unit_price ?? 0,
-        selling_price: product.selling_price ?? 0,
-        has_recipe: product.has_recipe ?? false,
-        has_modifiers: product.has_modifiers ?? false,
-        has_consumables: product.has_consumables ?? false,
-      }) as BusinessProduct);
+      return data as BusinessProduct;
     },
-    enabled: !!business?.id,
+    enabled: !!productId && !!business?.id
   });
 }
