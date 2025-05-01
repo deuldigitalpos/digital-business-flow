@@ -5,12 +5,14 @@ import PermissionGuard from "@/components/business/PermissionGuard";
 import StockSummary from "@/components/business-inventory/StockSummary";
 import StockTable from "@/components/business-inventory/StockTable";
 import StockFilters from "@/components/business-inventory/StockFilters";
+import AddStockTransactionModal from "@/components/business-inventory/AddStockTransactionModal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useBusinessStockTransactions } from "@/hooks/useBusinessStockTransactions";
 
 const BusinessStock: React.FC = () => {
   const [filters, setFilters] = useState({});
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { refetch } = useBusinessStockTransactions(filters);
 
   const handleFilterChange = (newFilters: any) => {
@@ -28,7 +30,7 @@ const BusinessStock: React.FC = () => {
               Track and manage your inventory stock levels
             </p>
           </div>
-          <Button>
+          <Button onClick={() => setIsAddModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" /> Add Stock Transaction
           </Button>
         </div>
@@ -42,6 +44,11 @@ const BusinessStock: React.FC = () => {
             <StockTable />
           </CardContent>
         </Card>
+        
+        <AddStockTransactionModal 
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+        />
       </div>
     </PermissionGuard>
   );
