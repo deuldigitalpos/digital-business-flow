@@ -24,8 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ProductConsumableInput, ProductIngredientInput, ProductSizeInput } from "@/types/business-product";
-import useBusinessCategories from "@/hooks/useBusinessCategories";
-import useBusinessUnits from "@/hooks/useBusinessUnits";
+import { useBusinessCategories } from "@/hooks/useBusinessCategories";
+import { useBusinessUnits } from "@/hooks/useBusinessUnits";
 import useBusinessBrands from "@/hooks/useBusinessBrands";
 import useBusinessWarranties from "@/hooks/useBusinessWarranties";
 import useBusinessIngredients from "@/hooks/useBusinessIngredients";

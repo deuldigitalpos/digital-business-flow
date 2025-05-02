@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import useBusinessCategories from "@/hooks/useBusinessCategories";
+import { useBusinessCategories } from "@/hooks/useBusinessCategories";
 import useBusinessBrands from "@/hooks/useBusinessBrands";
 
 interface ProductsFiltersProps {
