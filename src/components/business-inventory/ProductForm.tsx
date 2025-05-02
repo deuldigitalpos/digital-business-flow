@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -33,6 +32,8 @@ import useBusinessConsumables from "@/hooks/useBusinessConsumables";
 import ProductIngredientsTable from "@/components/business-inventory/ProductIngredientsTable";
 import ProductConsumablesTable from "@/components/business-inventory/ProductConsumablesTable";
 import ProductSizesTable from "@/components/business-inventory/ProductSizesTable";
+import { useBusinessAuth } from "@/context/BusinessAuthContext";
+import ProductImageUpload from "@/components/business-inventory/ProductImageUpload";
 
 interface ProductFormProps {
   form: UseFormReturn<any>;
@@ -57,6 +58,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   setSizes,
   isEditMode = false 
 }) => {
+  const { businessUser } = useBusinessAuth();
   const categoriesQuery = useBusinessCategories();
   const unitsQuery = useBusinessUnits();
   const { brands } = useBusinessBrands();
@@ -300,13 +302,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
               name="image_url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image URL</FormLabel>
+                  <FormLabel>Product Image</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter image URL (optional)" {...field} />
+                    <ProductImageUpload 
+                      value={field.value}
+                      onChange={field.onChange}
+                      businessId={businessUser?.business_id || ""}
+                    />
                   </FormControl>
-                  <FormDescription>
-                    Provide a URL to a product image (optional).
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
