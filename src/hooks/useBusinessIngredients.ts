@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { BusinessUnit } from '@/types/business-unit';
 
 export interface BusinessIngredient {
   id: string;
@@ -18,7 +19,7 @@ export interface BusinessIngredient {
   average_cost?: number;
   total_value?: number;
   category?: { id: string; name: string } | null;
-  unit?: { id: string; name: string; short_name: string } | null;
+  unit?: BusinessUnit | null;
 }
 
 export const useBusinessIngredients = () => {
@@ -31,12 +32,13 @@ export const useBusinessIngredients = () => {
         return [];
       }
       
-      // Fetch the ingredients without trying to join unit
+      // Fetch ingredients with category and unit relations
       const { data: ingredients, error: ingredientsError } = await supabase
         .from('business_ingredients')
         .select(`
           *,
-          category:business_categories(id, name)
+          category:business_categories(id, name),
+          unit:business_units(*)
         `)
         .eq('business_id', businessUser.business_id);
       
@@ -63,18 +65,30 @@ export const useBusinessIngredients = () => {
         quantityMap[item.item_id] = item;
       });
 
-      // Process the data without units for now
+      // Process the data with complete unit information
       const processedIngredients = ingredients.map(ingredient => {
+        // Initialize unit value
+        let unitValue = null;
+        
+        // Safely check if unit exists and is a valid object
+        if (ingredient.unit !== null && 
+            typeof ingredient.unit === 'object') {
+          // Additional check to see if it's not an error object
+          if (!('error' in (ingredient.unit as object))) {
+            unitValue = ingredient.unit as BusinessUnit;
+          }
+        }
+
         return {
           ...ingredient,
-          unit: null, // We'll set this later if applicable
+          unit: unitValue,
           quantity: quantityMap[ingredient.id]?.quantity || 0,
           average_cost: quantityMap[ingredient.id]?.average_cost || 0,
           total_value: quantityMap[ingredient.id]?.total_value || 0
-        };
+        } as BusinessIngredient;
       });
 
-      return processedIngredients as BusinessIngredient[];
+      return processedIngredients;
     },
     enabled: !!businessUser?.business_id
   });

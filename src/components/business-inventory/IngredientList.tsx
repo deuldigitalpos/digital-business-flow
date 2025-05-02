@@ -199,16 +199,7 @@ const IngredientList: React.FC<IngredientListProps> = ({
           <ConsumableTransactionHistory 
             consumable={{
               ...selectedIngredient,
-              unit: selectedIngredient.unit ? {
-                id: selectedIngredient.unit.id || '',
-                name: selectedIngredient.unit.name || '',
-                short_name: selectedIngredient.unit.short_name || '',
-                type: selectedIngredient.unit.type || 'weight',
-                is_default: selectedIngredient.unit.is_default || false,
-                created_at: selectedIngredient.unit.created_at || new Date().toISOString(),
-                updated_at: selectedIngredient.unit.updated_at || new Date().toISOString(),
-                business_id: selectedIngredient.unit.business_id || selectedIngredient.business_id
-              } : null
+              unit: selectedIngredient.unit
             }}
             onClose={() => {
               setIsTransactionHistoryOpen(false);
