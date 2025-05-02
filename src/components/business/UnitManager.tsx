@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -8,7 +9,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -32,14 +32,9 @@ import {
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface SetDefaultUnitProps {
-  id: string;
-  unitData: Partial<BusinessUnit>;
-}
-
 const UnitManager: React.FC = () => {
-  const { units, isLoading, refetch } = useBusinessUnits();
-  const { createUnit, updateUnit, deleteUnit, setDefaultUnit } = useBusinessUnitMutations();
+  const { data, isLoading, refetch } = useBusinessUnits();
+  const { createUnit, updateUnit, deleteUnit } = useBusinessUnitMutations();
   const [editUnit, setEditUnit] = useState<BusinessUnit | null>(null);
 
   const handleDelete = async (id: string) => {
@@ -54,23 +49,21 @@ const UnitManager: React.FC = () => {
 
   const handleSetDefault = async (unit: BusinessUnit) => {
     try {
-      const result = await setDefaultUnit.mutateAsync({
+      // Since we don't have a setDefaultUnit mutation, 
+      // use updateUnit to set is_default to true
+      const result = await updateUnit.mutateAsync({
         id: unit.id,
-        unitData: { 
+        data: { 
           is_default: true,
           name: unit.name,
           short_name: unit.short_name,
           description: unit.description,
-          type: unit.type // Add the type field
+          type: unit.type
         }
       });
       
-      if (result) {
-        toast.success('Default unit updated successfully');
-        refetch();
-      } else {
-        toast.error('Failed to set default unit');
-      }
+      toast.success('Default unit updated successfully');
+      refetch();
     } catch (error) {
       console.error('Error setting default unit:', error);
       toast.error('Failed to set default unit');
@@ -83,7 +76,7 @@ const UnitManager: React.FC = () => {
         <h2 className="text-2xl font-semibold">Manage Units</h2>
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="primary">
+            <Button>
               <Plus className="w-4 h-4 mr-2" />
               Add Unit
             </Button>
@@ -116,8 +109,8 @@ const UnitManager: React.FC = () => {
               <TableRow>
                 <TableCell colSpan={6} className="text-center">Loading...</TableCell>
               </TableRow>
-            ) : units && units.length > 0 ? (
-              units.map((unit) => (
+            ) : data && data.length > 0 ? (
+              data.map((unit) => (
                 <TableRow key={unit.id}>
                   <TableCell>{unit.name}</TableCell>
                   <TableCell>{unit.short_name}</TableCell>
@@ -171,7 +164,7 @@ const UnitManager: React.FC = () => {
               Edit an existing unit for your business.
             </DialogDescription>
           </DialogHeader>
-          <EditUnitForm unit={editUnit} onSuccess={() => { setEditUnit(null); refetch(); }} />
+          {editUnit && <EditUnitForm unit={editUnit} onSuccess={() => { setEditUnit(null); refetch(); }} />}
         </DialogContent>
       </Dialog>
     </div>

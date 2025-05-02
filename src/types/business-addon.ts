@@ -18,8 +18,8 @@ export interface BusinessAddon {
 
 export interface BusinessAddonFormValues {
   name: string;
-  description?: string | null;
-  category_id?: string | null;
-  unit_id?: string | null;
-  image_url?: string | null;
+  description?: string;
+  category_id?: string;
+  unit_id?: string;
+  image_url?: string;
 }

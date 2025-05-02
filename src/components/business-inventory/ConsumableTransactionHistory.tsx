@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useBusinessStockTransactions } from '@/hooks/useBusinessStockTransactions';
 import { formatDate } from '@/utils/format-date';
@@ -32,6 +33,18 @@ export const ConsumableTransactionHistory: React.FC = () => {
       </div>
     );
   }
+
+  // Helper function to safely get unit short name
+  const getUnitShortName = (transaction: any): string => {
+    // Check if unit exists and is not a SelectQueryError
+    if (transaction.unit && 
+        typeof transaction.unit === 'object' && 
+        !('error' in transaction.unit) && 
+        transaction.unit.short_name) {
+      return transaction.unit.short_name;
+    }
+    return ''; // Return empty string if unit is not available
+  };
 
   return (
     <div className="overflow-auto">
@@ -76,7 +89,7 @@ export const ConsumableTransactionHistory: React.FC = () => {
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                {transaction.quantity} {transaction.unit?.short_name || ''}
+                {transaction.quantity} {getUnitShortName(transaction)}
               </TableCell>
               <TableCell className="text-right font-medium">
                 ${transaction.total_cost.toFixed(2)}

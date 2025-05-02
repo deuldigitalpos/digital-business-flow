@@ -1,3 +1,4 @@
+
 import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,11 +55,11 @@ const EditUnitForm: React.FC<EditUnitFormProps> = ({ unit, onSuccess }) => {
   const onSubmit = async (data: FormValues) => {
     try {
       // Convert form values to match BusinessUnitFormValues
-      const formData = {
+      const formData: BusinessUnitFormValues = {
         name: data.name,
-        short_name: data.shortName,
+        short_name: data.short_name,
         description: data.description,
-        type: unit.type || 'count' as UnitType // Use existing type or default to 'count'
+        type: data.type
       };
       
       await updateUnit.mutateAsync({

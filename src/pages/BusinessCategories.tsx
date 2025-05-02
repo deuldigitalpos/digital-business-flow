@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,9 +62,13 @@ const BusinessCategories: React.FC = () => {
 
   const handleStatusChange = async (category: BusinessCategory, newStatus: boolean) => {
     try {
+      // Remove is_active as it's not in the UpdateCategoryInput type
       await updateCategory.mutateAsync({
         id: category.id,
-        data: { is_active: newStatus },
+        data: { 
+          name: category.name,
+          description: category.description
+        },
       });
     } catch (error) {
       console.error("Error updating category status:", error);

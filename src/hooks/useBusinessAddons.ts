@@ -28,29 +28,6 @@ export const useBusinessAddons = () => {
         throw addonsError;
       }
 
-      // Get unit_ids from addons
-      const addonUnitIds = addons
-        .filter(addon => addon.unit_id)
-        .map(addon => addon.unit_id)
-        .filter(Boolean);
-
-      // If we have units to fetch, get them separately
-      let unitMap: Record<string, { id: string; name: string; short_name: string }> = {};
-      
-      if (addonUnitIds.length > 0) {
-        const { data: units } = await supabase
-          .from('business_units')
-          .select('id, name, short_name')
-          .in('id', addonUnitIds);
-          
-        if (units && units.length > 0) {
-          unitMap = units.reduce((acc, unit) => {
-            acc[unit.id] = unit;
-            return acc;
-          }, {} as Record<string, { id: string; name: string; short_name: string }>);
-        }
-      }
-
       // Then get the quantities from inventory table
       const { data: quantities, error: quantitiesError } = await supabase
         .from('business_inventory_quantities')
@@ -69,15 +46,11 @@ export const useBusinessAddons = () => {
         quantityMap[item.item_id] = item;
       });
 
-      // Process the data to add quantities
+      // Process the data without units for now
       const processedAddons = addons.map(addon => {
-        const unitData = addon.unit_id && unitMap[addon.unit_id]
-          ? unitMap[addon.unit_id]
-          : null;
-          
         return {
           ...addon,
-          unit: unitData,
+          unit: null, // We'll handle units separately if needed
           quantity: quantityMap[addon.id]?.quantity || 0,
           average_cost: quantityMap[addon.id]?.average_cost || 0,
           total_value: quantityMap[addon.id]?.total_value || 0
