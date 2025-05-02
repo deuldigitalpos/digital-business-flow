@@ -68,7 +68,7 @@ export const useBusinessConsumables = () => {
         // Initialize with null
         let unitValue = null;
         
-        // Only assign if unit exists and is valid - rearranged checks to satisfy TypeScript
+        // Only assign if unit exists and is valid - fixed TypeScript null check
         if (consumable.unit !== null && 
             typeof consumable.unit === 'object' && 
             !('error' in consumable.unit)) {
