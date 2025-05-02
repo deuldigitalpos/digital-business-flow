@@ -1,5 +1,4 @@
 
-// This file would need to be created with similar approach as useBusinessConsumables.ts
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
@@ -32,19 +31,43 @@ export const useBusinessIngredients = () => {
         return [];
       }
       
-      // Fetch ingredients with category and unit relations
+      // First fetch all ingredients without the relation to units
       const { data: ingredients, error: ingredientsError } = await supabase
         .from('business_ingredients')
         .select(`
           *,
-          category:business_categories(id, name),
-          unit:business_units(*)
+          category:business_categories(id, name)
         `)
         .eq('business_id', businessUser.business_id);
       
       if (ingredientsError) {
         console.error('Error fetching ingredients:', ingredientsError);
         throw ingredientsError;
+      }
+
+      // Get the unit IDs that are not null
+      const unitIds = ingredients
+        .filter(item => item.unit_id !== null)
+        .map(item => item.unit_id);
+
+      // Get units separately if there are any unit IDs
+      let unitsMap: Record<string, BusinessUnit> = {};
+      
+      if (unitIds.length > 0) {
+        const { data: units, error: unitsError } = await supabase
+          .from('business_units')
+          .select('*')
+          .in('id', unitIds);
+          
+        if (unitsError) {
+          console.error('Error fetching units:', unitsError);
+        } else if (units) {
+          // Create a map for easy lookup
+          unitsMap = units.reduce((map, unit) => {
+            map[unit.id] = unit;
+            return map;
+          }, {} as Record<string, BusinessUnit>);
+        }
       }
 
       // Get the quantities from inventory table
@@ -67,21 +90,12 @@ export const useBusinessIngredients = () => {
 
       // Process the data with complete unit information
       const processedIngredients = ingredients.map(ingredient => {
-        // Initialize unit value
-        let unitValue = null;
+        // Get the unit if it exists
+        const unit = ingredient.unit_id ? unitsMap[ingredient.unit_id] : null;
         
-        // Safely check if unit exists and is a valid object
-        if (ingredient.unit !== null && 
-            typeof ingredient.unit === 'object') {
-          // Additional check to see if it's not an error object
-          if (!('error' in (ingredient.unit as object))) {
-            unitValue = ingredient.unit as BusinessUnit;
-          }
-        }
-
         return {
           ...ingredient,
-          unit: unitValue,
+          unit: unit,
           quantity: quantityMap[ingredient.id]?.quantity || 0,
           average_cost: quantityMap[ingredient.id]?.average_cost || 0,
           total_value: quantityMap[ingredient.id]?.total_value || 0

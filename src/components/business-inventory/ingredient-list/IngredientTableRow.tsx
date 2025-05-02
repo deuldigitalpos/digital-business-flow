@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TableRow, TableCell } from '@/components/ui/table';
+import { TableCell, TableRow } from '@/components/ui/table';
 import { BusinessIngredient } from '@/hooks/useBusinessIngredients';
 import StockStatusBadge from './StockStatusBadge';
 import IngredientTableActions from './IngredientTableActions';
@@ -19,9 +19,9 @@ const IngredientTableRow: React.FC<IngredientTableRowProps> = ({
   onViewTransactions
 }) => {
   return (
-    <TableRow>
+    <TableRow key={ingredient.id}>
       <TableCell className="font-medium">{ingredient.name}</TableCell>
-      <TableCell>{ingredient.description || '-'}</TableCell>
+      <TableCell className="max-w-[200px] truncate">{ingredient.description || '-'}</TableCell>
       <TableCell>{ingredient.category?.name || '-'}</TableCell>
       <TableCell>{ingredient.quantity?.toFixed(2) || '0'}</TableCell>
       <TableCell>{ingredient.unit?.short_name || '-'}</TableCell>

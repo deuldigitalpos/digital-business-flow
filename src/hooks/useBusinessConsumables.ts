@@ -32,19 +32,43 @@ export const useBusinessConsumables = () => {
         return [];
       }
       
-      // Fetch consumables with category and unit relations
+      // First fetch all consumables without the relation to units
       const { data: consumables, error: consumablesError } = await supabase
         .from('business_consumables')
         .select(`
           *,
-          category:business_categories(id, name),
-          unit:business_units(id, name, short_name)
+          category:business_categories(id, name)
         `)
         .eq('business_id', businessUser.business_id);
       
       if (consumablesError) {
         console.error('Error fetching consumables:', consumablesError);
         throw consumablesError;
+      }
+
+      // Get the unit IDs that are not null
+      const unitIds = consumables
+        .filter(item => item.unit_id !== null)
+        .map(item => item.unit_id);
+
+      // Get units separately if there are any unit IDs
+      let unitsMap: Record<string, BusinessUnit> = {};
+      
+      if (unitIds.length > 0) {
+        const { data: units, error: unitsError } = await supabase
+          .from('business_units')
+          .select('*')
+          .in('id', unitIds);
+          
+        if (unitsError) {
+          console.error('Error fetching units:', unitsError);
+        } else if (units) {
+          // Create a map for easy lookup
+          unitsMap = units.reduce((map, unit) => {
+            map[unit.id] = unit;
+            return map;
+          }, {} as Record<string, BusinessUnit>);
+        }
       }
 
       // Get the quantities from inventory table
@@ -65,24 +89,14 @@ export const useBusinessConsumables = () => {
         quantityMap[item.item_id] = item;
       });
 
-      // Process the data with complete unit information
+      // Combine the data
       const processedConsumables = consumables.map(consumable => {
-        // Initialize unit value as null
-        let unitValue = null;
+        // Get the unit if it exists
+        const unit = consumable.unit_id ? unitsMap[consumable.unit_id] : null;
         
-        // Safely check if unit exists and is a valid object before accessing it
-        if (consumable.unit !== null && 
-            typeof consumable.unit === 'object') {
-          // Additional check to see if it's an error object
-          if (!('error' in (consumable.unit as object))) {
-            unitValue = consumable.unit;
-          }
-        }
-
-        // Create a valid BusinessConsumable object
         return {
           ...consumable,
-          unit: unitValue,
+          unit: unit,
           quantity: quantityMap[consumable.id]?.quantity || 0,
           average_cost: quantityMap[consumable.id]?.average_cost || 0,
           total_value: quantityMap[consumable.id]?.total_value || 0

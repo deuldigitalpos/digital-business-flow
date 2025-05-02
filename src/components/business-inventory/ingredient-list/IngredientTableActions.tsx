@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Edit, MoreHorizontal, Trash2, Eye } from 'lucide-react';
+import { Edit, Eye, MoreHorizontal, Trash2 } from 'lucide-react';
 import { BusinessIngredient } from '@/hooks/useBusinessIngredients';
 
 interface IngredientTableActionsProps {
