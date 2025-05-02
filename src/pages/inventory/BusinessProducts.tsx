@@ -25,7 +25,7 @@ const BusinessProducts: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Products Management</h1>
             <p className="text-muted-foreground">
-              Manage your product catalog, ingredients, and pricing
+              Manage your product catalog, ingredients, consumables, and pricing
             </p>
           </div>
           <Button onClick={() => setIsAddModalOpen(true)}>

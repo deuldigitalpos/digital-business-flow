@@ -16,7 +16,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit, Trash2, Eye, ImageIcon } from "lucide-react";
+import { 
+  AlertCircle,
+  MoreHorizontal, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  ImageIcon,
+  PackagePlus 
+} from "lucide-react";
 import useBusinessProducts from "@/hooks/useBusinessProducts";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -24,6 +32,7 @@ import { BusinessProduct } from "@/types/business-product";
 import EditProductModal from "@/components/business-inventory/EditProductModal";
 import ViewProductModal from "@/components/business-inventory/ViewProductModal";
 import DeleteProductDialog from "@/components/business-inventory/DeleteProductDialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProductsTableProps {
   filters: Record<string, any>;
@@ -97,9 +106,41 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ filters }) => {
                   )}
                 </TableCell>
                 <TableCell className="font-medium">{product.product_id || product.sku}</TableCell>
-                <TableCell>{product.name}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    {product.name}
+                    {(product.has_ingredients || product.has_consumables) && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <PackagePlus className="h-4 w-4 text-blue-500" />
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>Made from ingredients/consumables</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{product.category?.name || '-'}</TableCell>
-                <TableCell className="text-right">{product.quantity || 0}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    {product.quantity || 0}
+                    {(product.has_ingredients || product.has_consumables) && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <AlertCircle className="h-4 w-4 text-blue-500" />
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>Availability depends on components</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="text-right">{product.total_sales || 0}</TableCell>
                 <TableCell>{getStockStatusBadge(product.stock_status)}</TableCell>
                 <TableCell className="text-right">${product.selling_price.toFixed(2)}</TableCell>

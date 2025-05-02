@@ -6,11 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useProductIngredients from "@/hooks/useProductIngredients";
 import useProductConsumables from "@/hooks/useProductConsumables";
 import useProductSizes from "@/hooks/useProductSizes";
+import useProductAvailability from "@/hooks/useProductAvailability";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
-import { ImageIcon } from "lucide-react";
+import { AlertCircle, ImageIcon, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ViewProductModalProps {
   product: BusinessProduct;
@@ -22,6 +24,7 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
   const { ingredients } = useProductIngredients(product?.id);
   const { consumables } = useProductConsumables(product?.id);
   const { sizes } = useProductSizes(product?.id);
+  const { availability, isLoading: availabilityLoading } = useProductAvailability(product);
   
   const getStockStatusBadge = (status?: string) => {
     switch (status) {
@@ -33,6 +36,8 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
         return <Badge variant="destructive">Out of Stock</Badge>;
     }
   };
+
+  const hasComponentInventory = product?.has_ingredients || product?.has_consumables;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -52,6 +57,9 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
             )}
             {product.has_sizes && (
               <TabsTrigger value="sizes">Sizes</TabsTrigger>
+            )}
+            {hasComponentInventory && (
+              <TabsTrigger value="availability">Availability</TabsTrigger>
             )}
           </TabsList>
           
@@ -112,10 +120,23 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
                   <CardContent className="p-4">
                     <h3 className="text-lg font-semibold mb-2">Stock Information</h3>
                     <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                      <div className="flex justify-between md:block">
-                        <dt className="font-medium text-muted-foreground">Quantity Available:</dt>
-                        <dd>{product.quantity || 0}</dd>
-                      </div>
+                      {hasComponentInventory && availability ? (
+                        <>
+                          <div className="flex justify-between md:block">
+                            <dt className="font-medium text-muted-foreground">Direct Inventory:</dt>
+                            <dd>{product.quantity || 0} units</dd>
+                          </div>
+                          <div className="flex justify-between md:block">
+                            <dt className="font-medium text-muted-foreground">Maximum Producible:</dt>
+                            <dd>{availability.maxProducibleQuantity} units</dd>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex justify-between md:block">
+                          <dt className="font-medium text-muted-foreground">Quantity Available:</dt>
+                          <dd>{product.quantity || 0}</dd>
+                        </div>
+                      )}
                       <div className="flex justify-between md:block">
                         <dt className="font-medium text-muted-foreground">Stock Status:</dt>
                         <dd>{getStockStatusBadge(product.stock_status)}</dd>
@@ -125,6 +146,18 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
                         <dd>{product.total_sales || 0} units</dd>
                       </div>
                     </dl>
+                    
+                    {hasComponentInventory && (
+                      <div className="mt-4">
+                        <Alert className="bg-blue-50">
+                          <Info className="h-4 w-4" />
+                          <AlertDescription>
+                            This product's availability is calculated based on its ingredients and consumables. 
+                            See the Availability tab for details.
+                          </AlertDescription>
+                        </Alert>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
                 
@@ -280,6 +313,102 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
                     </Table>
                   ) : (
                     <p className="text-muted-foreground">No size variants added to this product.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+          
+          {hasComponentInventory && (
+            <TabsContent value="availability">
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold mb-4">Product Availability Calculation</h3>
+                  
+                  {availabilityLoading ? (
+                    <p className="text-muted-foreground">Calculating availability...</p>
+                  ) : availability ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Card>
+                          <CardContent className="p-4">
+                            <h4 className="font-semibold text-base mb-2">Direct Inventory</h4>
+                            <p className="text-xl font-medium">{availability.directQuantity} units</p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Available in stock inventory
+                            </p>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card>
+                          <CardContent className="p-4">
+                            <h4 className="font-semibold text-base mb-2">Producible Quantity</h4>
+                            <p className="text-xl font-medium">{availability.maxProducibleQuantity} units</p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Based on available ingredients & consumables
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                      
+                      {availability.limitingComponents.length > 0 && (
+                        <>
+                          <h4 className="font-semibold text-base mt-6 mb-2">Component Availability</h4>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Item</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead className="text-center">Available</TableHead>
+                                <TableHead className="text-center">Required Per Unit</TableHead>
+                                <TableHead className="text-center">Max Products</TableHead>
+                                <TableHead className="text-center">Status</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {availability.limitingComponents.map((component) => {
+                                const isLimiting = component.maxProductsPossible === availability.maxProducibleQuantity;
+                                return (
+                                  <TableRow key={`${component.type}-${component.id}`}>
+                                    <TableCell>{component.name}</TableCell>
+                                    <TableCell>
+                                      {component.type.charAt(0).toUpperCase() + component.type.slice(1)}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {component.availableQuantity}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {component.requiredQuantity}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {component.maxProductsPossible}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {isLimiting ? (
+                                        <Badge variant="destructive">Limiting</Badge>
+                                      ) : (
+                                        <Badge variant="outline">Sufficient</Badge>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                          
+                          {availability.maxProducibleQuantity === 0 && (
+                            <Alert variant="destructive" className="mt-4">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertDescription>
+                                You're out of some required components to produce this product. Please restock the limiting items.
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No availability data available.</p>
                   )}
                 </CardContent>
               </Card>

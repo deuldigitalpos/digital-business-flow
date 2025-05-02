@@ -72,6 +72,8 @@ export const useBusinessProducts = (filters: Record<string, any> = {}) => {
         
         // Determine stock status based on quantity
         const quantity = quantityMap[product.id]?.quantity || 0;
+        
+        // Basic stock status - will be potentially overridden later by component availability
         let stock_status = 'Out of Stock';
         if (quantity > 10) {
           stock_status = 'In Stock';
