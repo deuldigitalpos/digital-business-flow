@@ -49,10 +49,21 @@ export const ConsumableForm: React.FC<ConsumableFormProps> = ({
       if (isEditMode && consumable) {
         await updateConsumable.mutateAsync({
           id: consumable.id,
-          consumableData: data,
+          ...data,
         });
       } else {
-        await createConsumable.mutateAsync(data);
+        // Ensure name is required for create operation
+        if (!data.name) {
+          form.setError('name', { message: 'Name is required' });
+          return;
+        }
+        await createConsumable.mutateAsync({
+          name: data.name,
+          description: data.description,
+          category_id: data.category_id,
+          unit_id: data.unit_id,
+          image_url: data.image_url,
+        });
       }
       onClose();
     } catch (error) {

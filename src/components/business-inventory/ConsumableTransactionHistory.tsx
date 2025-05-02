@@ -12,8 +12,18 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BusinessConsumable } from '@/hooks/useBusinessConsumables';
+import { BusinessIngredient } from '@/hooks/useBusinessIngredients';
 
-export const ConsumableTransactionHistory: React.FC = () => {
+interface ConsumableTransactionHistoryProps {
+  consumable: BusinessConsumable | BusinessIngredient | any; // Accept different inventory item types
+  onClose: () => void;
+}
+
+export const ConsumableTransactionHistory: React.FC<ConsumableTransactionHistoryProps> = ({ 
+  consumable,
+  onClose
+}) => {
   const { transactions, isLoading } = useBusinessStockTransactions();
 
   if (isLoading) {
@@ -36,10 +46,9 @@ export const ConsumableTransactionHistory: React.FC = () => {
 
   // Helper function to safely get unit short name
   const getUnitShortName = (transaction: any): string => {
-    // Check if unit exists and is not a SelectQueryError
+    // Check if unit exists and has short_name property
     if (transaction.unit && 
         typeof transaction.unit === 'object' && 
-        !('error' in transaction.unit) && 
         transaction.unit.short_name) {
       return transaction.unit.short_name;
     }

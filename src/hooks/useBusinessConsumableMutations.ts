@@ -5,7 +5,7 @@ import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { toast } from 'sonner';
 import { BusinessConsumable } from './useBusinessConsumables';
 
-type ConsumableCreateInput = {
+export type ConsumableCreateInput = {
   name: string;
   description?: string | null;
   category_id?: string | null;
@@ -13,7 +13,14 @@ type ConsumableCreateInput = {
   image_url?: string | null;
 };
 
-type ConsumableUpdateInput = Partial<ConsumableCreateInput> & { id: string };
+export type ConsumableUpdateInput = {
+  id: string;
+  name?: string;
+  description?: string | null;
+  category_id?: string | null;
+  unit_id?: string | null;
+  image_url?: string | null;
+};
 
 export const useBusinessConsumableMutations = () => {
   const { businessUser } = useBusinessAuth();
