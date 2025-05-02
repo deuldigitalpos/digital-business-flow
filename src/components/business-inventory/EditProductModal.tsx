@@ -55,9 +55,9 @@ const formSchema = z.object({
 
 const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, onClose }) => {
   const { updateProduct } = useBusinessProductMutations();
-  const { productIngredients } = useProductIngredients(product.id);
-  const { productConsumables } = useProductConsumables(product.id);
-  const { productSizes } = useProductSizes(product.id);
+  const { ingredients } = useProductIngredients(product.id);
+  const { consumables } = useProductConsumables(product.id);
+  const { sizes } = useProductSizes(product.id);
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
@@ -85,15 +85,15 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
 
   // Load related data when available
   useEffect(() => {
-    if (productSizes && productSizes.length > 0) {
-      form.setValue('sizes', productSizes.map(size => ({
+    if (sizes && sizes.length > 0) {
+      form.setValue('sizes', sizes.map(size => ({
         name: size.name,
         additional_price: size.additional_price
       })));
     }
     
-    if (productIngredients && productIngredients.length > 0) {
-      form.setValue('ingredients', productIngredients.map(ing => ({
+    if (ingredients && ingredients.length > 0) {
+      form.setValue('ingredients', ingredients.map(ing => ({
         ingredient_id: ing.ingredient_id,
         quantity: ing.quantity,
         unit_id: ing.unit_id || "",
@@ -101,15 +101,15 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
       })));
     }
     
-    if (productConsumables && productConsumables.length > 0) {
-      form.setValue('consumables', productConsumables.map(cons => ({
+    if (consumables && consumables.length > 0) {
+      form.setValue('consumables', consumables.map(cons => ({
         consumable_id: cons.consumable_id,
         quantity: cons.quantity,
         unit_id: cons.unit_id || "",
         cost: cons.cost
       })));
     }
-  }, [productSizes, productIngredients, productConsumables, form]);
+  }, [sizes, ingredients, consumables, form]);
 
   const handleSubmit = async (values: ProductFormValues) => {
     try {
