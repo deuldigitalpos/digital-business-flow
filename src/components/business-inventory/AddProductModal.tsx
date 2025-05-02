@@ -1,10 +1,10 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ProductFormValues, ProductConsumableInput, ProductIngredientInput, ProductSizeInput } from "@/types/business-product";
+import { ProductFormValues } from "@/types/business-product";
 import useBusinessProductMutations from "@/hooks/useBusinessProductMutations";
 import ProductForm from "@/components/business-inventory/ProductForm";
 
@@ -28,13 +28,11 @@ const formSchema = z.object({
   has_consumables: z.boolean().default(false),
   has_sizes: z.boolean().default(false),
   auto_generate_sku: z.boolean().default(true),
+  is_active: z.boolean().default(true),
 });
 
 const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) => {
   const { createProduct } = useBusinessProductMutations();
-  const [ingredients, setIngredients] = useState<ProductIngredientInput[]>([]);
-  const [consumables, setConsumables] = useState<ProductConsumableInput[]>([]);
-  const [sizes, setSizes] = useState<ProductSizeInput[]>([]);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,6 +45,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) =>
       has_ingredients: false,
       has_consumables: false,
       has_sizes: false,
+      is_active: true,
       auto_generate_sku: true,
     },
   });
@@ -55,9 +54,9 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) =>
     try {
       await createProduct.mutateAsync({
         product: values as ProductFormValues,
-        ingredients: values.has_ingredients ? ingredients : [],
-        consumables: values.has_consumables ? consumables : [],
-        sizes: values.has_sizes ? sizes : [],
+        ingredients: [], 
+        consumables: [],
+        sizes: [],
       });
       
       onClose();
@@ -76,12 +75,6 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) =>
         <ProductForm 
           form={form}
           onSubmit={handleSubmit}
-          ingredients={ingredients}
-          setIngredients={setIngredients}
-          consumables={consumables}
-          setConsumables={setConsumables}
-          sizes={sizes}
-          setSizes={setSizes}
         />
       </DialogContent>
     </Dialog>

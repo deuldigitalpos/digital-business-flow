@@ -20,11 +20,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { IngredientSelector } from "./product-form/IngredientSelector";
-import { ConsumableSelector } from "./product-form/ConsumableSelector";
-import { SizeManager } from "./product-form/SizeManager";
-import { ProductFormValues } from "./product-form/types";
-import { ProductConsumableInput, ProductIngredientInput, ProductSizeInput } from "@/types/business-product";
+import { ProductFormValues, ProductConsumableInput, ProductIngredientInput, ProductSizeInput } from "@/types/business-product";
 import { useBusinessCategories } from "@/hooks/useBusinessCategories";
 import { useBusinessUnits } from "@/hooks/useBusinessUnits";
 import { useBusinessBrands } from "@/hooks/useBusinessBrands";
@@ -35,9 +31,10 @@ import useBusinessConsumables from "@/hooks/useBusinessConsumables";
 interface ProductFormProps {
   form: UseFormReturn<ProductFormValues>;
   isEditMode?: boolean;
+  onSubmit?: (values: ProductFormValues) => Promise<void>;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit }) => {
   const { data: categories } = useBusinessCategories();
   const { data: units } = useBusinessUnits();
   const { brands } = useBusinessBrands();
@@ -49,6 +46,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode }) => {
     // Reset the sizes field when isEditMode changes
     if (!isEditMode) {
       form.reset({
+        ...form.getValues(),
         sizes: [],
         ingredients: [],
         consumables: [],
@@ -56,8 +54,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode }) => {
     }
   }, [isEditMode, form]);
 
+  const handleSubmit = (values: ProductFormValues) => {
+    if (onSubmit) {
+      onSubmit(values);
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
@@ -161,7 +165,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode }) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {brands?.brands?.map((brand) => (
+                  {brands?.map((brand) => (
                     <SelectItem key={brand.id} value={brand.id}>
                       {brand.name}
                     </SelectItem>
@@ -187,7 +191,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode }) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {warranties?.warranties?.map((warranty) => (
+                  {warranties?.map((warranty) => (
                     <SelectItem key={warranty.id} value={warranty.id}>
                       {warranty.name}
                     </SelectItem>
@@ -219,38 +223,52 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode }) => {
 
       <Separator />
 
-      <Tabs defaultValue="sizes" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="sizes">Sizes</TabsTrigger>
-          <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
-          <TabsTrigger value="consumables">Consumables</TabsTrigger>
-        </TabsList>
-        <TabsContent value="sizes" className="space-y-2">
-          <SizeManager
-            form={form}
-            isEditMode={isEditMode}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Product Pricing</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="cost_price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cost Price</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    step="0.01" 
+                    placeholder="0.00" 
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} 
+                  />
+                </FormControl>
+              </FormItem>
+            )}
           />
-        </TabsContent>
-        <TabsContent value="ingredients" className="space-y-2">
-          <IngredientSelector
-            form={form}
-            ingredients={ingredients || []}
-            isEditMode={isEditMode}
+          <FormField
+            control={form.control}
+            name="selling_price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Selling Price</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    step="0.01" 
+                    placeholder="0.00" 
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} 
+                  />
+                </FormControl>
+              </FormItem>
+            )}
           />
-        </TabsContent>
-        <TabsContent value="consumables" className="space-y-2">
-          <ConsumableSelector
-            form={form}
-            consumables={consumables || []}
-            isEditMode={isEditMode}
-          />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       <Button type="submit" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Submitting..." : "Submit"}
       </Button>
-    </div>
+    </form>
   );
 };
 
