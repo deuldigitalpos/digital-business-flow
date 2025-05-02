@@ -14,19 +14,41 @@ export const useBusinessAddons = () => {
         return [];
       }
       
-      // First, fetch the add-ons
+      // First, fetch the add-ons without the unit join that causes errors
       const { data: addons, error: addonsError } = await supabase
         .from('business_addons')
         .select(`
           *,
-          category:business_categories(id, name),
-          unit:business_units(id, name, short_name)
+          category:business_categories(id, name)
         `)
         .eq('business_id', businessUser.business_id);
       
       if (addonsError) {
         console.error('Error fetching add-ons:', addonsError);
         throw addonsError;
+      }
+
+      // Get unit_ids from addons
+      const addonUnitIds = addons
+        .filter(addon => addon.unit_id)
+        .map(addon => addon.unit_id)
+        .filter(Boolean);
+
+      // If we have units to fetch, get them separately
+      let unitMap: Record<string, { id: string; name: string; short_name: string }> = {};
+      
+      if (addonUnitIds.length > 0) {
+        const { data: units } = await supabase
+          .from('business_units')
+          .select('id, name, short_name')
+          .in('id', addonUnitIds);
+          
+        if (units && units.length > 0) {
+          unitMap = units.reduce((acc, unit) => {
+            acc[unit.id] = unit;
+            return acc;
+          }, {} as Record<string, { id: string; name: string; short_name: string }>);
+        }
       }
 
       // Then get the quantities from inventory table
@@ -49,9 +71,8 @@ export const useBusinessAddons = () => {
 
       // Process the data to add quantities
       const processedAddons = addons.map(addon => {
-        // Handle possible SelectQueryError for unit
-        const unitData = addon.unit && typeof addon.unit !== 'string' && !addon.unit.error
-          ? { id: addon.unit.id, name: addon.unit.name, short_name: addon.unit.short_name }
+        const unitData = addon.unit_id && unitMap[addon.unit_id]
+          ? unitMap[addon.unit_id]
           : null;
           
         return {
@@ -63,7 +84,6 @@ export const useBusinessAddons = () => {
         };
       });
 
-      // Cast to BusinessAddon[] because we've verified the structure is correct
       return processedAddons as BusinessAddon[];
     },
     enabled: !!businessUser?.business_id

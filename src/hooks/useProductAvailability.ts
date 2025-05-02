@@ -82,7 +82,7 @@ export const useProductAvailability = (product?: BusinessProduct) => {
           componentLimits.push({
             type: 'ingredient',
             id: ingredient.ingredient_id,
-            name: ingredient.ingredient?.name || 'Unknown Ingredient',
+            name: ingredient.name || 'Unknown Ingredient',
             availableQuantity,
             requiredQuantity,
             maxProductsPossible
@@ -118,7 +118,7 @@ export const useProductAvailability = (product?: BusinessProduct) => {
           componentLimits.push({
             type: 'consumable',
             id: consumable.consumable_id,
-            name: consumable.consumable?.name || 'Unknown Consumable',
+            name: consumable.name || 'Unknown Consumable',
             availableQuantity,
             requiredQuantity,
             maxProductsPossible

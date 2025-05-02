@@ -1,4 +1,5 @@
 
+// This file would need to be created with similar approach as useBusinessConsumables.ts
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
@@ -30,13 +31,12 @@ export const useBusinessIngredients = () => {
         return [];
       }
       
-      // First, fetch the ingredients
+      // Fetch the ingredients without trying to join unit
       const { data: ingredients, error: ingredientsError } = await supabase
         .from('business_ingredients')
         .select(`
           *,
-          category:business_categories(id, name),
-          unit:business_units(id, name, short_name)
+          category:business_categories(id, name)
         `)
         .eq('business_id', businessUser.business_id);
       
@@ -45,7 +45,7 @@ export const useBusinessIngredients = () => {
         throw ingredientsError;
       }
 
-      // Then get the quantities from inventory table
+      // Get the quantities from inventory table
       const { data: quantities, error: quantitiesError } = await supabase
         .from('business_inventory_quantities')
         .select('*')
@@ -57,19 +57,22 @@ export const useBusinessIngredients = () => {
         throw quantitiesError;
       }
 
-      // Merge the data
+      // Create a map for quantities
       const quantityMap: Record<string, any> = {};
       quantities?.forEach(item => {
         quantityMap[item.item_id] = item;
       });
 
-      // Process the data to add quantities
-      const processedIngredients = ingredients.map(ingredient => ({
-        ...ingredient,
-        quantity: quantityMap[ingredient.id]?.quantity || 0,
-        average_cost: quantityMap[ingredient.id]?.average_cost || 0,
-        total_value: quantityMap[ingredient.id]?.total_value || 0
-      }));
+      // Process the data without units for now
+      const processedIngredients = ingredients.map(ingredient => {
+        return {
+          ...ingredient,
+          unit: null, // We'll set this later if applicable
+          quantity: quantityMap[ingredient.id]?.quantity || 0,
+          average_cost: quantityMap[ingredient.id]?.average_cost || 0,
+          total_value: quantityMap[ingredient.id]?.total_value || 0
+        };
+      });
 
       return processedIngredients as BusinessIngredient[];
     },

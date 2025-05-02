@@ -1,3 +1,4 @@
+
 export interface BusinessProduct {
   id: string;
   business_id: string;

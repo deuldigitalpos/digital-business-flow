@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { BusinessAddon, BusinessAddonFormValues } from '@/types/business-addon';
+import { BusinessAddonFormValues } from '@/types/business-addon';
 
 export const useBusinessAddonMutations = () => {
   const { business } = useBusinessAuth();

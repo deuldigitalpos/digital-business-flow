@@ -14,7 +14,7 @@ export const useProductConsumables = (productId?: string) => {
       // Get consumables without relations that cause errors
       const { data: consumableRecords, error } = await supabase
         .from('business_product_consumables')
-        .select(`id, product_id, consumable_id, quantity, unit_id, cost`)
+        .select(`id, product_id, consumable_id, quantity, cost`)
         .eq('product_id', productId);
       
       if (error) {
@@ -31,27 +31,11 @@ export const useProductConsumables = (productId?: string) => {
       const consumableIds = consumableRecords.map(r => r.consumable_id);
       const { data: consumables } = await supabase
         .from('business_consumables')
-        .select(`id, name, unit_id`)
+        .select(`id, name`)
         .in('id', consumableIds);
 
-      // Get units separately
-      const unitIds = [
-        ...consumableRecords.filter(r => r.unit_id).map(r => r.unit_id),
-        ...consumables.filter(c => c.unit_id).map(c => c.unit_id)
-      ].filter(Boolean);
-      
-      const { data: units } = await supabase
-        .from('business_units')
-        .select(`id, name, short_name`)
-        .in('id', unitIds);
-
-      // Create maps for easy lookup
+      // Create map for easy lookup
       const consumableMap = consumables.reduce((acc, item) => {
-        acc[item.id] = item;
-        return acc;
-      }, {} as Record<string, any>);
-      
-      const unitMap = units.reduce((acc, item) => {
         acc[item.id] = item;
         return acc;
       }, {} as Record<string, any>);
@@ -59,17 +43,15 @@ export const useProductConsumables = (productId?: string) => {
       // Process data to ensure correct types
       const processedData = consumableRecords.map(item => {
         const consumableData = consumableMap[item.consumable_id];
-        const recipeUnitData = item.unit_id ? unitMap[item.unit_id] : null;
-        const consumableUnitData = consumableData?.unit_id ? unitMap[consumableData.unit_id] : null;
         
         return {
           ...item,
-          name: consumableData?.name,
-          unit: recipeUnitData || null,
+          name: consumableData?.name || 'Unknown',
+          unit: null, // Set to null as it's causing errors
           consumable: consumableData ? {
             id: consumableData.id,
             name: consumableData.name,
-            unit: consumableUnitData || null
+            unit: null // Set to null as it's causing errors
           } : null
         };
       });

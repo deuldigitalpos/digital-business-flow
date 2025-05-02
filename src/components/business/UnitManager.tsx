@@ -1,194 +1,179 @@
-
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useBusinessUnits } from '@/hooks/useBusinessUnits';
+import { BusinessUnit } from '@/types/business-unit';
+import { useBusinessUnitMutations } from '@/hooks/useBusinessUnitMutations';
+import AddUnitForm from './AddUnitForm';
+import EditUnitForm from './EditUnitForm';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Plus } from "lucide-react";
-import UnitList from "./UnitList";
-import AddUnitForm from "./AddUnitForm";
-import EditUnitForm from "./EditUnitForm";
-import { useBusinessUnits } from "@/hooks/useBusinessUnits";
-import { useBusinessUnitMutations } from "@/hooks/useBusinessUnitMutations";
-import { BusinessUnit, UnitType } from "@/types/business-unit";
-import { toast } from "sonner";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreHorizontal } from 'lucide-react';
+import { toast } from 'sonner';
 
-const DEFAULT_UNITS = [
-  { name: "Kilogram", short_name: "kg", type: "weight" as UnitType, description: "Standard unit of mass" },
-  { name: "Gram", short_name: "g", type: "weight" as UnitType, description: "Metric unit of mass (1/1000 kg)" },
-  { name: "Milligram", short_name: "mg", type: "weight" as UnitType, description: "Metric unit of mass (1/1000 g)" },
-  { name: "Liter", short_name: "l", type: "volume" as UnitType, description: "Standard unit of volume" },
-  { name: "Milliliter", short_name: "ml", type: "volume" as UnitType, description: "Volume unit (1/1000 liter)" },
-  { name: "Centimeter", short_name: "cm", type: "length" as UnitType, description: "Length unit (1/100 meter)" },
-  { name: "Meter", short_name: "m", type: "length" as UnitType, description: "Standard unit of length" },
-  { name: "Piece", short_name: "pc", type: "count" as UnitType, description: "Count of individual items" },
-  { name: "Box", short_name: "box", type: "count" as UnitType, description: "Container for multiple items" },
-  { name: "Pack", short_name: "pack", type: "count" as UnitType, description: "Group of items packaged together" },
-  { name: "Dozen", short_name: "doz", type: "count" as UnitType, description: "Twelve units" },
-];
+interface SetDefaultUnitProps {
+  id: string;
+  unitData: Partial<BusinessUnit>;
+}
 
 const UnitManager: React.FC = () => {
-  const { data: units, isLoading, refetch } = useBusinessUnits();
-  const { createUnit, deleteUnit } = useBusinessUnitMutations();
-  
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedUnit, setSelectedUnit] = useState<BusinessUnit | null>(null);
+  const { units, isLoading, refetch } = useBusinessUnits();
+  const { createUnit, updateUnit, deleteUnit, setDefaultUnit } = useBusinessUnitMutations();
+  const [editUnit, setEditUnit] = useState<BusinessUnit | null>(null);
 
-  // Check if default units exist and create them if they don't
-  useEffect(() => {
-    const setupDefaultUnits = async () => {
-      if (!units) return;
-      
-      // Get existing default unit short names
-      const existingShortNames = units
-        .filter(unit => unit.is_default)
-        .map(unit => unit.short_name);
-      
-      // Find missing default units
-      const missingUnits = DEFAULT_UNITS.filter(
-        unit => !existingShortNames.includes(unit.short_name)
-      );
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteUnit.mutateAsync(id);
+      toast.success('Unit deleted successfully');
+    } catch (error) {
+      console.error('Error deleting unit:', error);
+      toast.error('Failed to delete unit');
+    }
+  };
 
-      // Create missing default units
-      if (missingUnits.length > 0) {
-        try {
-          console.log(`Adding ${missingUnits.length} missing default units`);
-          
-          // Create all missing default units
-          for (const unit of missingUnits) {
-            await createUnit.mutateAsync({
-              ...unit,
-              is_default: true
-            });
-          }
-          
-          // Refetch units after creating defaults
-          toast.success(`Added ${missingUnits.length} default units`);
-          refetch();
-        } catch (error) {
-          console.error("Error creating default units:", error);
-          toast.error("Failed to create some default units");
+  const handleSetDefault = async (unit: BusinessUnit) => {
+    try {
+      const result = await setDefaultUnit.mutateAsync({
+        id: unit.id,
+        unitData: { 
+          is_default: true,
+          name: unit.name,
+          short_name: unit.short_name,
+          description: unit.description,
+          type: unit.type // Add the type field
         }
+      });
+      
+      if (result) {
+        toast.success('Default unit updated successfully');
+        refetch();
+      } else {
+        toast.error('Failed to set default unit');
       }
-    };
-
-    setupDefaultUnits();
-  }, [units, createUnit, refetch]);
-
-  const handleEdit = (unit: BusinessUnit) => {
-    if (unit.is_default) {
-      toast.info("Default units cannot be edited");
-      return;
-    }
-    setSelectedUnit(unit);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDelete = (unit: BusinessUnit) => {
-    if (unit.is_default) {
-      toast.info("Default units cannot be deleted");
-      return;
-    }
-    setSelectedUnit(unit);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (selectedUnit) {
-      try {
-        await deleteUnit.mutateAsync(selectedUnit.id);
-        setIsDeleteDialogOpen(false);
-      } catch (error) {
-        console.error("Error deleting unit:", error);
-      }
+    } catch (error) {
+      console.error('Error setting default unit:', error);
+      toast.error('Failed to set default unit');
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-semibold">Manage Units</h2>
-          <p className="text-muted-foreground">
-            Create and manage measurement units for your products
-          </p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+    <div>
+      <div className="mb-4 flex justify-between items-center">
+        <h2 className="text-2xl font-semibold">Manage Units</h2>
+        <Dialog>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button variant="primary">
+              <Plus className="w-4 h-4 mr-2" />
               Add Unit
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add New Unit</DialogTitle>
+              <DialogTitle>Add Unit</DialogTitle>
+              <DialogDescription>
+                Create a new unit for your business.
+              </DialogDescription>
             </DialogHeader>
-            <AddUnitForm onSuccess={() => setIsAddDialogOpen(false)} />
+            <AddUnitForm onSuccess={() => { refetch(); }} />
           </DialogContent>
         </Dialog>
       </div>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Short Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Default</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">Loading...</TableCell>
+              </TableRow>
+            ) : units && units.length > 0 ? (
+              units.map((unit) => (
+                <TableRow key={unit.id}>
+                  <TableCell>{unit.name}</TableCell>
+                  <TableCell>{unit.short_name}</TableCell>
+                  <TableCell>{unit.type}</TableCell>
+                  <TableCell>{unit.description}</TableCell>
+                  <TableCell>
+                    <Button 
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleSetDefault(unit)}
+                      disabled={unit.is_default}
+                    >
+                      {unit.is_default ? 'Default' : 'Set Default'}
+                    </Button>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setEditUnit(unit)}>
+                          <Edit className="mr-2 h-4 w-4" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(unit.id)} className="text-red-500">
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">No units found. Add one to get started.</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-      <UnitList
-        units={units || []}
-        isLoading={isLoading}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-
-      {/* Edit dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+      {/* Edit Unit Dialog */}
+      <Dialog open={!!editUnit} onOpenChange={() => setEditUnit(null)}>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Unit</DialogTitle>
+            <DialogDescription>
+              Edit an existing unit for your business.
+            </DialogDescription>
           </DialogHeader>
-          {selectedUnit && (
-            <EditUnitForm 
-              unit={selectedUnit} 
-              onSuccess={() => setIsEditDialogOpen(false)} 
-            />
-          )}
+          <EditUnitForm unit={editUnit} onSuccess={() => { setEditUnit(null); refetch(); }} />
         </DialogContent>
       </Dialog>
-
-      {/* Delete confirmation dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the unit{" "}
-              <span className="font-semibold">{selectedUnit?.name}</span>.
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleteUnit.isPending ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

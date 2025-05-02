@@ -30,13 +30,12 @@ export const useBusinessConsumables = () => {
         return [];
       }
       
-      // First, fetch the consumables
+      // First, fetch the consumables without trying to join unit
       const { data: consumables, error: consumablesError } = await supabase
         .from('business_consumables')
         .select(`
           *,
-          category:business_categories(id, name),
-          unit_id
+          category:business_categories(id, name)
         `)
         .eq('business_id', businessUser.business_id);
       
@@ -45,7 +44,7 @@ export const useBusinessConsumables = () => {
         throw consumablesError;
       }
 
-      // Then get the quantities from inventory table
+      // Get the quantities from inventory table
       const { data: quantities, error: quantitiesError } = await supabase
         .from('business_inventory_quantities')
         .select('*')
@@ -57,42 +56,17 @@ export const useBusinessConsumables = () => {
         throw quantitiesError;
       }
 
-      // Get units separately (since we have a relationship error)
-      const unitIds = consumables
-        .filter(c => c.unit_id)
-        .map(c => c.unit_id);
-      
-      const unitMap: Record<string, { id: string; name: string; short_name: string }> = {};
-      
-      if (unitIds.length > 0) {
-        const { data: units } = await supabase
-          .from('business_units')
-          .select('id, name, short_name')
-          .in('id', unitIds);
-          
-        if (units) {
-          units.forEach(unit => {
-            unitMap[unit.id] = unit;
-          });
-        }
-      }
-
-      // Merge the data
+      // Create a map for quantities
       const quantityMap: Record<string, any> = {};
       quantities?.forEach(item => {
         quantityMap[item.item_id] = item;
       });
 
-      // Process the data to add quantities and resolve unit relations
+      // Process the data without units for now
       const processedConsumables = consumables.map(consumable => {
-        // Resolve unit using our separate unit query
-        const unitData = consumable.unit_id && unitMap[consumable.unit_id] 
-          ? unitMap[consumable.unit_id] 
-          : null;
-          
         return {
           ...consumable,
-          unit: unitData,
+          unit: null, // We'll set this later if applicable
           quantity: quantityMap[consumable.id]?.quantity || 0,
           average_cost: quantityMap[consumable.id]?.average_cost || 0,
           total_value: quantityMap[consumable.id]?.total_value || 0
