@@ -42,7 +42,7 @@ const BusinessCategories: React.FC = () => {
         toast({
           title: "Test category created",
           description: "The test category was created successfully",
-          variant: "default", // Changed from "success" to "default" to match the allowed variants
+          variant: "success",
         });
         console.log("Test category created:", data);
       }

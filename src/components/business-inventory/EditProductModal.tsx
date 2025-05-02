@@ -3,21 +3,55 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { BusinessProduct } from "@/types/business-product";
 import useBusinessProductMutations from "@/hooks/useBusinessProductMutations";
 import ProductForm from "@/components/business-inventory/ProductForm";
-import { ProductFormValues, productFormSchema } from "./product-form/types";
+import { ProductFormValues } from "./product-form/types";
 import useProductIngredients from "@/hooks/useProductIngredients";
 import useProductConsumables from "@/hooks/useProductConsumables";
 import useProductSizes from "@/hooks/useProductSizes";
 import { useEffect } from "react";
-import { Form } from "@/components/ui/form";
 
 interface EditProductModalProps {
   product: BusinessProduct;
   isOpen: boolean;
   onClose: () => void;
 }
+
+const formSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  description: z.string().optional(),
+  sku: z.string().optional(),
+  category_id: z.string().optional(),
+  unit_id: z.string().min(1, "Unit is required"),
+  brand_id: z.string().optional(),
+  warranty_id: z.string().optional(),
+  image_url: z.string().optional(),
+  cost_price: z.coerce.number().min(0, "Cost price must be positive"),
+  selling_price: z.coerce.number().min(0, "Selling price must be positive"),
+  has_ingredients: z.boolean().default(false),
+  has_consumables: z.boolean().default(false),
+  has_sizes: z.boolean().default(false),
+  auto_generate_sku: z.boolean().default(true),
+  is_active: z.boolean().default(true),
+  sizes: z.array(z.object({
+    name: z.string(),
+    additional_price: z.number(),
+  })).optional().default([]),
+  ingredients: z.array(z.object({
+    ingredient_id: z.string(),
+    quantity: z.number(),
+    unit_id: z.string(),
+    cost: z.number(),
+  })).optional().default([]),
+  consumables: z.array(z.object({
+    consumable_id: z.string(),
+    quantity: z.number(),
+    unit_id: z.string(),
+    cost: z.number(),
+  })).optional().default([])
+});
 
 const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, onClose }) => {
   const { updateProduct } = useBusinessProductMutations();
@@ -26,12 +60,15 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
   const { sizes } = useProductSizes(product.id);
   
   const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productFormSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: product.name,
       description: product.description || "",
       sku: product.sku || "",
       category_id: product.category_id || undefined,
+      unit_id: product.unit_id || "",
+      brand_id: product.brand_id || undefined,
+      warranty_id: product.warranty_id || undefined,
       image_url: product.image_url || "",
       cost_price: product.cost_price,
       selling_price: product.selling_price,
@@ -59,6 +96,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
       form.setValue('ingredients', ingredients.map(ing => ({
         ingredient_id: ing.ingredient_id,
         quantity: ing.quantity,
+        unit_id: ing.unit_id || "",
         cost: ing.cost
       })));
     }
@@ -67,6 +105,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
       form.setValue('consumables', consumables.map(cons => ({
         consumable_id: cons.consumable_id,
         quantity: cons.quantity,
+        unit_id: cons.unit_id || "",
         cost: cons.cost
       })));
     }
@@ -77,9 +116,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
       await updateProduct.mutateAsync({
         id: product.id,
         product: values,
-        ingredients: values.ingredients || [],
-        consumables: values.consumables || [],
-        sizes: values.sizes || [],
+        ingredients: values.ingredients,
+        consumables: values.consumables,
+        sizes: values.sizes,
       });
       
       onClose();
@@ -95,15 +134,11 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
           <DialogTitle>Edit Product: {product.name}</DialogTitle>
         </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <ProductForm 
-              form={form}
-              onSubmit={handleSubmit}
-              isEditMode={true}
-            />
-          </form>
-        </Form>
+        <ProductForm 
+          form={form}
+          onSubmit={handleSubmit}
+          isEditMode={true}
+        />
       </DialogContent>
     </Dialog>
   );

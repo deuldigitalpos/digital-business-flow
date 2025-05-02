@@ -1,6 +1,9 @@
 
 import { UUID } from "./common";
+import { BusinessBrand } from "./business-brand";
 import { BusinessCategory } from "./business-category";
+import { BusinessUnit } from "./business-unit";
+import { BusinessWarranty } from "./business-warranty";
 
 export interface BusinessProduct {
   id: UUID;
@@ -10,6 +13,9 @@ export interface BusinessProduct {
   description: string | null;
   sku: string | null;
   category_id: UUID | null;
+  unit_id: UUID | null;
+  brand_id: UUID | null;
+  warranty_id: UUID | null;
   image_url: string | null;
   cost_price: number;
   selling_price: number;
@@ -24,6 +30,9 @@ export interface BusinessProduct {
   
   // Joined fields
   category?: { id: UUID; name: string } | null;
+  unit?: { id: UUID; name: string; short_name: string } | null;
+  brand?: { id: UUID; name: string } | null;
+  warranty?: { id: UUID; name: string } | null;
   
   // Calculated fields
   quantity?: number;
@@ -37,6 +46,9 @@ export interface ProductFormValues {
   description?: string;
   sku?: string;
   category_id?: string;
+  unit_id?: string;
+  brand_id?: string;
+  warranty_id?: string;
   image_url?: string;
   cost_price: number;
   selling_price: number;
@@ -51,6 +63,7 @@ export interface ProductIngredient {
   product_id: UUID;
   ingredient_id: UUID;
   quantity: number;
+  unit_id: UUID | null;
   cost: number;
   created_at: string;
   
@@ -58,7 +71,9 @@ export interface ProductIngredient {
   ingredient?: {
     id: UUID;
     name: string;
+    unit?: { id: UUID; name: string; short_name: string } | null;
   };
+  unit?: { id: UUID; name: string; short_name: string } | null;
 }
 
 export interface ProductConsumable {
@@ -66,6 +81,7 @@ export interface ProductConsumable {
   product_id: UUID;
   consumable_id: UUID;
   quantity: number;
+  unit_id: UUID | null;
   cost: number;
   created_at: string;
   
@@ -73,7 +89,9 @@ export interface ProductConsumable {
   consumable?: {
     id: UUID;
     name: string;
+    unit?: { id: UUID; name: string; short_name: string } | null;
   };
+  unit?: { id: UUID; name: string; short_name: string } | null;
 }
 
 export interface ProductSize {
@@ -88,12 +106,14 @@ export interface ProductSize {
 export interface ProductIngredientInput {
   ingredient_id: string;
   quantity: number;
+  unit_id: string;
   cost: number;
 }
 
 export interface ProductConsumableInput {
   consumable_id: string;
   quantity: number;
+  unit_id: string;
   cost: number;
 }
 

@@ -30,11 +30,11 @@ export const useBusinessBrands = () => {
         throw error;
       }
       
-      console.log('Fetched brands count:', data?.length || 0);
+      console.log('Fetched brands:', data);
       return data as BusinessBrand[];
     },
     enabled: !!businessId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 2,
     meta: {
       onError: (error: Error) => {
         console.error('Error in useBusinessBrands hook:', error);
@@ -74,7 +74,7 @@ export const useBusinessBrand = (brandId: string | undefined) => {
         return null;
       }
 
-      return data as BusinessBrand;
+      return data;
     },
     enabled: !!brandId && !!businessId,
   });

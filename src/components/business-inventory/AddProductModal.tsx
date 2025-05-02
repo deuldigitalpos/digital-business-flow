@@ -3,21 +3,55 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import useBusinessProductMutations from "@/hooks/useBusinessProductMutations";
 import ProductForm from "@/components/business-inventory/ProductForm";
-import { ProductFormValues, productFormSchema } from "./product-form/types";
-import { Form } from "@/components/ui/form";
+import { ProductFormValues } from "./product-form/types";
 
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const formSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  description: z.string().optional(),
+  sku: z.string().optional(),
+  category_id: z.string().optional(),
+  unit_id: z.string().min(1, "Unit is required"),
+  brand_id: z.string().optional(),
+  warranty_id: z.string().optional(),
+  image_url: z.string().optional(),
+  cost_price: z.coerce.number().min(0, "Cost price must be positive"),
+  selling_price: z.coerce.number().min(0, "Selling price must be positive"),
+  has_ingredients: z.boolean().default(false),
+  has_consumables: z.boolean().default(false),
+  has_sizes: z.boolean().default(false),
+  auto_generate_sku: z.boolean().default(true),
+  is_active: z.boolean().default(true),
+  sizes: z.array(z.object({
+    name: z.string(),
+    additional_price: z.number(),
+  })).optional().default([]),
+  ingredients: z.array(z.object({
+    ingredient_id: z.string(),
+    quantity: z.number(),
+    unit_id: z.string(),
+    cost: z.number(),
+  })).optional().default([]),
+  consumables: z.array(z.object({
+    consumable_id: z.string(),
+    quantity: z.number(),
+    unit_id: z.string(),
+    cost: z.number(),
+  })).optional().default([])
+});
+
 const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) => {
   const { createProduct } = useBusinessProductMutations();
   
   const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productFormSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -58,14 +92,10 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) =>
           <DialogTitle>Add New Product</DialogTitle>
         </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <ProductForm 
-              form={form}
-              onSubmit={handleSubmit}
-            />
-          </form>
-        </Form>
+        <ProductForm 
+          form={form}
+          onSubmit={handleSubmit}
+        />
       </DialogContent>
     </Dialog>
   );
