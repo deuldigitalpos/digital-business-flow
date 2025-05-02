@@ -18,6 +18,9 @@ export function useBusinessCategories() {
         throw new Error("No business ID available");
       }
 
+      // Make sure we're properly setting up the business user auth for Supabase
+      console.log("Fetching categories with business ID:", businessId);
+
       const { data, error } = await supabase
         .from("business_categories")
         .select("*")
@@ -25,6 +28,7 @@ export function useBusinessCategories() {
         .order("name");
 
       if (error) {
+        console.error("Error fetching categories:", error);
         toast({
           title: "Error fetching categories",
           description: error.message,
@@ -33,6 +37,7 @@ export function useBusinessCategories() {
         throw error;
       }
 
+      console.log("Categories data fetched:", data?.length || 0, "items");
       return data as BusinessCategory[];
     },
     enabled: !!businessId,

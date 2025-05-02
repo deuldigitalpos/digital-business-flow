@@ -41,6 +41,9 @@ const CategoryList: React.FC<CategoryListProps> = ({
         <p className="text-sm text-muted-foreground">
           Create a new category to get started
         </p>
+        <p className="text-xs text-muted-foreground mt-2">
+          If you believe this is an error, check that your business user has proper permissions
+        </p>
       </div>
     );
   }

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,15 +25,25 @@ import CategoryList from "./CategoryList";
 import AddCategoryForm from "./AddCategoryForm";
 import EditCategoryForm from "./EditCategoryForm";
 import { Plus } from "lucide-react";
+import { useBusinessAuth } from "@/context/BusinessAuthContext";
 
 const CategoryManager: React.FC = () => {
-  const { data: categories, isLoading } = useBusinessCategories();
+  const { data: categories, isLoading, error } = useBusinessCategories();
   const { deleteCategory } = useBusinessCategoryMutations();
+  const { businessUser } = useBusinessAuth();
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<BusinessCategory | null>(null);
+
+  // Debug useEffect to check if we're getting the right data
+  useEffect(() => {
+    console.log("Business ID in CategoryManager:", businessUser?.business_id);
+    console.log("Categories loading:", isLoading);
+    console.log("Categories error:", error);
+    console.log("Categories data:", categories);
+  }, [categories, isLoading, error, businessUser?.business_id]);
 
   const handleEdit = (category: BusinessCategory) => {
     setSelectedCategory(category);
@@ -77,12 +87,18 @@ const CategoryManager: React.FC = () => {
         </Dialog>
       </div>
 
-      <CategoryList
-        categories={categories || []}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        isLoading={isLoading}
-      />
+      {error ? (
+        <div className="p-4 border border-red-300 rounded-md bg-red-50">
+          <p className="text-red-600">Error loading categories: {error.message}</p>
+        </div>
+      ) : (
+        <CategoryList
+          categories={categories || []}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          isLoading={isLoading}
+        />
+      )}
 
       {/* Edit Dialog */}
       {selectedCategory && (
