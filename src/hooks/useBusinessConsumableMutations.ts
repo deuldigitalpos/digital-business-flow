@@ -44,14 +44,13 @@ export const useBusinessConsumableMutations = () => {
 
       const sanitizedInput = sanitizeInput(consumable);
 
+      // Make sure to create a single object, not an array for insert
       const { data, error } = await supabase
         .from('business_consumables')
-        .insert([
-          {
-            ...sanitizedInput,
-            business_id: businessUser.business_id
-          }
-        ])
+        .insert({
+          ...sanitizedInput,
+          business_id: businessUser.business_id
+        })
         .select('*')
         .single();
 

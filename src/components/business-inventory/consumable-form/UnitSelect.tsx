@@ -8,13 +8,6 @@ import {
   FormControl,
   FormMessage
 } from '@/components/ui/form';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 import { ConsumableFormValues } from './types';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
@@ -80,7 +73,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
                           field.value === unit.id ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      {unit.name} ({unit.short_name || '-'})
+                      {unit.name} ({unit.short_name})
                     </CommandItem>
                   ))}
                 </CommandGroup>

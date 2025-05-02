@@ -65,15 +65,22 @@ export const useBusinessConsumables = () => {
 
       // Process the data with complete unit information
       const processedConsumables = consumables.map(consumable => {
+        // Handle case where unit is null or has an error
+        let unitValue = null;
+        if (consumable.unit && typeof consumable.unit === 'object' && !('error' in consumable.unit)) {
+          unitValue = consumable.unit;
+        }
+
         return {
           ...consumable,
+          unit: unitValue,
           quantity: quantityMap[consumable.id]?.quantity || 0,
           average_cost: quantityMap[consumable.id]?.average_cost || 0,
           total_value: quantityMap[consumable.id]?.total_value || 0
-        };
+        } as BusinessConsumable;
       });
 
-      return processedConsumables as BusinessConsumable[];
+      return processedConsumables;
     },
     enabled: !!businessUser?.business_id
   });
