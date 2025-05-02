@@ -2,6 +2,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { UUID } from '@/types/common';
+import { BusinessUnit } from '@/types/business-unit';
 
 export interface BusinessConsumable {
   id: string;
@@ -17,7 +19,7 @@ export interface BusinessConsumable {
   average_cost?: number;
   total_value?: number;
   category?: { id: string; name: string } | null;
-  unit?: { id: string; name: string; short_name: string } | null;
+  unit?: BusinessUnit | null;
 }
 
 export const useBusinessConsumables = () => {
@@ -68,10 +70,11 @@ export const useBusinessConsumables = () => {
         // Initialize unit value as null
         let unitValue = null;
         
-        // First check if unit exists at all
-        if (consumable.unit) {
-          // Then check if it's a valid object (not null and not containing an error)
-          if (typeof consumable.unit === 'object' && !('error' in consumable.unit)) {
+        // Safely check if unit exists and is a valid object before accessing it
+        if (consumable.unit !== null && 
+            typeof consumable.unit === 'object') {
+          // Additional check to see if it's an error object
+          if (!('error' in (consumable.unit as object))) {
             unitValue = consumable.unit;
           }
         }
