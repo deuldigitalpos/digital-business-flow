@@ -29,7 +29,35 @@ export const useProductIngredients = (productId?: string) => {
         throw error;
       }
 
-      return data as ProductIngredient[];
+      // Process data to ensure correct types
+      const processedData = data.map(item => {
+        // Handle possible SelectQueryError for unit
+        const unitData = item.unit && !item.unit.error
+          ? { id: item.unit.id, name: item.unit.name, short_name: item.unit.short_name }
+          : null;
+
+        // Handle possible SelectQueryError for ingredient.unit
+        let ingredientData = null;
+        if (item.ingredient && !item.ingredient.error) {
+          const ingredientUnitData = item.ingredient.unit && !item.ingredient.unit.error
+            ? { id: item.ingredient.unit.id, name: item.ingredient.unit.name, short_name: item.ingredient.unit.short_name }
+            : null;
+            
+          ingredientData = {
+            id: item.ingredient.id,
+            name: item.ingredient.name,
+            unit: ingredientUnitData
+          };
+        }
+
+        return {
+          ...item,
+          unit: unitData,
+          ingredient: ingredientData
+        };
+      });
+
+      return processedData as ProductIngredient[];
     },
     enabled: !!productId
   });

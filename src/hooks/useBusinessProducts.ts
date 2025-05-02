@@ -66,11 +66,24 @@ export const useBusinessProducts = (filters: Record<string, any> = {}) => {
 
       // Process the data to add quantities
       const processedProducts = products.map(product => {
+        // Handle possible SelectQueryError for unit, brand, warranty
+        const unitData = product.unit && !product.unit.error
+          ? { id: product.unit.id, name: product.unit.name, short_name: product.unit.short_name }
+          : null;
+          
+        const brandData = product.brand && !product.brand.error
+          ? { id: product.brand.id, name: product.brand.name }
+          : null;
+          
+        const warrantyData = product.warranty && !product.warranty.error
+          ? { id: product.warranty.id, name: product.warranty.name }
+          : null;
+        
         // Calculate cost_margin and profit_margin
         const cost_margin = product.selling_price - product.cost_price;
         const profit_margin = product.cost_price > 0 ? (cost_margin / product.cost_price) * 100 : 0;
         
-        // Determine stock status based on quantity
+        // Get quantity
         const quantity = quantityMap[product.id]?.quantity || 0;
         
         // Basic stock status - will be potentially overridden later by component availability
@@ -83,10 +96,14 @@ export const useBusinessProducts = (filters: Record<string, any> = {}) => {
         
         return {
           ...product,
+          unit: unitData,
+          brand: brandData,
+          warranty: warrantyData,
           quantity: quantity,
           cost_margin: cost_margin,
           profit_margin: profit_margin,
-          stock_status: stock_status
+          stock_status: stock_status,
+          total_value: quantity * product.cost_price
         };
       });
 

@@ -48,12 +48,20 @@ export const useBusinessAddons = () => {
       });
 
       // Process the data to add quantities
-      const processedAddons = addons.map(addon => ({
-        ...addon,
-        quantity: quantityMap[addon.id]?.quantity || 0,
-        average_cost: quantityMap[addon.id]?.average_cost || 0,
-        total_value: quantityMap[addon.id]?.total_value || 0
-      }));
+      const processedAddons = addons.map(addon => {
+        // Handle possible SelectQueryError for unit
+        const unitData = addon.unit && !addon.unit.error
+          ? { id: addon.unit.id, name: addon.unit.name, short_name: addon.unit.short_name }
+          : null;
+          
+        return {
+          ...addon,
+          unit: unitData,
+          quantity: quantityMap[addon.id]?.quantity || 0,
+          average_cost: quantityMap[addon.id]?.average_cost || 0,
+          total_value: quantityMap[addon.id]?.total_value || 0
+        };
+      });
 
       return processedAddons as BusinessAddon[];
     },

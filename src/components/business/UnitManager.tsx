@@ -24,21 +24,21 @@ import AddUnitForm from "./AddUnitForm";
 import EditUnitForm from "./EditUnitForm";
 import { useBusinessUnits } from "@/hooks/useBusinessUnits";
 import { useBusinessUnitMutations } from "@/hooks/useBusinessUnitMutations";
-import { BusinessUnit } from "@/types/business-unit";
+import { BusinessUnit, UnitType } from "@/types/business-unit";
 import { toast } from "sonner";
 
 const DEFAULT_UNITS = [
-  { name: "Kilogram", short_name: "kg", description: "Standard unit of mass" },
-  { name: "Gram", short_name: "g", description: "Metric unit of mass (1/1000 kg)" },
-  { name: "Milligram", short_name: "mg", description: "Metric unit of mass (1/1000 g)" },
-  { name: "Liter", short_name: "l", description: "Standard unit of volume" },
-  { name: "Milliliter", short_name: "ml", description: "Volume unit (1/1000 liter)" },
-  { name: "Centimeter", short_name: "cm", description: "Length unit (1/100 meter)" },
-  { name: "Meter", short_name: "m", description: "Standard unit of length" },
-  { name: "Piece", short_name: "pc", description: "Count of individual items" },
-  { name: "Box", short_name: "box", description: "Container for multiple items" },
-  { name: "Pack", short_name: "pack", description: "Group of items packaged together" },
-  { name: "Dozen", short_name: "doz", description: "Twelve units" },
+  { name: "Kilogram", short_name: "kg", type: "weight" as UnitType, description: "Standard unit of mass" },
+  { name: "Gram", short_name: "g", type: "weight" as UnitType, description: "Metric unit of mass (1/1000 kg)" },
+  { name: "Milligram", short_name: "mg", type: "weight" as UnitType, description: "Metric unit of mass (1/1000 g)" },
+  { name: "Liter", short_name: "l", type: "volume" as UnitType, description: "Standard unit of volume" },
+  { name: "Milliliter", short_name: "ml", type: "volume" as UnitType, description: "Volume unit (1/1000 liter)" },
+  { name: "Centimeter", short_name: "cm", type: "length" as UnitType, description: "Length unit (1/100 meter)" },
+  { name: "Meter", short_name: "m", type: "length" as UnitType, description: "Standard unit of length" },
+  { name: "Piece", short_name: "pc", type: "count" as UnitType, description: "Count of individual items" },
+  { name: "Box", short_name: "box", type: "count" as UnitType, description: "Container for multiple items" },
+  { name: "Pack", short_name: "pack", type: "count" as UnitType, description: "Group of items packaged together" },
+  { name: "Dozen", short_name: "doz", type: "count" as UnitType, description: "Twelve units" },
 ];
 
 const UnitManager: React.FC = () => {

@@ -14,13 +14,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useBusinessUnitMutations } from "@/hooks/useBusinessUnitMutations";
-import { BusinessUnit, BusinessUnitFormValues } from "@/types/business-unit";
+import { BusinessUnit, BusinessUnitFormValues, UnitType } from "@/types/business-unit";
 import { DialogClose } from "@/components/ui/dialog";
 
 const formSchema = z.object({
   name: z.string().min(1, "Unit name is required"),
   short_name: z.string().min(1, "Short name is required"),
+  type: z.enum(["weight", "volume", "length", "count"] as const),
   description: z.string().optional(),
 });
 
@@ -39,6 +47,7 @@ const EditUnitForm: React.FC<EditUnitFormProps> = ({ unit, onSuccess }) => {
     defaultValues: {
       name: unit.name,
       short_name: unit.short_name,
+      type: unit.type,
       description: unit.description || "",
     },
   });
@@ -49,6 +58,7 @@ const EditUnitForm: React.FC<EditUnitFormProps> = ({ unit, onSuccess }) => {
       const unitData: BusinessUnitFormValues = {
         name: values.name,
         short_name: values.short_name,
+        type: values.type,
         description: values.description,
       };
       
@@ -88,6 +98,30 @@ const EditUnitForm: React.FC<EditUnitFormProps> = ({ unit, onSuccess }) => {
               <FormControl>
                 <Input placeholder="Enter short name" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Unit Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select unit type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="weight">Weight</SelectItem>
+                  <SelectItem value="volume">Volume</SelectItem>
+                  <SelectItem value="length">Length</SelectItem>
+                  <SelectItem value="count">Count</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

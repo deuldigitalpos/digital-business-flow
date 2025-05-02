@@ -29,7 +29,35 @@ export const useProductConsumables = (productId?: string) => {
         throw error;
       }
 
-      return data as ProductConsumable[];
+      // Process data to ensure correct types
+      const processedData = data.map(item => {
+        // Handle possible SelectQueryError for unit
+        const unitData = item.unit && !item.unit.error
+          ? { id: item.unit.id, name: item.unit.name, short_name: item.unit.short_name }
+          : null;
+
+        // Handle possible SelectQueryError for consumable.unit
+        let consumableData = null;
+        if (item.consumable && !item.consumable.error) {
+          const consumableUnitData = item.consumable.unit && !item.consumable.unit.error
+            ? { id: item.consumable.unit.id, name: item.consumable.unit.name, short_name: item.consumable.unit.short_name }
+            : null;
+            
+          consumableData = {
+            id: item.consumable.id,
+            name: item.consumable.name,
+            unit: consumableUnitData
+          };
+        }
+
+        return {
+          ...item,
+          unit: unitData,
+          consumable: consumableData
+        };
+      });
+
+      return processedData as ProductConsumable[];
     },
     enabled: !!productId
   });

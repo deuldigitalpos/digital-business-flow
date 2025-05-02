@@ -64,12 +64,20 @@ export const useBusinessConsumables = () => {
       });
 
       // Process the data to add quantities
-      const processedConsumables = consumables.map(consumable => ({
-        ...consumable,
-        quantity: quantityMap[consumable.id]?.quantity || 0,
-        average_cost: quantityMap[consumable.id]?.average_cost || 0,
-        total_value: quantityMap[consumable.id]?.total_value || 0
-      }));
+      const processedConsumables = consumables.map(consumable => {
+        // Handle possible SelectQueryError for unit
+        const unitData = consumable.unit && !consumable.unit.error
+          ? { id: consumable.unit.id, name: consumable.unit.name, short_name: consumable.unit.short_name }
+          : null;
+          
+        return {
+          ...consumable,
+          unit: unitData,
+          quantity: quantityMap[consumable.id]?.quantity || 0,
+          average_cost: quantityMap[consumable.id]?.average_cost || 0,
+          total_value: quantityMap[consumable.id]?.total_value || 0
+        };
+      });
 
       return processedConsumables as BusinessConsumable[];
     },

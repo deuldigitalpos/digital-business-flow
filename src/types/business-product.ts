@@ -25,6 +25,12 @@ export interface BusinessProduct {
   brand?: { id: string; name: string } | null;
   warranty?: { id: string; name: string } | null;
   category?: { id: string; name: string } | null;
+  // Add these properties to fix the errors
+  quantity?: number;
+  cost_margin?: number;
+  profit_margin?: number;
+  stock_status?: string;
+  total_value?: number;
 }
 
 export interface ProductIngredient {
@@ -34,8 +40,13 @@ export interface ProductIngredient {
   quantity: number;
   unit_id?: string | null;
   cost: number;
-  name: string;
+  name?: string;
   unit?: { id: string; name: string; short_name: string } | null;
+  ingredient?: { 
+    id: string;
+    name: string;
+    unit?: { id: string; name: string; short_name: string } | null;
+  } | null;
 }
 
 export interface ProductConsumable {
@@ -45,8 +56,13 @@ export interface ProductConsumable {
   quantity: number;
   unit_id?: string | null;
   cost: number;
-  name: string;
+  name?: string;
   unit?: { id: string; name: string; short_name: string } | null;
+  consumable?: { 
+    id: string;
+    name: string;
+    unit?: { id: string; name: string; short_name: string } | null;
+  } | null;
 }
 
 export interface ProductSize {
@@ -76,4 +92,25 @@ export interface ProductConsumableInput {
   quantity: number;
   unit_id?: string;
   cost?: number;
+}
+
+export interface ProductFormValues {
+  name: string;
+  description?: string;
+  sku?: string;
+  category_id?: string;
+  image_url?: string;
+  cost_price: number;
+  selling_price: number;
+  has_ingredients: boolean;
+  has_consumables: boolean;
+  has_sizes: boolean;
+  auto_generate_sku: boolean;
+  is_active: boolean;
+  unit_id?: string;
+  brand_id?: string;
+  warranty_id?: string;
+  sizes?: ProductSizeInput[];
+  ingredients?: ProductIngredientInput[];
+  consumables?: ProductConsumableInput[];
 }

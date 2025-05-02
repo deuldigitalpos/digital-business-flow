@@ -14,13 +14,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useBusinessUnitMutations } from "@/hooks/useBusinessUnitMutations";
 import { DialogClose } from "@/components/ui/dialog";
-import { BusinessUnitFormValues } from "@/types/business-unit";
+import { BusinessUnitFormValues, UnitType } from "@/types/business-unit";
 
 const formSchema = z.object({
   name: z.string().min(1, "Unit name is required"),
   short_name: z.string().min(1, "Short name is required"),
+  type: z.enum(["weight", "volume", "length", "count"] as const),
   description: z.string().optional(),
 });
 
@@ -38,6 +46,7 @@ const AddUnitForm: React.FC<AddUnitFormProps> = ({ onSuccess }) => {
     defaultValues: {
       name: "",
       short_name: "",
+      type: "weight" as UnitType,
       description: "",
     },
   });
@@ -48,6 +57,7 @@ const AddUnitForm: React.FC<AddUnitFormProps> = ({ onSuccess }) => {
       const unitData: BusinessUnitFormValues = {
         name: values.name,
         short_name: values.short_name,
+        type: values.type,
         description: values.description,
       };
       
@@ -85,6 +95,30 @@ const AddUnitForm: React.FC<AddUnitFormProps> = ({ onSuccess }) => {
               <FormControl>
                 <Input placeholder="Short name (e.g. kg)" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Unit Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select unit type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="weight">Weight</SelectItem>
+                  <SelectItem value="volume">Volume</SelectItem>
+                  <SelectItem value="length">Length</SelectItem>
+                  <SelectItem value="count">Count</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
