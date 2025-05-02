@@ -7,19 +7,28 @@ import { toast } from 'sonner';
 
 export function useBusinessBrandMutations() {
   const queryClient = useQueryClient();
-  const { business } = useBusinessAuth();
+  const { business, businessUser } = useBusinessAuth();
+
+  // Get the correct business ID
+  const getBusinessId = () => {
+    const businessId = business?.id || businessUser?.business_id;
+    if (!businessId) {
+      console.error('No business ID available for brand mutations');
+      throw new Error('Business ID is required');
+    }
+    return businessId;
+  };
 
   const createBrand = useMutation({
     mutationFn: async (brandData: BusinessBrandFormValues) => {
-      if (!business?.id) {
-        throw new Error('Business ID is required');
-      }
+      const businessId = getBusinessId();
+      console.log('Creating brand for business ID:', businessId, 'with data:', brandData);
 
       const { data, error } = await supabase
         .from('business_brands')
         .insert({
           ...brandData,
-          business_id: business.id
+          business_id: businessId
         })
         .select()
         .single();
@@ -29,20 +38,23 @@ export function useBusinessBrandMutations() {
         throw error;
       }
 
+      console.log('Brand created successfully:', data);
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['business-brands', business?.id] });
-      toast.success('Brand created successfully');
+      console.log('Brand created successfully, invalidating queries');
+      const businessId = business?.id || businessUser?.business_id;
+      queryClient.invalidateQueries({ queryKey: ['business-brands', businessId] });
     },
     onError: (error) => {
       console.error('Failed to create brand:', error);
-      toast.error('Failed to create brand');
     }
   });
 
   const updateBrand = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: BusinessBrandFormValues }) => {
+      console.log('Updating brand ID:', id, 'with data:', data);
+      
       const { data: updatedBrand, error } = await supabase
         .from('business_brands')
         .update(data)
@@ -55,20 +67,23 @@ export function useBusinessBrandMutations() {
         throw error;
       }
 
+      console.log('Brand updated successfully:', updatedBrand);
       return updatedBrand;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['business-brands', business?.id] });
-      toast.success('Brand updated successfully');
+      console.log('Brand updated successfully, invalidating queries');
+      const businessId = business?.id || businessUser?.business_id;
+      queryClient.invalidateQueries({ queryKey: ['business-brands', businessId] });
     },
     onError: (error) => {
       console.error('Failed to update brand:', error);
-      toast.error('Failed to update brand');
     }
   });
 
   const deleteBrand = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting brand ID:', id);
+      
       const { error } = await supabase
         .from('business_brands')
         .delete()
@@ -79,15 +94,16 @@ export function useBusinessBrandMutations() {
         throw error;
       }
 
+      console.log('Brand deleted successfully');
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['business-brands', business?.id] });
-      toast.success('Brand deleted successfully');
+      console.log('Brand deleted successfully, invalidating queries');
+      const businessId = business?.id || businessUser?.business_id;
+      queryClient.invalidateQueries({ queryKey: ['business-brands', businessId] });
     },
     onError: (error) => {
       console.error('Failed to delete brand:', error);
-      toast.error('Failed to delete brand');
     }
   });
 

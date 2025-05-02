@@ -22,6 +22,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -53,7 +54,7 @@ const EditWarrantyForm: React.FC<EditWarrantyFormProps> = ({ warranty, onSuccess
       form.reset({
         name: warranty.name,
         description: warranty.description || "",
-        expiration_date: warranty.expiration_date,
+        expiration_date: warranty.expiration_date || format(new Date(), "yyyy-MM-dd"),
         is_active: warranty.is_active ?? true,
       });
     }
@@ -61,13 +62,17 @@ const EditWarrantyForm: React.FC<EditWarrantyFormProps> = ({ warranty, onSuccess
 
   const onSubmit = async (data: BusinessWarrantyFormValues) => {
     try {
+      console.log("Updating warranty data:", data);
       await updateWarranty.mutateAsync({
         id: warranty.id,
         data,
       });
+      
+      toast.success("Warranty updated successfully");
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Failed to update warranty");
     }
   };
 

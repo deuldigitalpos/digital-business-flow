@@ -51,11 +51,22 @@ const WarrantyManager: React.FC = () => {
       try {
         await deleteWarranty.mutateAsync(selectedWarranty.id);
         setIsDeleteDialogOpen(false);
+        toast.success("Warranty deleted successfully");
       } catch (error) {
         console.error("Error deleting warranty:", error);
         toast.error("Failed to delete warranty");
       }
     }
+  };
+
+  const handleAddSuccess = () => {
+    setIsAddDialogOpen(false);
+    toast.success("Warranty added successfully");
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditDialogOpen(false);
+    toast.success("Warranty updated successfully");
   };
 
   return (
@@ -73,7 +84,7 @@ const WarrantyManager: React.FC = () => {
             <DialogHeader>
               <DialogTitle>Add New Warranty</DialogTitle>
             </DialogHeader>
-            <AddWarrantyForm onSuccess={() => setIsAddDialogOpen(false)} />
+            <AddWarrantyForm onSuccess={handleAddSuccess} />
           </DialogContent>
         </Dialog>
       </div>
@@ -94,7 +105,7 @@ const WarrantyManager: React.FC = () => {
           {selectedWarranty && (
             <EditWarrantyForm
               warranty={selectedWarranty}
-              onSuccess={() => setIsEditDialogOpen(false)}
+              onSuccess={handleEditSuccess}
             />
           )}
         </DialogContent>

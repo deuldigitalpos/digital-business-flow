@@ -5,19 +5,24 @@ import { BusinessBrand } from '@/types/business-brand';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 export const useBusinessBrands = () => {
-  const { businessUser } = useBusinessAuth();
+  const { business, businessUser } = useBusinessAuth();
   
+  const businessId = business?.id || businessUser?.business_id;
+
   const query = useQuery({
-    queryKey: ['business-brands'],
+    queryKey: ['business-brands', businessId],
     queryFn: async (): Promise<BusinessBrand[]> => {
-      if (!businessUser?.business_id) {
+      if (!businessId) {
+        console.error('No business ID available for fetching brands');
         return [];
       }
+      
+      console.log('Fetching brands for business ID:', businessId);
       
       const { data, error } = await supabase
         .from('business_brands')
         .select('*')
-        .eq('business_id', businessUser.business_id)
+        .eq('business_id', businessId)
         .order('name', { ascending: true });
       
       if (error) {
@@ -25,17 +30,50 @@ export const useBusinessBrands = () => {
         throw error;
       }
       
+      console.log('Fetched brands:', data);
       return data as BusinessBrand[];
     },
-    enabled: !!businessUser?.business_id
+    enabled: !!businessId,
+    retry: 2,
+    onError: (error) => {
+      console.error('Error in useBusinessBrands hook:', error);
+    }
   });
 
   return {
     brands: query.data || [],
     isLoading: query.isLoading,
     error: query.error,
-    refetch: query.refetch
+    refetch: query.refetch,
+    isSuccess: query.isSuccess
   };
 };
 
-export default useBusinessBrands;
+export const useBusinessBrand = (brandId: string | undefined) => {
+  const { business, businessUser } = useBusinessAuth();
+  const businessId = business?.id || businessUser?.business_id;
+  
+  return useQuery({
+    queryKey: ['business-brand', brandId],
+    queryFn: async () => {
+      if (!brandId || !businessId) {
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from('business_brands')
+        .select('*')
+        .eq('id', brandId)
+        .eq('business_id', businessId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching brand:', error);
+        return null;
+      }
+
+      return data;
+    },
+    enabled: !!brandId && !!businessId,
+  });
+};

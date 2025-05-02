@@ -1,31 +1,29 @@
 
 import React from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useBusinessBrandMutations } from "@/hooks/useBusinessBrandMutations";
-import { DialogClose } from "@/components/ui/dialog";
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form";
 import { BusinessBrandFormValues } from "@/types/business-brand";
+import { useBusinessBrandMutations } from "@/hooks/useBusinessBrandMutations";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Brand name is required"),
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   is_active: z.boolean().default(true),
 });
-
-type FormValues = z.infer<typeof formSchema>;
 
 interface AddBrandFormProps {
   onSuccess?: () => void;
@@ -34,7 +32,7 @@ interface AddBrandFormProps {
 const AddBrandForm: React.FC<AddBrandFormProps> = ({ onSuccess }) => {
   const { createBrand } = useBusinessBrandMutations();
 
-  const form = useForm<FormValues>({
+  const form = useForm<BusinessBrandFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -43,19 +41,16 @@ const AddBrandForm: React.FC<AddBrandFormProps> = ({ onSuccess }) => {
     },
   });
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (data: BusinessBrandFormValues) => {
     try {
-      const brandData: BusinessBrandFormValues = {
-        name: values.name,
-        description: values.description,
-        is_active: values.is_active,
-      };
-      
-      await createBrand.mutateAsync(brandData);
+      console.log("Submitting brand data:", data);
+      await createBrand.mutateAsync(data);
       form.reset();
+      toast.success("Brand created successfully");
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error("Error creating brand:", error);
+      console.error("Error submitting form:", error);
+      toast.error("Failed to create brand");
     }
   };
 
@@ -67,7 +62,7 @@ const AddBrandForm: React.FC<AddBrandFormProps> = ({ onSuccess }) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Brand Name</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input placeholder="Enter brand name" {...field} />
               </FormControl>
@@ -81,7 +76,7 @@ const AddBrandForm: React.FC<AddBrandFormProps> = ({ onSuccess }) => {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
+              <FormLabel>Description</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Enter brand description"
@@ -98,12 +93,9 @@ const AddBrandForm: React.FC<AddBrandFormProps> = ({ onSuccess }) => {
           control={form.control}
           name="is_active"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+            <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <FormLabel>Active Status</FormLabel>
-                <div className="text-sm text-muted-foreground">
-                  Whether this brand is currently active
-                </div>
               </div>
               <FormControl>
                 <Switch
@@ -115,16 +107,13 @@ const AddBrandForm: React.FC<AddBrandFormProps> = ({ onSuccess }) => {
           )}
         />
 
-        <div className="flex justify-end gap-2 pt-2">
-          <DialogClose asChild>
-            <Button variant="outline" type="button">
-              Cancel
-            </Button>
-          </DialogClose>
-          <Button type="submit" disabled={createBrand.isPending}>
-            {createBrand.isPending ? "Creating..." : "Create Brand"}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={createBrand.isPending}
+        >
+          {createBrand.isPending ? "Creating..." : "Create Brand"}
+        </Button>
       </form>
     </Form>
   );

@@ -3,22 +3,27 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessWarranty, BusinessWarrantyProduct } from '@/types/business-warranty';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { addDays } from 'date-fns';
 
 // Main hook to fetch business warranties
 export const useBusinessWarranties = () => {
-  const { businessUser } = useBusinessAuth();
+  const { businessUser, business } = useBusinessAuth();
   
   const query = useQuery({
-    queryKey: ['business-warranties'],
+    queryKey: ['business-warranties', business?.id],
     queryFn: async (): Promise<BusinessWarranty[]> => {
-      if (!businessUser?.business_id) {
+      if (!business?.id && !businessUser?.business_id) {
+        console.error('No business ID available for fetching warranties');
         return [];
       }
+      
+      const businessId = business?.id || businessUser?.business_id;
+      console.log('Fetching warranties for business ID:', businessId);
       
       const { data, error } = await supabase
         .from('business_warranties')
         .select('*')
-        .eq('business_id', businessUser.business_id)
+        .eq('business_id', businessId)
         .order('name', { ascending: true });
       
       if (error) {
@@ -26,27 +31,56 @@ export const useBusinessWarranties = () => {
         throw error;
       }
       
-      return data as BusinessWarranty[];
+      // Calculate expiration_date from duration and duration_unit if not already present
+      const warrantiesWithExpiry = data.map(warranty => {
+        if (!warranty.expiration_date) {
+          // Add a calculated expiration date based on duration and unit
+          let expiryDate;
+          
+          if (warranty.duration_unit === 'days') {
+            expiryDate = addDays(new Date(), warranty.duration).toISOString().split('T')[0];
+          } else {
+            // Default to 30 days if unit is not recognized
+            expiryDate = addDays(new Date(), 30).toISOString().split('T')[0];
+          }
+          
+          return {
+            ...warranty,
+            expiration_date: expiryDate
+          };
+        }
+        return warranty;
+      });
+      
+      console.log('Fetched warranties:', warrantiesWithExpiry);
+      return warrantiesWithExpiry as BusinessWarranty[];
     },
-    enabled: !!businessUser?.business_id
+    enabled: !!(business?.id || businessUser?.business_id),
+    retry: 2,
+    onError: (error) => {
+      console.error('Error in useBusinessWarranties hook:', error);
+    }
   });
 
   return {
     warranties: query.data || [],
     isLoading: query.isLoading,
     error: query.error,
-    refetch: query.refetch
+    refetch: query.refetch,
+    isSuccess: query.isSuccess
   };
 };
 
 // Hook to count products per warranty
 export const useWarrantyProductsCount = () => {
-  const { businessUser } = useBusinessAuth();
+  const { businessUser, business } = useBusinessAuth();
+  const businessId = business?.id || businessUser?.business_id;
   
   const query = useQuery({
-    queryKey: ['warranty-products-count'],
+    queryKey: ['warranty-products-count', businessId],
     queryFn: async (): Promise<Record<string, number>> => {
-      if (!businessUser?.business_id) {
+      if (!businessId) {
+        console.error('No business ID available for fetching warranty product counts');
         return {};
       }
       
@@ -72,7 +106,8 @@ export const useWarrantyProductsCount = () => {
       
       return counts;
     },
-    enabled: !!businessUser?.business_id
+    enabled: !!businessId,
+    retry: 1
   });
 
   return query;
@@ -80,12 +115,14 @@ export const useWarrantyProductsCount = () => {
 
 // Hook to fetch expired warranties
 export const useExpiredWarranties = () => {
-  const { businessUser } = useBusinessAuth();
+  const { businessUser, business } = useBusinessAuth();
+  const businessId = business?.id || businessUser?.business_id;
   
   const query = useQuery({
-    queryKey: ['expired-warranties'],
+    queryKey: ['expired-warranties', businessId],
     queryFn: async (): Promise<BusinessWarrantyProduct[]> => {
-      if (!businessUser?.business_id) {
+      if (!businessId) {
+        console.error('No business ID available for fetching expired warranties');
         return [];
       }
       
@@ -107,7 +144,8 @@ export const useExpiredWarranties = () => {
       
       return data as unknown as BusinessWarrantyProduct[];
     },
-    enabled: !!businessUser?.business_id
+    enabled: !!businessId,
+    retry: 1
   });
 
   return query;

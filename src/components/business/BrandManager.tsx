@@ -25,9 +25,10 @@ import BrandList from "./BrandList";
 import AddBrandForm from "./AddBrandForm";
 import EditBrandForm from "./EditBrandForm";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 const BrandManager: React.FC = () => {
-  const { brands, isLoading } = useBusinessBrands();
+  const { brands, isLoading, error } = useBusinessBrands();
   const { deleteBrand } = useBusinessBrandMutations();
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -50,11 +51,27 @@ const BrandManager: React.FC = () => {
       try {
         await deleteBrand.mutateAsync(selectedBrand.id);
         setIsDeleteDialogOpen(false);
+        toast.success("Brand deleted successfully");
       } catch (error) {
         console.error("Error deleting brand:", error);
+        toast.error("Failed to delete brand");
       }
     }
   };
+
+  const handleAddSuccess = () => {
+    setIsAddDialogOpen(false);
+    toast.success("Brand added successfully");
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditDialogOpen(false);
+    toast.success("Brand updated successfully");
+  };
+
+  if (error) {
+    console.error("Error loading brands:", error);
+  }
 
   return (
     <div className="space-y-4">
@@ -71,7 +88,7 @@ const BrandManager: React.FC = () => {
             <DialogHeader>
               <DialogTitle>Add New Brand</DialogTitle>
             </DialogHeader>
-            <AddBrandForm onSuccess={() => setIsAddDialogOpen(false)} />
+            <AddBrandForm onSuccess={handleAddSuccess} />
           </DialogContent>
         </Dialog>
       </div>
@@ -92,7 +109,7 @@ const BrandManager: React.FC = () => {
           {selectedBrand && (
             <EditBrandForm
               brand={selectedBrand}
-              onSuccess={() => setIsEditDialogOpen(false)}
+              onSuccess={handleEditSuccess}
             />
           )}
         </DialogContent>

@@ -22,6 +22,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -49,11 +50,14 @@ const AddWarrantyForm: React.FC<AddWarrantyFormProps> = ({ onSuccess }) => {
 
   const onSubmit = async (data: BusinessWarrantyFormValues) => {
     try {
+      console.log("Submitting warranty data:", data);
       await createWarranty.mutateAsync(data);
       form.reset();
+      toast.success("Warranty created successfully");
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Failed to create warranty");
     }
   };
 

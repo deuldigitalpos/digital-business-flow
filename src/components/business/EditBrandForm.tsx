@@ -1,31 +1,29 @@
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useBusinessBrandMutations } from "@/hooks/useBusinessBrandMutations";
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form";
 import { BusinessBrand, BusinessBrandFormValues } from "@/types/business-brand";
-import { DialogClose } from "@/components/ui/dialog";
+import { useBusinessBrandMutations } from "@/hooks/useBusinessBrandMutations";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Brand name is required"),
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  is_active: z.boolean(),
+  is_active: z.boolean().default(true),
 });
-
-type FormValues = z.infer<typeof formSchema>;
 
 interface EditBrandFormProps {
   brand: BusinessBrand;
@@ -35,30 +33,38 @@ interface EditBrandFormProps {
 const EditBrandForm: React.FC<EditBrandFormProps> = ({ brand, onSuccess }) => {
   const { updateBrand } = useBusinessBrandMutations();
 
-  const form = useForm<FormValues>({
+  const form = useForm<BusinessBrandFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: brand.name,
+      name: brand.name || "",
       description: brand.description || "",
       is_active: brand.is_active ?? true,
     },
   });
 
-  const onSubmit = async (values: FormValues) => {
+  useEffect(() => {
+    if (brand) {
+      form.reset({
+        name: brand.name,
+        description: brand.description || "",
+        is_active: brand.is_active ?? true,
+      });
+    }
+  }, [brand, form]);
+
+  const onSubmit = async (data: BusinessBrandFormValues) => {
     try {
-      const brandData: BusinessBrandFormValues = {
-        name: values.name,
-        description: values.description,
-        is_active: values.is_active,
-      };
-      
+      console.log("Updating brand data:", data);
       await updateBrand.mutateAsync({
         id: brand.id,
-        data: brandData,
+        data,
       });
+      
+      toast.success("Brand updated successfully");
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error("Error updating brand:", error);
+      console.error("Error submitting form:", error);
+      toast.error("Failed to update brand");
     }
   };
 
@@ -70,7 +76,7 @@ const EditBrandForm: React.FC<EditBrandFormProps> = ({ brand, onSuccess }) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Brand Name</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input placeholder="Enter brand name" {...field} />
               </FormControl>
@@ -84,7 +90,7 @@ const EditBrandForm: React.FC<EditBrandFormProps> = ({ brand, onSuccess }) => {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
+              <FormLabel>Description</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Enter brand description"
@@ -101,12 +107,9 @@ const EditBrandForm: React.FC<EditBrandFormProps> = ({ brand, onSuccess }) => {
           control={form.control}
           name="is_active"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+            <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <FormLabel>Active Status</FormLabel>
-                <div className="text-sm text-muted-foreground">
-                  Whether this brand is currently active
-                </div>
               </div>
               <FormControl>
                 <Switch
@@ -118,16 +121,13 @@ const EditBrandForm: React.FC<EditBrandFormProps> = ({ brand, onSuccess }) => {
           )}
         />
 
-        <div className="flex justify-end gap-2 pt-2">
-          <DialogClose asChild>
-            <Button variant="outline" type="button">
-              Cancel
-            </Button>
-          </DialogClose>
-          <Button type="submit" disabled={updateBrand.isPending}>
-            {updateBrand.isPending ? "Updating..." : "Update Brand"}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={updateBrand.isPending}
+        >
+          {updateBrand.isPending ? "Updating..." : "Update Brand"}
+        </Button>
       </form>
     </Form>
   );
