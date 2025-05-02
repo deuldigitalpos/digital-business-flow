@@ -18,9 +18,6 @@ const formSchema = z.object({
   description: z.string().optional(),
   sku: z.string().optional(),
   category_id: z.string().optional(),
-  unit_id: z.string().min(1, "Unit is required"),
-  brand_id: z.string().optional(),
-  warranty_id: z.string().optional(),
   image_url: z.string().optional(),
   cost_price: z.coerce.number().min(0, "Cost price must be positive"),
   selling_price: z.coerce.number().min(0, "Selling price must be positive"),
@@ -36,13 +33,11 @@ const formSchema = z.object({
   ingredients: z.array(z.object({
     ingredient_id: z.string(),
     quantity: z.number(),
-    unit_id: z.string(),
     cost: z.number(),
   })).optional().default([]),
   consumables: z.array(z.object({
     consumable_id: z.string(),
     quantity: z.number(),
-    unit_id: z.string(),
     cost: z.number(),
   })).optional().default([])
 });

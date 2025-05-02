@@ -24,9 +24,6 @@ const formSchema = z.object({
   description: z.string().optional(),
   sku: z.string().optional(),
   category_id: z.string().optional(),
-  unit_id: z.string().min(1, "Unit is required"),
-  brand_id: z.string().optional(),
-  warranty_id: z.string().optional(),
   image_url: z.string().optional(),
   cost_price: z.coerce.number().min(0, "Cost price must be positive"),
   selling_price: z.coerce.number().min(0, "Selling price must be positive"),
@@ -42,13 +39,11 @@ const formSchema = z.object({
   ingredients: z.array(z.object({
     ingredient_id: z.string(),
     quantity: z.number(),
-    unit_id: z.string(),
     cost: z.number(),
   })).optional().default([]),
   consumables: z.array(z.object({
     consumable_id: z.string(),
     quantity: z.number(),
-    unit_id: z.string(),
     cost: z.number(),
   })).optional().default([])
 });
@@ -66,9 +61,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
       description: product.description || "",
       sku: product.sku || "",
       category_id: product.category_id || undefined,
-      unit_id: product.unit_id || "",
-      brand_id: product.brand_id || undefined,
-      warranty_id: product.warranty_id || undefined,
       image_url: product.image_url || "",
       cost_price: product.cost_price,
       selling_price: product.selling_price,
@@ -96,7 +88,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
       form.setValue('ingredients', ingredients.map(ing => ({
         ingredient_id: ing.ingredient_id,
         quantity: ing.quantity,
-        unit_id: ing.unit_id || "",
         cost: ing.cost
       })));
     }
@@ -105,7 +96,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
       form.setValue('consumables', consumables.map(cons => ({
         consumable_id: cons.consumable_id,
         quantity: cons.quantity,
-        unit_id: cons.unit_id || "",
         cost: cons.cost
       })));
     }

@@ -25,9 +25,6 @@ import { ConsumableSelector } from "./product-form/ConsumableSelector";
 import { SizeManager } from "./product-form/SizeManager";
 import { ProductFormValues } from "./product-form/types";
 import { useBusinessCategories } from "@/hooks/useBusinessCategories";
-import { useBusinessUnits } from "@/hooks/useBusinessUnits";
-import { useBusinessBrands } from "@/hooks/useBusinessBrands";
-import useBusinessWarranties from "@/hooks/useBusinessWarranties";
 import useBusinessIngredients from "@/hooks/useBusinessIngredients";
 import useBusinessConsumables from "@/hooks/useBusinessConsumables";
 
@@ -39,9 +36,6 @@ interface ProductFormProps {
 
 const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit }) => {
   const { data: categories } = useBusinessCategories();
-  const { data: units } = useBusinessUnits();
-  const { brands } = useBusinessBrands();
-  const { warranties } = useBusinessWarranties();
   const { ingredients } = useBusinessIngredients();
   const { consumables } = useBusinessConsumables();
 
@@ -101,7 +95,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit })
         )}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="category_id"
@@ -118,80 +112,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit })
                   {categories?.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="unit_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Unit</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a unit" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {units?.map((unit) => (
-                    <SelectItem key={unit.id} value={unit.id}>
-                      {unit.name} ({unit.short_name})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="brand_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Brand</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a brand" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {brands?.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormItem>
-          )}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="warranty_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Warranty</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a warranty" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {warranties?.map((warranty) => (
-                    <SelectItem key={warranty.id} value={warranty.id}>
-                      {warranty.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

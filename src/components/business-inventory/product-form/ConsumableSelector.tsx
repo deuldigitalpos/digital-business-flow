@@ -9,7 +9,6 @@ import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/for
 import { X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 
 interface ConsumableSelectorProps {
   form: UseFormReturn<ProductFormValues>;
@@ -18,13 +17,12 @@ interface ConsumableSelectorProps {
 }
 
 export const ConsumableSelector: React.FC<ConsumableSelectorProps> = ({ form, consumables, isEditMode }) => {
-  const { data: units } = useBusinessUnits();
   const selectedConsumables = form.watch('consumables') || [];
   
   const handleAddConsumable = () => {
     form.setValue('consumables', [
       ...(selectedConsumables || []),
-      { consumable_id: '', quantity: 0, unit_id: '', cost: 0 }
+      { consumable_id: '', quantity: 0, cost: 0 }
     ]);
     form.setValue('has_consumables', true);
   };
@@ -60,7 +58,7 @@ export const ConsumableSelector: React.FC<ConsumableSelectorProps> = ({ form, co
         <div className="space-y-2">
           {selectedConsumables.map((consumable, index) => (
             <Card key={index}>
-              <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormItem>
                   <FormLabel>Consumable</FormLabel>
                   <Select
@@ -88,25 +86,6 @@ export const ConsumableSelector: React.FC<ConsumableSelectorProps> = ({ form, co
                     value={consumable.quantity}
                     onChange={(e) => handleConsumableChange(index, 'quantity', e.target.value)}
                   />
-                </FormItem>
-                
-                <FormItem>
-                  <FormLabel>Unit</FormLabel>
-                  <Select
-                    value={consumable.unit_id}
-                    onValueChange={(value) => handleConsumableChange(index, 'unit_id', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {units?.map((unit) => (
-                        <SelectItem key={unit.id} value={unit.id}>
-                          {unit.name} ({unit.short_name})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </FormItem>
                 
                 <div className="flex items-center gap-2">

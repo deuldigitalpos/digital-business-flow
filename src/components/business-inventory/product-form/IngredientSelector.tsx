@@ -9,7 +9,6 @@ import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/for
 import { X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 
 interface IngredientSelectorProps {
   form: UseFormReturn<ProductFormValues>;
@@ -18,13 +17,12 @@ interface IngredientSelectorProps {
 }
 
 export const IngredientSelector: React.FC<IngredientSelectorProps> = ({ form, ingredients, isEditMode }) => {
-  const { data: units } = useBusinessUnits();
   const selectedIngredients = form.watch('ingredients') || [];
   
   const handleAddIngredient = () => {
     form.setValue('ingredients', [
       ...(selectedIngredients || []),
-      { ingredient_id: '', quantity: 0, unit_id: '', cost: 0 }
+      { ingredient_id: '', quantity: 0, cost: 0 }
     ]);
     form.setValue('has_ingredients', true);
   };
@@ -60,7 +58,7 @@ export const IngredientSelector: React.FC<IngredientSelectorProps> = ({ form, in
         <div className="space-y-2">
           {selectedIngredients.map((ingredient, index) => (
             <Card key={index}>
-              <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormItem>
                   <FormLabel>Ingredient</FormLabel>
                   <Select
@@ -88,25 +86,6 @@ export const IngredientSelector: React.FC<IngredientSelectorProps> = ({ form, in
                     value={ingredient.quantity}
                     onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
                   />
-                </FormItem>
-                
-                <FormItem>
-                  <FormLabel>Unit</FormLabel>
-                  <Select
-                    value={ingredient.unit_id}
-                    onValueChange={(value) => handleIngredientChange(index, 'unit_id', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {units?.map((unit) => (
-                        <SelectItem key={unit.id} value={unit.id}>
-                          {unit.name} ({unit.short_name})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </FormItem>
                 
                 <div className="flex items-center gap-2">
