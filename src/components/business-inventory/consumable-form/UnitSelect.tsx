@@ -17,55 +17,76 @@ import {
 } from '@/components/ui/select';
 import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 import { ConsumableFormValues } from './types';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface UnitSelectProps {
   form: UseFormReturn<ConsumableFormValues>;
 }
 
-// Helper function to ensure we never have empty string values
-const getSafeValue = (value: string | null | undefined, prefix: string, name: string | null | undefined): string => {
-  // If we have a valid ID and it's not an empty string, use it
-  if (value && value.trim() !== '') return value;
-  
-  // Generate a unique fallback value with sanitized name
-  const safeName = name && name.trim() !== '' ? name.trim() : 'unnamed';
-  return `${prefix}-${safeName}-${Math.random().toString(36).substring(2, 9)}`;
-};
-
 export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
   const { data: units = [] } = useBusinessUnits();
+  const [open, setOpen] = React.useState(false);
+  
+  // Make sure units have valid IDs
+  const validUnits = units.filter(unit => unit.id && unit.id.trim() !== '');
   
   return (
     <FormField
       control={form.control}
       name="unit_id"
       render={({ field }) => (
-        <FormItem>
+        <FormItem className="flex flex-col">
           <FormLabel>Unit</FormLabel>
-          <Select 
-            onValueChange={field.onChange} 
-            value={field.value || undefined}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a unit" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {(units || []).map(unit => {
-                // Generate a guaranteed non-empty value for each unit
-                const safeValue = getSafeValue(unit.id, 'unit', unit.name);
-                return (
-                  <SelectItem
-                    key={safeValue}
-                    value={safeValue}
-                  >
-                    {unit.name || 'Unnamed Unit'} ({unit.short_name || '-'})
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  className={cn(
+                    "w-full justify-between",
+                    !field.value && "text-muted-foreground"
+                  )}
+                >
+                  {field.value
+                    ? validUnits.find(unit => unit.id === field.value)?.name || "Select a unit"
+                    : "Select a unit"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Search units..." />
+                <CommandEmpty>No unit found.</CommandEmpty>
+                <CommandGroup className="max-h-60 overflow-auto">
+                  {validUnits.map(unit => (
+                    <CommandItem
+                      key={unit.id}
+                      value={unit.name}
+                      onSelect={() => {
+                        form.setValue("unit_id", unit.id);
+                        setOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          field.value === unit.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {unit.name} ({unit.short_name || '-'})
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
           <FormMessage />
         </FormItem>
       )}

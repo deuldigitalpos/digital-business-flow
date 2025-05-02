@@ -5,21 +5,18 @@ import { useBusinessAuth } from "@/context/BusinessAuthContext";
 import PermissionGuard from "@/components/business/PermissionGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, History } from "lucide-react";
+import { PlusCircle, History, Search } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
 import ConsumableDashboard from "@/components/business-inventory/ConsumableDashboard";
 import ConsumableList from "@/components/business-inventory/ConsumableList";
 import ConsumableForm from "@/components/business-inventory/ConsumableForm";
 import AddStockTransactionForm from "@/components/business-inventory/AddStockTransactionForm";
 import { useBusinessCategories } from "@/hooks/useBusinessCategories";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const BusinessConsumables: React.FC = () => {
   const [activeTab, setActiveTab] = useState("list");
@@ -27,17 +24,8 @@ const BusinessConsumables: React.FC = () => {
   const [isStockFormOpen, setIsStockFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
   const { data: categories = [] } = useBusinessCategories();
-
-  // Robust function to ensure we never have empty string values for IDs
-  const getSafeCategoryValue = (id: string | null | undefined, name: string | null | undefined): string => {
-    // If we have a valid ID and it's not an empty string, use it
-    if (id && id.trim() !== '') return id;
-    
-    // Generate a unique, non-empty fallback value using sanitized name or default
-    const safeName = name && name.trim() !== '' ? name.trim() : 'unnamed';
-    return `category-${safeName}-${Math.random().toString(36).substring(2, 9)}`;
-  };
 
   return (
     <PermissionGuard permission="inventory">
@@ -50,7 +38,7 @@ const BusinessConsumables: React.FC = () => {
             </p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-orange-500 hover:bg-orange-600">
@@ -79,43 +67,82 @@ const BusinessConsumables: React.FC = () => {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <CardTitle>Consumables Management</CardTitle>
+              <CardTitle className="text-xl font-semibold">Consumables Management</CardTitle>
               
-              <div className="flex flex-col sm:flex-row gap-2 sm:w-auto w-full">
-                <Input
-                  placeholder="Search consumables..."
-                  className="w-full sm:w-[200px]"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="relative w-full sm:w-[200px]">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search consumables..."
+                    className="pl-8 w-full"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
                 
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-full sm:w-[200px]">
-                    <SelectValue placeholder="Filter by category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {(categories || []).map(category => {
-                      // Generate a guaranteed non-empty value for each item
-                      const safeValue = getSafeCategoryValue(category.id, category.name);
-                      return (
-                        <SelectItem 
-                          key={safeValue}
-                          value={safeValue}
+                <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openCategoryPopover}
+                      className="w-full sm:w-[200px] justify-between"
+                    >
+                      {selectedCategory === "all"
+                        ? "All Categories"
+                        : categories.find(category => category.id === selectedCategory)?.name || "All Categories"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search categories..." />
+                      <CommandEmpty>No category found.</CommandEmpty>
+                      <CommandGroup className="max-h-[300px] overflow-auto">
+                        <CommandItem
+                          value="All Categories"
+                          onSelect={() => {
+                            setSelectedCategory("all");
+                            setOpenCategoryPopover(false);
+                          }}
                         >
-                          {category.name || 'Unnamed Category'}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedCategory === "all" ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          All Categories
+                        </CommandItem>
+                        {categories.map((category) => (
+                          <CommandItem
+                            key={category.id}
+                            value={category.name}
+                            onSelect={() => {
+                              setSelectedCategory(category.id);
+                              setOpenCategoryPopover(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedCategory === category.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {category.name || 'Unnamed Category'}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </CardHeader>
           
           <CardContent className="pt-0">
-            <Tabs defaultValue="list" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full sm:w-auto">
+            <Tabs defaultValue="list" value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex">
                 <TabsTrigger value="list" className="flex-1 sm:flex-none">List View</TabsTrigger>
                 <TabsTrigger value="activity" className="flex-1 sm:flex-none">Activity Log</TabsTrigger>
               </TabsList>

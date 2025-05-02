@@ -8,64 +8,78 @@ import {
   FormControl,
   FormMessage
 } from '@/components/ui/form';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { useBusinessCategories } from '@/hooks/useBusinessCategories';
 import { ConsumableFormValues } from './types';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface CategorySelectProps {
   form: UseFormReturn<ConsumableFormValues>;
 }
 
-// Helper function to ensure we never have empty string values
-const getSafeValue = (value: string | null | undefined, prefix: string, name: string | null | undefined): string => {
-  // If we have a valid ID and it's not an empty string, use it
-  if (value && value.trim() !== '') return value;
-  
-  // Generate a unique fallback value with sanitized name
-  const safeName = name && name.trim() !== '' ? name.trim() : 'unnamed';
-  return `${prefix}-${safeName}-${Math.random().toString(36).substring(2, 9)}`;
-};
-
 export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
   const { data: categories = [] } = useBusinessCategories();
+  const [open, setOpen] = React.useState(false);
+  
+  // Make sure categories have valid IDs
+  const validCategories = categories.filter(category => category.id && category.id.trim() !== '');
   
   return (
     <FormField
       control={form.control}
       name="category_id"
       render={({ field }) => (
-        <FormItem>
+        <FormItem className="flex flex-col">
           <FormLabel>Category</FormLabel>
-          <Select 
-            onValueChange={field.onChange} 
-            value={field.value || undefined}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {(categories || []).map(category => {
-                // Generate a guaranteed non-empty value for each category
-                const safeValue = getSafeValue(category.id, 'category', category.name);
-                return (
-                  <SelectItem 
-                    key={safeValue}
-                    value={safeValue}
-                  >
-                    {category.name || 'Unnamed Category'}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  className={cn(
+                    "w-full justify-between",
+                    !field.value && "text-muted-foreground"
+                  )}
+                >
+                  {field.value
+                    ? validCategories.find(category => category.id === field.value)?.name || "Select a category"
+                    : "Select a category"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Search categories..." />
+                <CommandEmpty>No category found.</CommandEmpty>
+                <CommandGroup className="max-h-60 overflow-auto">
+                  {validCategories.map(category => (
+                    <CommandItem
+                      key={category.id}
+                      value={category.name}
+                      onSelect={() => {
+                        form.setValue("category_id", category.id);
+                        setOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          field.value === category.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {category.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
           <FormMessage />
         </FormItem>
       )}

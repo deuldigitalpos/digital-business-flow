@@ -30,12 +30,13 @@ export const useBusinessConsumables = () => {
         return [];
       }
       
-      // First, fetch the consumables without trying to join unit
+      // Fetch consumables with category and unit relations
       const { data: consumables, error: consumablesError } = await supabase
         .from('business_consumables')
         .select(`
           *,
-          category:business_categories(id, name)
+          category:business_categories(id, name),
+          unit:business_units(id, name, short_name)
         `)
         .eq('business_id', businessUser.business_id);
       
@@ -62,11 +63,10 @@ export const useBusinessConsumables = () => {
         quantityMap[item.item_id] = item;
       });
 
-      // Process the data without units for now
+      // Process the data with complete unit information
       const processedConsumables = consumables.map(consumable => {
         return {
           ...consumable,
-          unit: null, // We'll set this later if applicable
           quantity: quantityMap[consumable.id]?.quantity || 0,
           average_cost: quantityMap[consumable.id]?.average_cost || 0,
           total_value: quantityMap[consumable.id]?.total_value || 0

@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ProductFormValues } from "./product-form/types";
 import { ProductSizeInput } from "@/types/business-product";
 import { Input } from "@/components/ui/input";
-import { X } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 
 interface SizeManagerProps {
   form: UseFormReturn<ProductFormValues>;
@@ -46,35 +47,44 @@ export const SizeManager: React.FC<SizeManagerProps> = ({ form, isEditMode }) =>
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Product Sizes</h3>
-        <Button type="button" variant="outline" onClick={handleAddSize}>
-          Add Size
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleAddSize}
+          className="flex items-center gap-1"
+        >
+          <Plus className="h-4 w-4" /> Add Size
         </Button>
       </div>
       
       {sizes.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {sizes.map((size, index) => (
-            <Card key={index}>
-              <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card key={index} className="overflow-hidden">
+              <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium">Size Name</label>
+                  <Label htmlFor={`size-name-${index}`} className="text-sm font-medium mb-2 block">
+                    Size Name
+                  </Label>
                   <Input
+                    id={`size-name-${index}`}
                     placeholder="Size Name"
                     value={size.name}
                     onChange={(e) => handleSizeChange(index, 'name', e.target.value)}
-                    className="mt-1"
                   />
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-3">
                   <div className="flex-1">
-                    <label className="text-sm font-medium">Additional Price</label>
+                    <Label htmlFor={`size-price-${index}`} className="text-sm font-medium mb-2 block">
+                      Additional Price
+                    </Label>
                     <Input
+                      id={`size-price-${index}`}
                       type="number"
                       placeholder="0.00"
                       value={size.additional_price}
                       onChange={(e) => handleSizeChange(index, 'additional_price', e.target.value)}
-                      className="mt-1"
                     />
                   </div>
                   <Button
@@ -92,8 +102,11 @@ export const SizeManager: React.FC<SizeManagerProps> = ({ form, isEditMode }) =>
           ))}
         </div>
       ) : (
-        <div className="text-center p-4 border border-dashed rounded-md">
-          <p className="text-muted-foreground">No sizes added yet</p>
+        <div className="text-center p-6 border border-dashed rounded-md">
+          <p className="text-muted-foreground mb-3">No sizes added yet</p>
+          <Button type="button" variant="secondary" onClick={handleAddSize}>
+            <Plus className="mr-2 h-4 w-4" /> Add Your First Size
+          </Button>
         </div>
       )}
     </div>

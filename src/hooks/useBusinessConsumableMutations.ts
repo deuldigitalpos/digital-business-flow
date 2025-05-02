@@ -25,17 +25,30 @@ export const useBusinessConsumableMutations = () => {
   const { businessUser } = useBusinessAuth();
   const queryClient = useQueryClient();
 
+  // Helper function to ensure IDs are not empty strings
+  const sanitizeInput = (input: ConsumableCreateInput | ConsumableUpdateInput) => {
+    const sanitized = { ...input };
+    
+    // Convert empty strings to null for foreign keys
+    if (sanitized.category_id === '') sanitized.category_id = null;
+    if ('unit_id' in sanitized && sanitized.unit_id === '') sanitized.unit_id = null;
+    
+    return sanitized;
+  };
+
   const createConsumable = useMutation({
     mutationFn: async (consumable: ConsumableCreateInput) => {
       if (!businessUser?.business_id) {
         throw new Error('Business ID is missing');
       }
 
+      const sanitizedInput = sanitizeInput(consumable);
+
       const { data, error } = await supabase
         .from('business_consumables')
         .insert([
           {
-            ...consumable,
+            ...sanitizedInput,
             business_id: businessUser.business_id
           }
         ])
@@ -60,7 +73,7 @@ export const useBusinessConsumableMutations = () => {
 
   const updateConsumable = useMutation({
     mutationFn: async (consumable: ConsumableUpdateInput) => {
-      const { id, ...updateData } = consumable;
+      const { id, ...updateData } = sanitizeInput(consumable);
 
       const { data, error } = await supabase
         .from('business_consumables')
