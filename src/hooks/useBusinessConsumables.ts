@@ -32,7 +32,7 @@ export const useBusinessConsumables = () => {
         return [];
       }
       
-      // First fetch all consumables with all fields including unit_id
+      // First fetch all consumables without trying to get unit_id
       const { data: consumables, error: consumablesError } = await supabase
         .from('business_consumables')
         .select(`
@@ -41,7 +41,6 @@ export const useBusinessConsumables = () => {
           name,
           description,
           category_id,
-          unit_id,
           image_url,
           created_at,
           updated_at,
@@ -52,34 +51,6 @@ export const useBusinessConsumables = () => {
       if (consumablesError) {
         console.error('Error fetching consumables:', consumablesError);
         throw consumablesError;
-      }
-
-      // Get the unit IDs that are not null
-      const unitIds = consumables
-        .filter(item => item.unit_id !== null)
-        .map(item => item.unit_id);
-
-      // Get units separately if there are any unit IDs
-      let unitsMap: Record<string, BusinessUnit> = {};
-      
-      if (unitIds.length > 0) {
-        const { data: units, error: unitsError } = await supabase
-          .from('business_units')
-          .select('*')
-          .in('id', unitIds);
-          
-        if (unitsError) {
-          console.error('Error fetching units:', unitsError);
-        } else if (units) {
-          // Create a map for easy lookup and convert string type to UnitType enum
-          unitsMap = units.reduce((map, unit) => {
-            map[unit.id] = {
-              ...unit,
-              type: unit.type as UnitType // Cast string type to UnitType enum
-            };
-            return map;
-          }, {} as Record<string, BusinessUnit>);
-        }
       }
 
       // Get the quantities from inventory table
@@ -94,23 +65,21 @@ export const useBusinessConsumables = () => {
         throw quantitiesError;
       }
 
-      // Create a map for quantities
-      const quantityMap: Record<string, any> = {};
+      // Create a map for quantities and unit_ids
+      const inventoryMap: Record<string, any> = {};
       quantities?.forEach(item => {
-        quantityMap[item.item_id] = item;
+        inventoryMap[item.item_id] = item;
       });
 
-      // Combine the data
+      // Process the data - no unit data for now
       const processedConsumables = consumables.map(consumable => {
-        // Get the unit if it exists
-        const unit = consumable.unit_id ? unitsMap[consumable.unit_id] : null;
-        
         return {
           ...consumable,
-          unit: unit,
-          quantity: quantityMap[consumable.id]?.quantity || 0,
-          average_cost: quantityMap[consumable.id]?.average_cost || 0,
-          total_value: quantityMap[consumable.id]?.total_value || 0
+          unit_id: null, // Set to null as it doesn't exist in the table
+          unit: null, // Set to null as we can't fetch unit data without unit_id
+          quantity: inventoryMap[consumable.id]?.quantity || 0,
+          average_cost: inventoryMap[consumable.id]?.average_cost || 0,
+          total_value: inventoryMap[consumable.id]?.total_value || 0
         } as BusinessConsumable;
       });
 

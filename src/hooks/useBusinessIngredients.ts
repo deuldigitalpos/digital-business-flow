@@ -31,7 +31,7 @@ export const useBusinessIngredients = () => {
         return [];
       }
       
-      // First fetch all ingredients with all fields including unit_id
+      // First fetch all ingredients without trying to get unit_id
       const { data: ingredients, error: ingredientsError } = await supabase
         .from('business_ingredients')
         .select(`
@@ -40,7 +40,6 @@ export const useBusinessIngredients = () => {
           name,
           description,
           category_id,
-          unit_id,
           image_url,
           created_at,
           updated_at,
@@ -51,34 +50,6 @@ export const useBusinessIngredients = () => {
       if (ingredientsError) {
         console.error('Error fetching ingredients:', ingredientsError);
         throw ingredientsError;
-      }
-
-      // Get the unit IDs that are not null
-      const unitIds = ingredients
-        .filter(item => item.unit_id !== null)
-        .map(item => item.unit_id);
-
-      // Get units separately if there are any unit IDs
-      let unitsMap: Record<string, BusinessUnit> = {};
-      
-      if (unitIds.length > 0) {
-        const { data: units, error: unitsError } = await supabase
-          .from('business_units')
-          .select('*')
-          .in('id', unitIds);
-          
-        if (unitsError) {
-          console.error('Error fetching units:', unitsError);
-        } else if (units) {
-          // Create a map for easy lookup and convert string type to UnitType enum
-          unitsMap = units.reduce((map, unit) => {
-            map[unit.id] = {
-              ...unit,
-              type: unit.type as UnitType // Cast string type to UnitType enum
-            };
-            return map;
-          }, {} as Record<string, BusinessUnit>);
-        }
       }
 
       // Get the quantities from inventory table
@@ -99,14 +70,12 @@ export const useBusinessIngredients = () => {
         quantityMap[item.item_id] = item;
       });
 
-      // Process the data with complete unit information
+      // Process the data without unit information
       const processedIngredients = ingredients.map(ingredient => {
-        // Get the unit if it exists
-        const unit = ingredient.unit_id ? unitsMap[ingredient.unit_id] : null;
-        
         return {
           ...ingredient,
-          unit: unit,
+          unit_id: null, // Set to null as it doesn't exist in the table
+          unit: null, // Set to null as we can't fetch unit data without unit_id
           quantity: quantityMap[ingredient.id]?.quantity || 0,
           average_cost: quantityMap[ingredient.id]?.average_cost || 0,
           total_value: quantityMap[ingredient.id]?.total_value || 0
