@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessWarranty, BusinessWarrantyProduct } from '@/types/business-warranty';
@@ -33,23 +32,20 @@ export const useBusinessWarranties = () => {
       
       // Calculate expiration_date from duration and duration_unit if not already present
       const warrantiesWithExpiry = data.map(warranty => {
-        if (!warranty.expiration_date) {
-          // Add a calculated expiration date based on duration and unit
-          let expiryDate;
-          
-          if (warranty.duration_unit === 'days') {
-            expiryDate = addDays(new Date(), warranty.duration).toISOString().split('T')[0];
-          } else {
-            // Default to 30 days if unit is not recognized
-            expiryDate = addDays(new Date(), 30).toISOString().split('T')[0];
-          }
-          
-          return {
-            ...warranty,
-            expiration_date: expiryDate
-          };
+        // Add a calculated expiration date based on duration and unit
+        let expiryDate;
+        
+        if (warranty.duration_unit === 'days') {
+          expiryDate = addDays(new Date(), warranty.duration).toISOString().split('T')[0];
+        } else {
+          // Default to 30 days if unit is not recognized
+          expiryDate = addDays(new Date(), 30).toISOString().split('T')[0];
         }
-        return warranty;
+        
+        return {
+          ...warranty,
+          expiration_date: expiryDate
+        };
       });
       
       console.log('Fetched warranties:', warrantiesWithExpiry);
@@ -57,8 +53,10 @@ export const useBusinessWarranties = () => {
     },
     enabled: !!(business?.id || businessUser?.business_id),
     retry: 2,
-    onError: (error) => {
-      console.error('Error in useBusinessWarranties hook:', error);
+    meta: {
+      onError: (error: Error) => {
+        console.error('Error in useBusinessWarranties hook:', error);
+      }
     }
   });
 

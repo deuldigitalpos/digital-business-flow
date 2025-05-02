@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import {
 import { ProductConsumableInput, ProductIngredientInput, ProductSizeInput } from "@/types/business-product";
 import { useBusinessCategories } from "@/hooks/useBusinessCategories";
 import { useBusinessUnits } from "@/hooks/useBusinessUnits";
-import useBusinessBrands from "@/hooks/useBusinessBrands";
+import { useBusinessBrands } from "@/hooks/useBusinessBrands";
 import useBusinessWarranties from "@/hooks/useBusinessWarranties";
 import useBusinessIngredients from "@/hooks/useBusinessIngredients";
 import useBusinessConsumables from "@/hooks/useBusinessConsumables";

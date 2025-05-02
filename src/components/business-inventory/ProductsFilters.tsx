@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useBusinessCategories } from "@/hooks/useBusinessCategories";
-import useBusinessBrands from "@/hooks/useBusinessBrands";
+import { useBusinessBrands } from "@/hooks/useBusinessBrands";
 
 interface ProductsFiltersProps {
   onFilterChange: (filters: Record<string, any>) => void;

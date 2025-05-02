@@ -35,8 +35,10 @@ export const useBusinessBrands = () => {
     },
     enabled: !!businessId,
     retry: 2,
-    onError: (error) => {
-      console.error('Error in useBusinessBrands hook:', error);
+    meta: {
+      onError: (error: Error) => {
+        console.error('Error in useBusinessBrands hook:', error);
+      }
     }
   });
 
