@@ -12,6 +12,7 @@ import useProductIngredients from "@/hooks/useProductIngredients";
 import useProductConsumables from "@/hooks/useProductConsumables";
 import useProductSizes from "@/hooks/useProductSizes";
 import { useEffect } from "react";
+import { Form } from "@/components/ui/form";
 
 interface EditProductModalProps {
   product: BusinessProduct;
@@ -134,11 +135,15 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
           <DialogTitle>Edit Product: {product.name}</DialogTitle>
         </DialogHeader>
         
-        <ProductForm 
-          form={form}
-          onSubmit={handleSubmit}
-          isEditMode={true}
-        />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
+            <ProductForm 
+              form={form}
+              onSubmit={handleSubmit}
+              isEditMode={true}
+            />
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

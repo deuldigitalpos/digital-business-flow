@@ -7,6 +7,7 @@ import { z } from "zod";
 import useBusinessProductMutations from "@/hooks/useBusinessProductMutations";
 import ProductForm from "@/components/business-inventory/ProductForm";
 import { ProductFormValues } from "./product-form/types";
+import { Form } from "@/components/ui/form";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -92,10 +93,14 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) =>
           <DialogTitle>Add New Product</DialogTitle>
         </DialogHeader>
         
-        <ProductForm 
-          form={form}
-          onSubmit={handleSubmit}
-        />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
+            <ProductForm 
+              form={form}
+              onSubmit={handleSubmit}
+            />
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

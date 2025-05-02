@@ -2,7 +2,6 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import UnitManager from "@/components/business/UnitManager";
-import { useBusinessAuth } from "@/context/BusinessAuthContext";
 import PermissionGuard from "@/components/business/PermissionGuard";
 
 const BusinessUnits: React.FC = () => {
