@@ -77,7 +77,7 @@ export const StockTable: React.FC = () => {
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                {transaction.quantity} {transaction.unit?.short_name || ''}
+                {transaction.quantity}
               </TableCell>
               <TableCell className="text-right font-medium">
                 ${transaction.total_cost.toFixed(2)}

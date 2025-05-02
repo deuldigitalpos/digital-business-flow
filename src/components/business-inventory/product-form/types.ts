@@ -6,9 +6,6 @@ export interface ProductFormValues {
   description?: string;
   sku?: string;
   category_id?: string;
-  unit_id: string;
-  brand_id?: string;
-  warranty_id?: string;
   image_url?: string;
   cost_price: number;
   selling_price: number;

@@ -20,27 +20,23 @@ import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
 import { ProductConsumableInput } from "@/types/business-product";
 import { BusinessConsumable } from "@/hooks/useBusinessConsumables";
-import { BusinessUnit } from "@/types/business-unit";
 
 interface ProductConsumablesTableProps {
   consumables: ProductConsumableInput[];
   setConsumables: React.Dispatch<React.SetStateAction<ProductConsumableInput[]>>;
   allConsumables: BusinessConsumable[];
-  units: BusinessUnit[];
 }
 
 const ProductConsumablesTable: React.FC<ProductConsumablesTableProps> = ({
   consumables,
   setConsumables,
   allConsumables,
-  units,
 }) => {
   const [consumableId, setConsumableId] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("1");
-  const [unitId, setUnitId] = useState<string>("");
   
   const handleAddConsumable = () => {
-    if (!consumableId || !quantity || !unitId) return;
+    if (!consumableId || !quantity) return;
     
     const selectedConsumable = allConsumables.find(item => item.id === consumableId);
     if (!selectedConsumable) return;
@@ -54,7 +50,6 @@ const ProductConsumablesTable: React.FC<ProductConsumablesTableProps> = ({
     const newConsumable: ProductConsumableInput = {
       consumable_id: consumableId,
       quantity: numQuantity,
-      unit_id: unitId,
       cost: parseFloat(calculatedCost.toFixed(2))
     };
     
@@ -63,7 +58,6 @@ const ProductConsumablesTable: React.FC<ProductConsumablesTableProps> = ({
     // Reset form
     setConsumableId("");
     setQuantity("1");
-    setUnitId("");
   };
   
   const handleRemoveConsumable = (index: number) => {
@@ -98,16 +92,11 @@ const ProductConsumablesTable: React.FC<ProductConsumablesTableProps> = ({
     const consumable = allConsumables.find(item => item.id === id);
     return consumable ? consumable.name : 'Unknown';
   };
-  
-  const getUnitNameById = (id: string) => {
-    const unit = units.find(item => item.id === id);
-    return unit ? unit.short_name : 'Unit';
-  };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-        <div className="md:col-span-5">
+        <div className="md:col-span-7">
           <label className="text-sm font-medium mb-1 block">Consumable</label>
           <Select value={consumableId} onValueChange={setConsumableId}>
             <SelectTrigger>
@@ -123,7 +112,7 @@ const ProductConsumablesTable: React.FC<ProductConsumablesTableProps> = ({
           </Select>
         </div>
         
-        <div className="md:col-span-2">
+        <div className="md:col-span-3">
           <label className="text-sm font-medium mb-1 block">Quantity</label>
           <Input
             type="number"
@@ -132,22 +121,6 @@ const ProductConsumablesTable: React.FC<ProductConsumablesTableProps> = ({
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
           />
-        </div>
-        
-        <div className="md:col-span-3">
-          <label className="text-sm font-medium mb-1 block">Unit</label>
-          <Select value={unitId} onValueChange={setUnitId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {units.map((unit) => (
-                <SelectItem key={unit.id} value={unit.id}>
-                  {unit.name} ({unit.short_name})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
         
         <div className="md:col-span-2">
@@ -164,7 +137,6 @@ const ProductConsumablesTable: React.FC<ProductConsumablesTableProps> = ({
               <TableRow>
                 <TableHead>Consumable</TableHead>
                 <TableHead>Quantity</TableHead>
-                <TableHead>Unit</TableHead>
                 <TableHead className="text-right">Cost</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
@@ -183,7 +155,6 @@ const ProductConsumablesTable: React.FC<ProductConsumablesTableProps> = ({
                       className="h-8 w-20"
                     />
                   </TableCell>
-                  <TableCell>{getUnitNameById(consumable.unit_id)}</TableCell>
                   <TableCell className="text-right">${consumable.cost.toFixed(2)}</TableCell>
                   <TableCell>
                     <Button
@@ -198,7 +169,7 @@ const ProductConsumablesTable: React.FC<ProductConsumablesTableProps> = ({
                 </TableRow>
               ))}
               <TableRow>
-                <TableCell colSpan={3} className="text-right font-medium">Total:</TableCell>
+                <TableCell colSpan={2} className="text-right font-medium">Total:</TableCell>
                 <TableCell className="text-right font-medium">
                   ${consumables.reduce((sum, item) => sum + item.cost, 0).toFixed(2)}
                 </TableCell>

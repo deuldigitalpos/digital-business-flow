@@ -9,7 +9,6 @@ export interface BusinessAddon {
   name: string;
   description?: string | null;
   category_id?: string | null;
-  unit_id?: string | null;
   image_url?: string | null;
   created_at: string;
   updated_at: string;
@@ -17,7 +16,6 @@ export interface BusinessAddon {
   average_cost?: number;
   total_value?: number;
   category?: { id: string; name: string } | null;
-  unit?: { id: string; name: string; short_name: string } | null;
 }
 
 export const useBusinessAddons = () => {
@@ -35,8 +33,7 @@ export const useBusinessAddons = () => {
         .from('business_addons')
         .select(`
           *,
-          category:business_categories(id, name),
-          unit:business_units(id, name, short_name)
+          category:business_categories(id, name)
         `)
         .eq('business_id', businessUser.business_id);
       

@@ -97,18 +97,6 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
                         <dd>{product.category?.name || '-'}</dd>
                       </div>
                       <div className="flex justify-between md:block">
-                        <dt className="font-medium text-muted-foreground">Unit:</dt>
-                        <dd>{product.unit?.name || '-'}</dd>
-                      </div>
-                      <div className="flex justify-between md:block">
-                        <dt className="font-medium text-muted-foreground">Brand:</dt>
-                        <dd>{product.brand?.name || '-'}</dd>
-                      </div>
-                      <div className="flex justify-between md:block">
-                        <dt className="font-medium text-muted-foreground">Warranty:</dt>
-                        <dd>{product.warranty?.name || '-'}</dd>
-                      </div>
-                      <div className="flex justify-between md:block">
                         <dt className="font-medium text-muted-foreground">Created on:</dt>
                         <dd>{format(new Date(product.created_at), 'MMM d, yyyy')}</dd>
                       </div>
@@ -212,7 +200,6 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
                         <TableRow>
                           <TableHead>Ingredient</TableHead>
                           <TableHead>Quantity</TableHead>
-                          <TableHead>Unit</TableHead>
                           <TableHead className="text-right">Cost</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -221,14 +208,11 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
                           <TableRow key={item.id}>
                             <TableCell>{item.ingredient?.name || 'Unknown'}</TableCell>
                             <TableCell>{item.quantity}</TableCell>
-                            <TableCell>
-                              {item.unit?.short_name || item.ingredient?.unit?.short_name || '-'}
-                            </TableCell>
                             <TableCell className="text-right">${item.cost.toFixed(2)}</TableCell>
                           </TableRow>
                         ))}
                         <TableRow>
-                          <TableCell colSpan={3} className="font-medium">Total Ingredient Cost</TableCell>
+                          <TableCell colSpan={2} className="font-medium">Total Ingredient Cost</TableCell>
                           <TableCell className="text-right font-medium">
                             ${ingredients.reduce((sum, item) => sum + item.cost, 0).toFixed(2)}
                           </TableCell>
@@ -254,7 +238,6 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
                         <TableRow>
                           <TableHead>Consumable</TableHead>
                           <TableHead>Quantity</TableHead>
-                          <TableHead>Unit</TableHead>
                           <TableHead className="text-right">Cost</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -263,14 +246,11 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
                           <TableRow key={item.id}>
                             <TableCell>{item.consumable?.name || 'Unknown'}</TableCell>
                             <TableCell>{item.quantity}</TableCell>
-                            <TableCell>
-                              {item.unit?.short_name || item.consumable?.unit?.short_name || '-'}
-                            </TableCell>
                             <TableCell className="text-right">${item.cost.toFixed(2)}</TableCell>
                           </TableRow>
                         ))}
                         <TableRow>
-                          <TableCell colSpan={3} className="font-medium">Total Consumable Cost</TableCell>
+                          <TableCell colSpan={2} className="font-medium">Total Consumable Cost</TableCell>
                           <TableCell className="text-right font-medium">
                             ${consumables.reduce((sum, item) => sum + item.cost, 0).toFixed(2)}
                           </TableCell>

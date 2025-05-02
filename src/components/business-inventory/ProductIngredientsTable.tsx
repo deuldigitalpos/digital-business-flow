@@ -20,27 +20,23 @@ import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
 import { ProductIngredientInput } from "@/types/business-product";
 import { BusinessIngredient } from "@/hooks/useBusinessIngredients";
-import { BusinessUnit } from "@/types/business-unit";
 
 interface ProductIngredientsTableProps {
   ingredients: ProductIngredientInput[];
   setIngredients: React.Dispatch<React.SetStateAction<ProductIngredientInput[]>>;
   allIngredients: BusinessIngredient[];
-  units: BusinessUnit[];
 }
 
 const ProductIngredientsTable: React.FC<ProductIngredientsTableProps> = ({
   ingredients,
   setIngredients,
   allIngredients,
-  units,
 }) => {
   const [ingredientId, setIngredientId] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("1");
-  const [unitId, setUnitId] = useState<string>("");
   
   const handleAddIngredient = () => {
-    if (!ingredientId || !quantity || !unitId) return;
+    if (!ingredientId || !quantity) return;
     
     const selectedIngredient = allIngredients.find(item => item.id === ingredientId);
     if (!selectedIngredient) return;
@@ -54,7 +50,6 @@ const ProductIngredientsTable: React.FC<ProductIngredientsTableProps> = ({
     const newIngredient: ProductIngredientInput = {
       ingredient_id: ingredientId,
       quantity: numQuantity,
-      unit_id: unitId,
       cost: parseFloat(calculatedCost.toFixed(2))
     };
     
@@ -63,7 +58,6 @@ const ProductIngredientsTable: React.FC<ProductIngredientsTableProps> = ({
     // Reset form
     setIngredientId("");
     setQuantity("1");
-    setUnitId("");
   };
   
   const handleRemoveIngredient = (index: number) => {
@@ -98,16 +92,11 @@ const ProductIngredientsTable: React.FC<ProductIngredientsTableProps> = ({
     const ingredient = allIngredients.find(item => item.id === id);
     return ingredient ? ingredient.name : 'Unknown';
   };
-  
-  const getUnitNameById = (id: string) => {
-    const unit = units.find(item => item.id === id);
-    return unit ? unit.short_name : 'Unit';
-  };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-        <div className="md:col-span-5">
+        <div className="md:col-span-7">
           <label className="text-sm font-medium mb-1 block">Ingredient</label>
           <Select value={ingredientId} onValueChange={setIngredientId}>
             <SelectTrigger>
@@ -123,7 +112,7 @@ const ProductIngredientsTable: React.FC<ProductIngredientsTableProps> = ({
           </Select>
         </div>
         
-        <div className="md:col-span-2">
+        <div className="md:col-span-3">
           <label className="text-sm font-medium mb-1 block">Quantity</label>
           <Input
             type="number"
@@ -132,22 +121,6 @@ const ProductIngredientsTable: React.FC<ProductIngredientsTableProps> = ({
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
           />
-        </div>
-        
-        <div className="md:col-span-3">
-          <label className="text-sm font-medium mb-1 block">Unit</label>
-          <Select value={unitId} onValueChange={setUnitId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {units.map((unit) => (
-                <SelectItem key={unit.id} value={unit.id}>
-                  {unit.name} ({unit.short_name})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
         
         <div className="md:col-span-2">
@@ -164,7 +137,6 @@ const ProductIngredientsTable: React.FC<ProductIngredientsTableProps> = ({
               <TableRow>
                 <TableHead>Ingredient</TableHead>
                 <TableHead>Quantity</TableHead>
-                <TableHead>Unit</TableHead>
                 <TableHead className="text-right">Cost</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
@@ -183,7 +155,6 @@ const ProductIngredientsTable: React.FC<ProductIngredientsTableProps> = ({
                       className="h-8 w-20"
                     />
                   </TableCell>
-                  <TableCell>{getUnitNameById(ingredient.unit_id)}</TableCell>
                   <TableCell className="text-right">${ingredient.cost.toFixed(2)}</TableCell>
                   <TableCell>
                     <Button
@@ -198,7 +169,7 @@ const ProductIngredientsTable: React.FC<ProductIngredientsTableProps> = ({
                 </TableRow>
               ))}
               <TableRow>
-                <TableCell colSpan={3} className="text-right font-medium">Total:</TableCell>
+                <TableCell colSpan={2} className="text-right font-medium">Total:</TableCell>
                 <TableCell className="text-right font-medium">
                   ${ingredients.reduce((sum, item) => sum + item.cost, 0).toFixed(2)}
                 </TableCell>
