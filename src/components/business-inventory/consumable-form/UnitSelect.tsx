@@ -25,7 +25,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
   const [open, setOpen] = React.useState(false);
   
   // Ensure units is always a valid array
-  const units = unitsData || [];
+  const units = Array.isArray(unitsData) ? unitsData : [];
   
   // Make sure units have valid IDs
   const validUnits = units.filter(unit => unit && unit.id && typeof unit.id === 'string' && unit.id.trim() !== '');
@@ -49,7 +49,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
                     !field.value && "text-muted-foreground"
                   )}
                 >
-                  {field.value
+                  {field.value && validUnits.length > 0
                     ? validUnits.find(unit => unit.id === field.value)?.name || "Select a unit"
                     : "Select a unit"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

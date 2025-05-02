@@ -27,8 +27,8 @@ const BusinessConsumables: React.FC = () => {
   const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
   const { data: categoriesData = [] } = useBusinessCategories();
   
-  // Ensure categories is always an array, even if data is undefined
-  const categories = categoriesData || [];
+  // Ensure categories is always a valid array
+  const categories = Array.isArray(categoriesData) ? categoriesData : [];
 
   return (
     <PermissionGuard permission="inventory">
@@ -117,7 +117,7 @@ const BusinessConsumables: React.FC = () => {
                           />
                           All Categories
                         </CommandItem>
-                        {categories.map((category) => (
+                        {categories.filter(category => category && category.id).map((category) => (
                           <CommandItem
                             key={category.id}
                             value={category.name}

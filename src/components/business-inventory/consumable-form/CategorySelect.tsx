@@ -25,7 +25,7 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
   const [open, setOpen] = React.useState(false);
   
   // Ensure categories is always a valid array
-  const categories = categoriesData || [];
+  const categories = Array.isArray(categoriesData) ? categoriesData : [];
   
   // Make sure categories have valid IDs
   const validCategories = categories.filter(category => category && category.id && typeof category.id === 'string' && category.id.trim() !== '');
@@ -49,7 +49,7 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
                     !field.value && "text-muted-foreground"
                   )}
                 >
-                  {field.value
+                  {field.value && validCategories.length > 0
                     ? validCategories.find(category => category.id === field.value)?.name || "Select a category"
                     : "Select a category"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
