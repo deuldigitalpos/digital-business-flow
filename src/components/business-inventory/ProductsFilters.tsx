@@ -21,11 +21,13 @@ interface ProductsFiltersProps {
 }
 
 const ProductsFilters: React.FC<ProductsFiltersProps> = ({ onFilterChange }) => {
-  const { categories } = useBusinessCategories();
+  const categoriesQuery = useBusinessCategories();
   const { brands } = useBusinessBrands();
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [brandId, setBrandId] = useState("");
+
+  const categories = categoriesQuery.data || [];
 
   const handleApplyFilters = () => {
     const filters: Record<string, any> = {};

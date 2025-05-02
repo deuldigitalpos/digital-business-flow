@@ -57,12 +57,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
   setSizes,
   isEditMode = false 
 }) => {
-  const { categories } = useBusinessCategories();
-  const { units } = useBusinessUnits();
+  const categoriesQuery = useBusinessCategories();
+  const unitsQuery = useBusinessUnits();
   const { brands } = useBusinessBrands();
   const { warranties } = useBusinessWarranties();
   const { ingredients: allIngredients } = useBusinessIngredients();
   const { consumables: allConsumables } = useBusinessConsumables();
+  
+  const categories = categoriesQuery.data || [];
+  const units = unitsQuery.data || [];
   
   const hasIngredients = form.watch("has_ingredients");
   const hasConsumables = form.watch("has_consumables");
