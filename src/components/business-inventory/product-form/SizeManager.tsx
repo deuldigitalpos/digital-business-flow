@@ -57,29 +57,28 @@ export const SizeManager: React.FC<SizeManagerProps> = ({ form, isEditMode }) =>
           {sizes.map((size, index) => (
             <Card key={index}>
               <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormItem>
-                  <FormLabel>Size Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Size Name"
-                      value={size.name}
-                      onChange={(e) => handleSizeChange(index, 'name', e.target.value)}
-                    />
-                  </FormControl>
-                </FormItem>
+                {/* Using direct input instead of FormField to avoid context issues */}
+                <div>
+                  <label className="text-sm font-medium">Size Name</label>
+                  <Input
+                    placeholder="Size Name"
+                    value={size.name}
+                    onChange={(e) => handleSizeChange(index, 'name', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
                 
                 <div className="flex items-center gap-2">
-                  <FormItem className="flex-1">
-                    <FormLabel>Additional Price</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={size.additional_price}
-                        onChange={(e) => handleSizeChange(index, 'additional_price', e.target.value)}
-                      />
-                    </FormControl>
-                  </FormItem>
+                  <div className="flex-1">
+                    <label className="text-sm font-medium">Additional Price</label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={size.additional_price}
+                      onChange={(e) => handleSizeChange(index, 'additional_price', e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
                   <Button
                     type="button"
                     variant="destructive"

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { ProductFormValues } from "./types";
 import { ProductIngredientInput } from "@/types/business-product";
 import { Input } from "@/components/ui/input";
-import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -59,13 +58,13 @@ export const IngredientSelector: React.FC<IngredientSelectorProps> = ({ form, in
           {selectedIngredients.map((ingredient, index) => (
             <Card key={index}>
               <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormItem>
-                  <FormLabel>Ingredient</FormLabel>
+                <div>
+                  <label className="text-sm font-medium">Ingredient</label>
                   <Select
                     value={ingredient.ingredient_id}
                     onValueChange={(value) => handleIngredientChange(index, 'ingredient_id', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Select Ingredient" />
                     </SelectTrigger>
                     <SelectContent>
@@ -76,28 +75,30 @@ export const IngredientSelector: React.FC<IngredientSelectorProps> = ({ form, in
                       ))}
                     </SelectContent>
                   </Select>
-                </FormItem>
+                </div>
                 
-                <FormItem>
-                  <FormLabel>Quantity</FormLabel>
+                <div>
+                  <label className="text-sm font-medium">Quantity</label>
                   <Input
                     type="number"
                     placeholder="0.00"
                     value={ingredient.quantity}
                     onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
+                    className="mt-1"
                   />
-                </FormItem>
+                </div>
                 
                 <div className="flex items-center gap-2">
-                  <FormItem className="flex-1">
-                    <FormLabel>Cost</FormLabel>
+                  <div className="flex-1">
+                    <label className="text-sm font-medium">Cost</label>
                     <Input
                       type="number"
                       placeholder="0.00"
                       value={ingredient.cost}
                       onChange={(e) => handleIngredientChange(index, 'cost', e.target.value)}
+                      className="mt-1"
                     />
-                  </FormItem>
+                  </div>
                   <Button
                     type="button"
                     variant="destructive"
