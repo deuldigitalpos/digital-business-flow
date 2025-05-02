@@ -24,8 +24,8 @@ const ProductsFilters: React.FC<ProductsFiltersProps> = ({ onFilterChange }) => 
   const categoriesQuery = useBusinessCategories();
   const { brands } = useBusinessBrands();
   const [search, setSearch] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [brandId, setBrandId] = useState("");
+  const [categoryId, setCategoryId] = useState("all-categories");
+  const [brandId, setBrandId] = useState("all-brands");
 
   const categories = categoriesQuery.data || [];
 
@@ -36,11 +36,11 @@ const ProductsFilters: React.FC<ProductsFiltersProps> = ({ onFilterChange }) => 
       filters.search = search;
     }
     
-    if (categoryId) {
+    if (categoryId && categoryId !== "all-categories") {
       filters.category_id = categoryId;
     }
     
-    if (brandId) {
+    if (brandId && brandId !== "all-brands") {
       filters.brand_id = brandId;
     }
     
@@ -49,8 +49,8 @@ const ProductsFilters: React.FC<ProductsFiltersProps> = ({ onFilterChange }) => 
 
   const handleResetFilters = () => {
     setSearch("");
-    setCategoryId("");
-    setBrandId("");
+    setCategoryId("all-categories");
+    setBrandId("all-brands");
     onFilterChange({});
   };
 
@@ -83,7 +83,7 @@ const ProductsFilters: React.FC<ProductsFiltersProps> = ({ onFilterChange }) => 
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all-categories">All Categories</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
@@ -102,7 +102,7 @@ const ProductsFilters: React.FC<ProductsFiltersProps> = ({ onFilterChange }) => 
                 <SelectValue placeholder="All Brands" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Brands</SelectItem>
+                <SelectItem value="all-brands">All Brands</SelectItem>
                 {brands.map((brand) => (
                   <SelectItem key={brand.id} value={brand.id}>
                     {brand.name}
