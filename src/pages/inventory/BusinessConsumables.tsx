@@ -25,7 +25,10 @@ const BusinessConsumables: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
-  const { data: categories = [] } = useBusinessCategories();
+  const { data: categoriesData = [] } = useBusinessCategories();
+  
+  // Ensure categories is always an array, even if data is undefined
+  const categories = categoriesData || [];
 
   return (
     <PermissionGuard permission="inventory">
@@ -98,7 +101,7 @@ const BusinessConsumables: React.FC = () => {
                     <Command>
                       <CommandInput placeholder="Search categories..." />
                       <CommandEmpty>No category found.</CommandEmpty>
-                      <CommandGroup className="max-h-[300px] overflow-auto">
+                      <CommandGroup>
                         <CommandItem
                           value="All Categories"
                           onSelect={() => {

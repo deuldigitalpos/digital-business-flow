@@ -21,11 +21,14 @@ interface CategorySelectProps {
 }
 
 export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
-  const { data: categories = [] } = useBusinessCategories();
+  const { data: categoriesData = [] } = useBusinessCategories();
   const [open, setOpen] = React.useState(false);
   
+  // Ensure categories is always a valid array
+  const categories = categoriesData || [];
+  
   // Make sure categories have valid IDs
-  const validCategories = categories.filter(category => category.id && category.id.trim() !== '');
+  const validCategories = categories.filter(category => category && category.id && typeof category.id === 'string' && category.id.trim() !== '');
   
   return (
     <FormField
@@ -57,11 +60,11 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search categories..." />
                 <CommandEmpty>No category found.</CommandEmpty>
-                <CommandGroup className="max-h-60 overflow-auto">
+                <CommandGroup>
                   {validCategories.map(category => (
                     <CommandItem
                       key={category.id}
-                      value={category.name}
+                      value={category.name || ''}
                       onSelect={() => {
                         form.setValue("category_id", category.id);
                         setOpen(false);
@@ -73,7 +76,7 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
                           field.value === category.id ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      {category.name}
+                      {category.name || 'Unnamed Category'}
                     </CommandItem>
                   ))}
                 </CommandGroup>

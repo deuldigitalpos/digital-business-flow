@@ -21,11 +21,14 @@ interface UnitSelectProps {
 }
 
 export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
-  const { data: units = [] } = useBusinessUnits();
+  const { data: unitsData = [] } = useBusinessUnits();
   const [open, setOpen] = React.useState(false);
   
+  // Ensure units is always a valid array
+  const units = unitsData || [];
+  
   // Make sure units have valid IDs
-  const validUnits = units.filter(unit => unit.id && unit.id.trim() !== '');
+  const validUnits = units.filter(unit => unit && unit.id && typeof unit.id === 'string' && unit.id.trim() !== '');
   
   return (
     <FormField
@@ -57,11 +60,11 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search units..." />
                 <CommandEmpty>No unit found.</CommandEmpty>
-                <CommandGroup className="max-h-60 overflow-auto">
+                <CommandGroup>
                   {validUnits.map(unit => (
                     <CommandItem
                       key={unit.id}
-                      value={unit.name}
+                      value={unit.name || ''}
                       onSelect={() => {
                         form.setValue("unit_id", unit.id);
                         setOpen(false);
@@ -73,7 +76,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
                           field.value === unit.id ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      {unit.name} ({unit.short_name})
+                      {unit.name} ({unit.short_name || ''})
                     </CommandItem>
                   ))}
                 </CommandGroup>

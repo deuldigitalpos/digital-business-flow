@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Table,
@@ -93,24 +92,14 @@ const ConsumableList: React.FC<ConsumableListProps> = ({
     if (!filter || filter === 'all') return true;
     
     // Case 2: Direct category ID match
-    if (consumable.category_id && filter.includes(consumable.category_id)) return true;
+    if (consumable.category_id && filter === consumable.category_id) return true;
     
-    // Case 3: Handle generated ID matches - match based on category name in filter
-    if (filter.includes('category-') && consumable.category?.name) {
-      // If filter contains both "category-" and the category name, likely a match
-      return filter.toLowerCase().includes(consumable.category.name.toLowerCase());
-    }
-    
-    // Case 4: Handle unnamed categories
-    if (consumable.category_id === null && filter.includes('unnamed')) {
-      return true;
-    }
-    
+    // No need for complex matching logic that could cause errors
     return false;
   };
 
   // Filter consumables based on search term and category
-  const filteredConsumables = consumables.filter(consumable => {
+  const filteredConsumables = (consumables || []).filter(consumable => {
     // Filter by search term
     const matchesSearch = !searchTerm || 
       consumable.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
