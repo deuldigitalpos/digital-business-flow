@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Table,
@@ -22,6 +21,7 @@ import { Dialog } from '@/components/ui/dialog';
 import IngredientForm from './IngredientForm';
 import { Badge } from '@/components/ui/badge';
 import ConsumableTransactionHistory from './ConsumableTransactionHistory'; // We'll reuse this for now
+import { BusinessUnit } from '@/types/business-unit';
 
 interface IngredientListProps {
   searchTerm?: string;
@@ -199,7 +199,16 @@ const IngredientList: React.FC<IngredientListProps> = ({
           <ConsumableTransactionHistory 
             consumable={{
               ...selectedIngredient,
-              unit: selectedIngredient.unit || { id: '', name: '', short_name: '' }
+              unit: selectedIngredient.unit ? {
+                id: selectedIngredient.unit.id || '',
+                name: selectedIngredient.unit.name || '',
+                short_name: selectedIngredient.unit.short_name || '',
+                type: selectedIngredient.unit.type || 'weight',
+                is_default: selectedIngredient.unit.is_default || false,
+                created_at: selectedIngredient.unit.created_at || new Date().toISOString(),
+                updated_at: selectedIngredient.unit.updated_at || new Date().toISOString(),
+                business_id: selectedIngredient.unit.business_id || selectedIngredient.business_id
+              } : null
             }}
             onClose={() => {
               setIsTransactionHistoryOpen(false);
