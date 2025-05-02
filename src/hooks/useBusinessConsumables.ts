@@ -32,11 +32,19 @@ export const useBusinessConsumables = () => {
         return [];
       }
       
-      // First fetch all consumables with the unit_id field
+      // First fetch all consumables with all fields including unit_id
       const { data: consumables, error: consumablesError } = await supabase
         .from('business_consumables')
         .select(`
-          *,
+          id,
+          business_id,
+          name,
+          description,
+          category_id,
+          unit_id,
+          image_url,
+          created_at,
+          updated_at,
           category:business_categories(id, name)
         `)
         .eq('business_id', businessUser.business_id);

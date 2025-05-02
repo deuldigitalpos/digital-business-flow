@@ -31,11 +31,19 @@ export const useBusinessIngredients = () => {
         return [];
       }
       
-      // First fetch all ingredients with the unit_id field
+      // First fetch all ingredients with all fields including unit_id
       const { data: ingredients, error: ingredientsError } = await supabase
         .from('business_ingredients')
         .select(`
-          *,
+          id,
+          business_id,
+          name,
+          description,
+          category_id,
+          unit_id,
+          image_url,
+          created_at,
+          updated_at,
           category:business_categories(id, name)
         `)
         .eq('business_id', businessUser.business_id);
