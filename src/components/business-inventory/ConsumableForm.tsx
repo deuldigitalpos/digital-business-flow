@@ -1,111 +1,141 @@
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogFooter 
-} from '@/components/ui/dialog';
-import { Form } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
-import { useBusinessConsumableMutations } from '@/hooks/useBusinessConsumableMutations';
-import { Loader2 } from 'lucide-react';
-import { ConsumableFormProps, ConsumableFormValues, consumableFormSchema } from './consumable-form/types';
-import { NameField } from './consumable-form/NameField';
-import { DescriptionField } from './consumable-form/DescriptionField';
-import { CategorySelect } from './consumable-form/CategorySelect';
-import { UnitSelect } from './consumable-form/UnitSelect';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useBusinessConsumables } from "@/hooks/useBusinessConsumables";
+import ImageUploader from "@/components/ImageUploader";
+import { ConsumableFormValues, consumableFormSchema } from "./consumable-form/types";
+import CategorySelect from "./shared/CategorySelect";
 
-const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) => {
-  const { createConsumable, updateConsumable } = useBusinessConsumableMutations();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const ConsumableForm = ({ consumable, onClose }: { consumable: any | null, onClose: () => void }) => {
+  const { createConsumable, updateConsumable } = useBusinessConsumables();
+  
+  const defaultValues: ConsumableFormValues = consumable ? {
+    name: consumable.name || "",
+    description: consumable.description || "",
+    category_id: consumable.category_id || "",
+    image_url: consumable.image_url || "",
+  } : {
+    name: "",
+    description: "",
+    category_id: "",
+    image_url: "",
+  };
 
   const form = useForm<ConsumableFormValues>({
     resolver: zodResolver(consumableFormSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      category_id: null,
-      unit_id: null,
-      image_url: null
-    }
+    defaultValues,
   });
 
-  useEffect(() => {
-    if (consumable) {
-      form.reset({
-        name: consumable.name,
-        description: consumable.description || '',
-        category_id: consumable.category_id || null,
-        unit_id: consumable.unit_id || null,
-        image_url: consumable.image_url || null
-      });
-    } else {
-      form.reset({
-        name: '',
-        description: '',
-        category_id: null,
-        unit_id: null,
-        image_url: null
-      });
-    }
-  }, [consumable, form]);
-
-  const onSubmit = async (data: ConsumableFormValues) => {
-    setIsSubmitting(true);
+  const handleSubmit = async (values: ConsumableFormValues) => {
     try {
       if (consumable) {
+        // Update existing consumable
         await updateConsumable.mutateAsync({
           id: consumable.id,
-          name: data.name,
-          description: data.description || '',
-          category_id: data.category_id || null,
-          unit_id: data.unit_id || null,
-          image_url: data.image_url || null
+          name: values.name,
+          description: values.description,
+          category_id: values.category_id,
+          image_url: values.image_url,
         });
       } else {
+        // Create new consumable
         await createConsumable.mutateAsync({
-          name: data.name,
-          description: data.description || '',
-          category_id: data.category_id || null,
-          unit_id: data.unit_id || null,
-          image_url: data.image_url || null
+          name: values.name,
+          description: values.description,
+          category_id: values.category_id,
+          image_url: values.image_url,
         });
       }
       onClose();
     } catch (error) {
-      console.error('Error submitting form:', error);
-    } finally {
-      setIsSubmitting(false);
+      console.error("Failed to save consumable:", error);
     }
   };
 
   return (
-    <DialogContent className="sm:max-w-[500px]">
-      <DialogHeader>
-        <DialogTitle>{consumable ? 'Edit Consumable' : 'Add New Consumable'}</DialogTitle>
-      </DialogHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <NameField form={form} />
-          <DescriptionField form={form} />
-          <CategorySelect form={form} />
-          <UnitSelect form={form} />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Consumable name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {consumable ? 'Update' : 'Add'} Consumable
-            </Button>
-          </DialogFooter>
-        </form>
-      </Form>
-    </DialogContent>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Brief description of the consumable"
+                  className="min-h-[100px]"
+                  {...field} 
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="category_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <CategorySelect
+                value={field.value || ''}
+                onChange={field.onChange}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="image_url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Image</FormLabel>
+              <FormControl>
+                <ImageUploader
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  bucketName="product-images"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end gap-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">
+            {consumable ? "Update" : "Create"} Consumable
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 };
 

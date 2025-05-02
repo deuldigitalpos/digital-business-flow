@@ -28,9 +28,6 @@ import BusinessLeads from '@/pages/BusinessLeads';
 import BusinessSuppliers from '@/pages/BusinessSuppliers';
 import PermissionDenied from '@/pages/PermissionDenied';
 import BusinessCategories from '@/pages/BusinessCategories';
-import BusinessUnits from '@/pages/BusinessUnits';
-import BusinessBrands from '@/pages/BusinessBrands';
-import BusinessWarranties from '@/pages/BusinessWarranties';
 import BusinessActivityLog from '@/pages/BusinessActivityLog';
 import { BusinessAuthProvider } from '@/context/BusinessAuthContext';
 import BusinessProducts from '@/pages/inventory/BusinessProducts';
@@ -95,9 +92,6 @@ function App() {
               <Route path="customers" element={<BusinessCustomers />} />
               <Route path="leads" element={<BusinessLeads />} />
               <Route path="suppliers" element={<BusinessSuppliers />} />
-              <Route path="units" element={<BusinessUnits />} />
-              <Route path="brands" element={<BusinessBrands />} />
-              <Route path="warranties" element={<BusinessWarranties />} />
               <Route path="activity-log" element={<BusinessActivityLog />} />
               
               {/* New Inventory Routes */}

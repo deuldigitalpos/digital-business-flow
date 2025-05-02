@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
@@ -30,10 +29,7 @@ import {
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { useBusinessStockMutations } from '@/hooks/useBusinessStockMutations';
 import { useBusinessCategories } from '@/hooks/useBusinessCategories';
-import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 import { useBusinessSuppliers } from '@/hooks/useBusinessSuppliers';
-import { useBusinessBrands } from '@/hooks/useBusinessBrands';
-import { useBusinessWarranties } from '@/hooks/useBusinessWarranties';
 import { useBusinessConsumables } from '@/hooks/useBusinessConsumables';
 import { format } from 'date-fns';
 import { CalendarIcon, Loader2 } from 'lucide-react';
@@ -59,7 +55,6 @@ const formSchema = z.object({
   supplier_id: z.string().optional(),
   quantity: z.number(),
   direction: z.enum(['increase', 'decrease']),
-  unit_id: z.string().optional(),
   cost_per_unit: z.number().min(0),
   total_cost: z.number().min(0),
   status: z.enum(['delivered', 'ordered', 'damaged', 'returned']),
@@ -67,8 +62,6 @@ const formSchema = z.object({
   discount: z.number().min(0).default(0),
   paid_amount: z.number().min(0).optional(),
   due_date: z.date().optional(),
-  brand_id: z.string().optional(),
-  warranty_id: z.string().optional(),
   expiration_date: z.date().optional(),
   notes: z.string().optional(),
   reference_id: z.string().optional()
@@ -104,7 +97,6 @@ interface StockTransaction {
   supplier_id: string | null;
   transaction_date: string;
   quantity: number;
-  unit_id: string | null;
   cost_per_unit: number;
   total_cost: number;
   status: 'delivered' | 'ordered' | 'damaged' | 'returned';
@@ -113,8 +105,6 @@ interface StockTransaction {
   paid_amount: number;
   unpaid_amount: number;
   due_date: string | null;
-  brand_id: string | null;
-  warranty_id: string | null;
   expiration_date: string | null;
   notes: string | null;
   reference_id: string | null;
@@ -138,10 +128,7 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
   const { businessUser } = useBusinessAuth();
   const { createStockTransaction } = useBusinessStockMutations();
   const { data: categories = [] } = useBusinessCategories();
-  const { data: units = [] } = useBusinessUnits();
   const { suppliers = [] } = useBusinessSuppliers();
-  const { brands = [] } = useBusinessBrands();
-  const { warranties = [] } = useBusinessWarranties();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filteredItems, setFilteredItems] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -169,7 +156,6 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
       supplier_id: '',
       quantity: 0,
       direction: 'increase',
-      unit_id: '',
       cost_per_unit: 0,
       total_cost: 0,
       status: 'delivered',
@@ -177,8 +163,6 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
       discount: 0,
       paid_amount: 0,
       due_date: undefined,
-      brand_id: '',
-      warranty_id: '',
       expiration_date: undefined,
       notes: '',
       reference_id: ''
@@ -321,12 +305,6 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
   // Handle item selection
   const handleItemChange = (itemId: string) => {
     form.setValue('item_id', itemId);
-    
-    // Find the selected item
-    const selectedItem = filteredItems.find(item => item.id === itemId);
-    if (selectedItem && selectedItem.unit_id) {
-      form.setValue('unit_id', selectedItem.unit_id);
-    }
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -346,7 +324,6 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
         supplier_id: data.supplier_id || null,
         transaction_date: new Date().toISOString(),
         quantity: adjustedQuantity,
-        unit_id: data.unit_id || null,
         cost_per_unit: data.cost_per_unit,
         total_cost: data.total_cost,
         status: data.status,
@@ -355,8 +332,6 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
         paid_amount: data.paid_amount || 0,
         unpaid_amount: unpaidAmount,
         due_date: data.due_date ? data.due_date.toISOString() : null,
-        brand_id: data.brand_id || null,
-        warranty_id: data.warranty_id || null,
         expiration_date: data.expiration_date ? data.expiration_date.toISOString() : null,
         notes: data.notes || null,
         reference_id: data.reference_id || null,
@@ -523,38 +498,7 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="unit_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Unit</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value || undefined}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {units?.map(unit => {
-                        const safeValue = getSafeValue(unit.id, 'unit', unit.name);
-                        return (
-                          <SelectItem key={safeValue} value={safeValue}>
-                            {unit.name || 'Unnamed Unit'} ({unit.short_name || '-'})
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="cost_per_unit"
@@ -761,70 +705,6 @@ const AddStockTransactionForm: React.FC<AddStockTransactionFormProps> = ({
                         return (
                           <SelectItem key={safeValue} value={safeValue}>
                             {supplier.first_name || ''} {supplier.last_name || ''}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="brand_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Brand (Optional)</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value || undefined}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select brand" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {brands?.map(brand => {
-                        const safeValue = getSafeValue(brand.id, 'brand', brand.name);
-                        return (
-                          <SelectItem key={safeValue} value={safeValue}>
-                            {brand.name || 'Unnamed Brand'}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="warranty_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Warranty (Optional)</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value || undefined}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select warranty" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {warranties?.map(warranty => {
-                        const safeValue = getSafeValue(warranty.id, 'warranty', warranty.name);
-                        return (
-                          <SelectItem key={safeValue} value={safeValue}>
-                            {warranty.name || 'Unnamed Warranty'} ({warranty.duration || '0'} {warranty.duration_unit || 'days'})
                           </SelectItem>
                         );
                       })}
