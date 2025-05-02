@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -137,10 +138,11 @@ const AddStockTransactionModal: React.FC<AddStockTransactionModalProps> = ({ isO
       
       // Fix #2: Include all required properties from the StockTransaction type
       // Fix #3: Add the created_by property from the business user
+      // Fix #4: Convert Date to string for transaction_date
       const transactionData = {
         transaction_type: values.transaction_type,
         item_id: values.item_id,
-        transaction_date: values.transaction_date,
+        transaction_date: values.transaction_date.toISOString(), // Convert Date to ISO string
         quantity: values.quantity,
         unit_id: values.unit_id,
         cost_per_unit: values.cost_per_unit || 0,
