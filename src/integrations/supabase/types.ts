@@ -51,7 +51,6 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
-          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -62,7 +61,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
-          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -73,7 +71,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
-          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -89,51 +86,6 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "business_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_addons_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "business_units"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      business_brands: {
-        Row: {
-          business_id: string
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          business_id: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          business_id?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_brands_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businessdetails"
             referencedColumns: ["id"]
           },
         ]
@@ -188,7 +140,6 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
-          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -199,7 +150,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
-          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -210,7 +160,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
-          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -226,13 +175,6 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "business_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_consumables_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "business_units"
             referencedColumns: ["id"]
           },
         ]
@@ -333,7 +275,6 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
-          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -344,7 +285,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
-          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -355,7 +295,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
-          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -371,13 +310,6 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "business_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_ingredients_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "business_units"
             referencedColumns: ["id"]
           },
         ]
@@ -504,7 +436,6 @@ export type Database = {
           id: string
           product_id: string
           quantity: number
-          unit_id: string | null
         }
         Insert: {
           addon_id: string
@@ -513,7 +444,6 @@ export type Database = {
           id?: string
           product_id: string
           quantity: number
-          unit_id?: string | null
         }
         Update: {
           addon_id?: string
@@ -522,7 +452,6 @@ export type Database = {
           id?: string
           product_id?: string
           quantity?: number
-          unit_id?: string | null
         }
         Relationships: [
           {
@@ -539,13 +468,6 @@ export type Database = {
             referencedRelation: "business_products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "business_product_addons_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "business_units"
-            referencedColumns: ["id"]
-          },
         ]
       }
       business_product_consumables: {
@@ -556,7 +478,6 @@ export type Database = {
           id: string
           product_id: string
           quantity: number
-          unit_id: string | null
         }
         Insert: {
           consumable_id: string
@@ -565,7 +486,6 @@ export type Database = {
           id?: string
           product_id: string
           quantity: number
-          unit_id?: string | null
         }
         Update: {
           consumable_id?: string
@@ -574,7 +494,6 @@ export type Database = {
           id?: string
           product_id?: string
           quantity?: number
-          unit_id?: string | null
         }
         Relationships: [
           {
@@ -591,13 +510,6 @@ export type Database = {
             referencedRelation: "business_products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "business_product_consumables_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "business_units"
-            referencedColumns: ["id"]
-          },
         ]
       }
       business_product_recipes: {
@@ -608,7 +520,6 @@ export type Database = {
           ingredient_id: string
           product_id: string
           quantity: number
-          unit_id: string | null
         }
         Insert: {
           cost?: number | null
@@ -617,7 +528,6 @@ export type Database = {
           ingredient_id: string
           product_id: string
           quantity: number
-          unit_id?: string | null
         }
         Update: {
           cost?: number | null
@@ -626,7 +536,6 @@ export type Database = {
           ingredient_id?: string
           product_id?: string
           quantity?: number
-          unit_id?: string | null
         }
         Relationships: [
           {
@@ -641,13 +550,6 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "business_products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_product_recipes_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "business_units"
             referencedColumns: ["id"]
           },
         ]
@@ -690,7 +592,6 @@ export type Database = {
       business_products: {
         Row: {
           auto_generate_sku: boolean | null
-          brand_id: string | null
           business_id: string
           category_id: string | null
           cost_price: number | null
@@ -707,13 +608,10 @@ export type Database = {
           selling_price: number | null
           sku: string | null
           total_sales: number | null
-          unit_id: string | null
           updated_at: string
-          warranty_id: string | null
         }
         Insert: {
           auto_generate_sku?: boolean | null
-          brand_id?: string | null
           business_id: string
           category_id?: string | null
           cost_price?: number | null
@@ -730,13 +628,10 @@ export type Database = {
           selling_price?: number | null
           sku?: string | null
           total_sales?: number | null
-          unit_id?: string | null
           updated_at?: string
-          warranty_id?: string | null
         }
         Update: {
           auto_generate_sku?: boolean | null
-          brand_id?: string | null
           business_id?: string
           category_id?: string | null
           cost_price?: number | null
@@ -753,18 +648,9 @@ export type Database = {
           selling_price?: number | null
           sku?: string | null
           total_sales?: number | null
-          unit_id?: string | null
           updated_at?: string
-          warranty_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "business_products_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "business_brands"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "business_products_business_id_fkey"
             columns: ["business_id"]
@@ -777,20 +663,6 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "business_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_products_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "business_units"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_products_warranty_id_fkey"
-            columns: ["warranty_id"]
-            isOneToOne: false
-            referencedRelation: "business_warranties"
             referencedColumns: ["id"]
           },
         ]
@@ -852,7 +724,6 @@ export type Database = {
           total_cost: number | null
           transaction_date: string
           transaction_type: string
-          unit_id: string | null
           unpaid_amount: number | null
           updated_at: string
           warranty_id: string | null
@@ -878,7 +749,6 @@ export type Database = {
           total_cost?: number | null
           transaction_date?: string
           transaction_type: string
-          unit_id?: string | null
           unpaid_amount?: number | null
           updated_at?: string
           warranty_id?: string | null
@@ -904,19 +774,11 @@ export type Database = {
           total_cost?: number | null
           transaction_date?: string
           transaction_type?: string
-          unit_id?: string | null
           unpaid_amount?: number | null
           updated_at?: string
           warranty_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "business_stock_transactions_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "business_brands"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "business_stock_transactions_business_id_fkey"
             columns: ["business_id"]
@@ -929,20 +791,6 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "business_suppliers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_stock_transactions_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "business_units"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_stock_transactions_warranty_id_fkey"
-            columns: ["warranty_id"]
-            isOneToOne: false
-            referencedRelation: "business_warranties"
             referencedColumns: ["id"]
           },
         ]
@@ -1014,47 +862,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "business_suppliers_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businessdetails"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      business_units: {
-        Row: {
-          business_id: string
-          created_at: string
-          description: string | null
-          id: string
-          is_default: boolean | null
-          name: string
-          short_name: string
-          updated_at: string
-        }
-        Insert: {
-          business_id: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_default?: boolean | null
-          name: string
-          short_name: string
-          updated_at?: string
-        }
-        Update: {
-          business_id?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_default?: boolean | null
-          name?: string
-          short_name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_units_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businessdetails"
@@ -1149,85 +956,6 @@ export type Database = {
             columns: ["role_id"]
             isOneToOne: false
             referencedRelation: "business_roles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      business_warranties: {
-        Row: {
-          business_id: string
-          created_at: string
-          description: string | null
-          duration: number
-          duration_unit: string
-          expiration_date: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          business_id: string
-          created_at?: string
-          description?: string | null
-          duration: number
-          duration_unit: string
-          expiration_date?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          business_id?: string
-          created_at?: string
-          description?: string | null
-          duration?: number
-          duration_unit?: string
-          expiration_date?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_warranties_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businessdetails"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      business_warranty_products: {
-        Row: {
-          created_at: string
-          expires_at: string
-          id: string
-          product_id: string
-          warranty_id: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at: string
-          id?: string
-          product_id: string
-          warranty_id: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          product_id?: string
-          warranty_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_warranty_products_warranty_id_fkey"
-            columns: ["warranty_id"]
-            isOneToOne: false
-            referencedRelation: "business_warranties"
             referencedColumns: ["id"]
           },
         ]
