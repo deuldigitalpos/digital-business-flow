@@ -65,14 +65,14 @@ export const useBusinessConsumables = () => {
 
       // Process the data with complete unit information
       const processedConsumables = consumables.map(consumable => {
-        // Handle case where unit is null or has an error
+        // Initialize with null
         let unitValue = null;
         
-        // Properly check if unit exists and is a valid object without error property
+        // Only assign if unit exists and is valid
         if (consumable.unit && 
             typeof consumable.unit === 'object' && 
-            !('error' in consumable.unit) && 
-            consumable.unit !== null) {
+            consumable.unit !== null && 
+            !('error' in consumable.unit)) {
           unitValue = consumable.unit;
         }
 
