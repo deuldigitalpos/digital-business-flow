@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { BusinessUnit } from '@/types/business-unit';
+import { BusinessUnit, UnitType } from '@/types/business-unit';
 
 export interface BusinessIngredient {
   id: string;
@@ -31,7 +31,7 @@ export const useBusinessIngredients = () => {
         return [];
       }
       
-      // First fetch all ingredients without the relation to units
+      // First fetch all ingredients with the unit_id field
       const { data: ingredients, error: ingredientsError } = await supabase
         .from('business_ingredients')
         .select(`
@@ -62,9 +62,12 @@ export const useBusinessIngredients = () => {
         if (unitsError) {
           console.error('Error fetching units:', unitsError);
         } else if (units) {
-          // Create a map for easy lookup
+          // Create a map for easy lookup and convert string type to UnitType enum
           unitsMap = units.reduce((map, unit) => {
-            map[unit.id] = unit;
+            map[unit.id] = {
+              ...unit,
+              type: unit.type as UnitType // Cast string type to UnitType enum
+            };
             return map;
           }, {} as Record<string, BusinessUnit>);
         }
