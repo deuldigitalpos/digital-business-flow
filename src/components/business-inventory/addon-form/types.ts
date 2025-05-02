@@ -1,18 +1,18 @@
 
 import { z } from 'zod';
-import { BusinessAddon } from '@/hooks/useBusinessAddons';
+import { BusinessAddon } from '@/types/business-addon';
 
 export const addonFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().optional().nullable(),
-  category_id: z.string().optional().nullable(),
-  // Remove unit_id since it's no longer needed
-  image_url: z.string().optional().nullable()
+  name: z.string().min(1, { message: 'Name is required' }),
+  description: z.string().nullable().optional(),
+  category_id: z.string().nullable().optional(),
+  unit_id: z.string().nullable().optional(),
+  image_url: z.string().nullable().optional(),
 });
 
 export type AddonFormValues = z.infer<typeof addonFormSchema>;
 
 export interface AddonFormProps {
-  addon: BusinessAddon | null;
+  addon?: BusinessAddon;
   onClose: () => void;
 }

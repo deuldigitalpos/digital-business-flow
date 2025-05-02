@@ -1,116 +1,87 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BusinessUnit, BusinessUnitFormValues } from '@/types/business-unit';
+import { BusinessUnitFormValues } from '@/types/business-unit';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { toast } from 'sonner';
 
 export function useBusinessUnitMutations() {
   const queryClient = useQueryClient();
-  const { business } = useBusinessAuth();
+  const { business, businessUser } = useBusinessAuth();
+
+  // Get the correct business ID
+  const getBusinessId = () => {
+    const businessId = business?.id || businessUser?.business_id;
+    if (!businessId) {
+      console.error('No business ID available for unit mutations');
+      throw new Error('Business ID is required');
+    }
+    return businessId;
+  };
 
   const createUnit = useMutation({
-    mutationFn: async (values: BusinessUnitFormValues): Promise<BusinessUnit> => {
-      if (!business?.id) {
-        throw new Error('Business ID is required');
-      }
+    mutationFn: async (unitData: BusinessUnitFormValues) => {
+      const businessId = getBusinessId();
+      console.log('Creating unit for business ID:', businessId, 'with data:', unitData);
 
       const { data, error } = await supabase
         .from('business_units')
         .insert({
-          business_id: business.id,
-          name: values.name,
-          short_name: values.short_name,
-          description: values.description || null,
-          is_default: values.is_default || false,
+          ...unitData,
+          business_id: businessId
         })
-        .select('*')
+        .select()
         .single();
 
       if (error) {
-        if (error.code === '23505') {
-          // Unique violation
-          toast.error('A unit with this short name already exists');
-        } else {
-          toast.error('Failed to create unit');
-        }
+        console.error('Error creating unit:', error);
         throw error;
       }
 
-      return data as BusinessUnit;
+      console.log('Unit created successfully:', data);
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['business-units'] });
-      toast.success('Unit created successfully');
+      console.log('Unit created successfully, invalidating queries');
+      const businessId = business?.id || businessUser?.business_id;
+      queryClient.invalidateQueries({ queryKey: ['business-units', businessId] });
     },
+    onError: (error) => {
+      console.error('Failed to create unit:', error);
+    }
   });
 
   const updateUnit = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: BusinessUnitFormValues }): Promise<BusinessUnit> => {
-      // Check if the unit is a default unit
-      const { data: unitData, error: unitError } = await supabase
+    mutationFn: async ({ id, data }: { id: string; data: BusinessUnitFormValues }) => {
+      console.log('Updating unit ID:', id, 'with data:', data);
+      
+      const { data: updatedUnit, error } = await supabase
         .from('business_units')
-        .select('is_default')
+        .update(data)
         .eq('id', id)
-        .single();
-
-      if (unitError) {
-        toast.error('Failed to verify unit status');
-        throw unitError;
-      }
-
-      if (unitData.is_default) {
-        toast.error('Default units cannot be modified');
-        throw new Error('Cannot modify default unit');
-      }
-
-      const { data: updatedData, error } = await supabase
-        .from('business_units')
-        .update({
-          name: data.name,
-          short_name: data.short_name,
-          description: data.description || null,
-        })
-        .eq('id', id)
-        .select('*')
+        .select()
         .single();
 
       if (error) {
-        if (error.code === '23505') {
-          // Unique violation
-          toast.error('A unit with this short name already exists');
-        } else {
-          toast.error('Failed to update unit');
-        }
+        console.error('Error updating unit:', error);
         throw error;
       }
 
-      return updatedData as BusinessUnit;
+      console.log('Unit updated successfully:', updatedUnit);
+      return updatedUnit;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['business-units'] });
-      toast.success('Unit updated successfully');
+      console.log('Unit updated successfully, invalidating queries');
+      const businessId = business?.id || businessUser?.business_id;
+      queryClient.invalidateQueries({ queryKey: ['business-units', businessId] });
     },
+    onError: (error) => {
+      console.error('Failed to update unit:', error);
+    }
   });
 
   const deleteUnit = useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      // Check if the unit is a default unit
-      const { data: unitData, error: unitError } = await supabase
-        .from('business_units')
-        .select('is_default')
-        .eq('id', id)
-        .single();
-
-      if (unitError) {
-        toast.error('Failed to verify unit status');
-        throw unitError;
-      }
-
-      if (unitData.is_default) {
-        toast.error('Default units cannot be deleted');
-        throw new Error('Cannot delete default unit');
-      }
+    mutationFn: async (id: string) => {
+      console.log('Deleting unit ID:', id);
       
       const { error } = await supabase
         .from('business_units')
@@ -118,19 +89,26 @@ export function useBusinessUnitMutations() {
         .eq('id', id);
 
       if (error) {
-        toast.error('Failed to delete unit');
+        console.error('Error deleting unit:', error);
         throw error;
       }
+
+      console.log('Unit deleted successfully');
+      return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['business-units'] });
-      toast.success('Unit deleted successfully');
+      console.log('Unit deleted successfully, invalidating queries');
+      const businessId = business?.id || businessUser?.business_id;
+      queryClient.invalidateQueries({ queryKey: ['business-units', businessId] });
     },
+    onError: (error) => {
+      console.error('Failed to delete unit:', error);
+    }
   });
 
   return {
     createUnit,
     updateUnit,
-    deleteUnit,
+    deleteUnit
   };
 }

@@ -16,7 +16,7 @@ import { AddonFormProps, AddonFormValues, addonFormSchema } from './addon-form/t
 import { NameField } from './addon-form/NameField';
 import { DescriptionField } from './addon-form/DescriptionField';
 import { CategorySelect } from './addon-form/CategorySelect';
-// Remove UnitSelect import
+import { UnitSelect } from './addon-form/UnitSelect';
 
 export const AddonForm: React.FC<AddonFormProps> = ({ addon, onClose }) => {
   const { createAddon, updateAddon } = useBusinessAddonMutations();
@@ -28,7 +28,7 @@ export const AddonForm: React.FC<AddonFormProps> = ({ addon, onClose }) => {
       name: addon?.name || '',
       description: addon?.description || null,
       category_id: addon?.category_id || null,
-      // Remove unit_id
+      unit_id: addon?.unit_id || null,
       image_url: addon?.image_url || null
     }
   });
@@ -42,12 +42,12 @@ export const AddonForm: React.FC<AddonFormProps> = ({ addon, onClose }) => {
         });
       } else {
         // Make sure the form values match the expected type
-        const { name, description, category_id, image_url } = values;
+        const { name, description, category_id, unit_id, image_url } = values;
         await createAddon.mutateAsync({
           name, // This is guaranteed to be a string due to form validation
           description,
           category_id,
-          // Remove unit_id
+          unit_id,
           image_url
         });
       }
@@ -69,7 +69,7 @@ export const AddonForm: React.FC<AddonFormProps> = ({ addon, onClose }) => {
             <NameField form={form} />
             <DescriptionField form={form} />
             <CategorySelect form={form} />
-            {/* Remove UnitSelect component */}
+            <UnitSelect form={form} />
             <DialogFooter>
               <Button
                 type="button"

@@ -2,21 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-
-export interface BusinessAddon {
-  id: string;
-  business_id: string;
-  name: string;
-  description?: string | null;
-  category_id?: string | null;
-  image_url?: string | null;
-  created_at: string;
-  updated_at: string;
-  quantity?: number;
-  average_cost?: number;
-  total_value?: number;
-  category?: { id: string; name: string } | null;
-}
+import { BusinessAddon } from '@/types/business-addon';
 
 export const useBusinessAddons = () => {
   const { businessUser } = useBusinessAuth();
@@ -33,7 +19,8 @@ export const useBusinessAddons = () => {
         .from('business_addons')
         .select(`
           *,
-          category:business_categories(id, name)
+          category:business_categories(id, name),
+          unit:business_units(id, name, short_name)
         `)
         .eq('business_id', businessUser.business_id);
       

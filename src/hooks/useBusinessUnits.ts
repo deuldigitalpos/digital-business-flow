@@ -1,27 +1,50 @@
 
 import { useQuery } from '@tanstack/react-query';
+import { BusinessUnit } from '@/types/business-unit';
+import { supabase } from '@/integrations/supabase/client';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
-export interface BusinessUnit {
-  id: string;
-  name: string;
-  short_name: string;
-}
+export const useBusinessUnits = (type?: string) => {
+  const { business, businessUser } = useBusinessAuth();
+  const businessId = business?.id || businessUser?.business_id;
 
-// This is a placeholder hook since the business_units table doesn't exist
-// It returns an empty array to prevent null reference errors
-export const useBusinessUnits = () => {
   const query = useQuery({
-    queryKey: ['business-units'],
+    queryKey: ['business-units', businessId, type],
     queryFn: async (): Promise<BusinessUnit[]> => {
-      console.warn('business_units table does not exist');
-      return [];
-    }
+      if (!businessId) {
+        console.warn('No business ID available for fetching units');
+        return [];
+      }
+
+      let query = supabase
+        .from('business_units')
+        .select('*')
+        .eq('business_id', businessId);
+        
+      if (type) {
+        query = query.eq('type', type);
+      }
+      
+      query = query.order('is_default', { ascending: false })
+        .order('name', { ascending: true });
+
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching business units:', error);
+        throw error;
+      }
+
+      return data as BusinessUnit[];
+    },
+    enabled: !!businessId,
   });
 
   return {
-    data: [] as BusinessUnit[],
-    isLoading: false,
-    error: null
+    data: query.data || [],
+    isLoading: query.isLoading,
+    error: query.error,
+    refetch: query.refetch
   };
 };
 
