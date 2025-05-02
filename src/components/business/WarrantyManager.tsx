@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,20 +18,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useBusinessWarranties, useWarrantyProductsCount, useExpiredWarranties } from "@/hooks/useBusinessWarranties";
-import { useBusinessWarrantyMutations } from "@/hooks/useBusinessWarrantyMutations";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { BusinessWarranty } from "@/types/business-warranty";
-import WarrantyList from "./WarrantyList";
+import useBusinessWarranties from "@/hooks/useBusinessWarranties";
+import { useBusinessWarrantyMutations } from "@/hooks/useBusinessWarrantyMutations";
 import AddWarrantyForm from "./AddWarrantyForm";
 import EditWarrantyForm from "./EditWarrantyForm";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import WarrantyList from "./WarrantyList";
 
 const WarrantyManager: React.FC = () => {
   const { warranties, isLoading } = useBusinessWarranties();
-  const { data: productCounts = {} } = useWarrantyProductsCount();
-  const { data: expiredWarranties = [] } = useExpiredWarranties();
   const { deleteWarranty } = useBusinessWarrantyMutations();
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -52,10 +50,10 @@ const WarrantyManager: React.FC = () => {
     if (selectedWarranty) {
       try {
         await deleteWarranty.mutateAsync(selectedWarranty.id);
+        setIsDeleteDialogOpen(false);
       } catch (error) {
         console.error("Error deleting warranty:", error);
-      } finally {
-        setIsDeleteDialogOpen(false);
+        toast.error("Failed to delete warranty");
       }
     }
   };
@@ -80,38 +78,27 @@ const WarrantyManager: React.FC = () => {
         </Dialog>
       </div>
 
-      {expiredWarranties.length > 0 && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Expired Warranties</AlertTitle>
-          <AlertDescription>
-            You have <Badge variant="outline" className="ml-1">{expiredWarranties.length}</Badge> expired warranty products that need attention.
-          </AlertDescription>
-        </Alert>
-      )}
-
       <WarrantyList
         warranties={warranties || []}
         onEdit={handleEdit}
         onDelete={handleDelete}
         isLoading={isLoading}
-        productCounts={productCounts}
       />
 
       {/* Edit Dialog */}
-      {selectedWarranty && (
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Warranty</DialogTitle>
-            </DialogHeader>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Warranty</DialogTitle>
+          </DialogHeader>
+          {selectedWarranty && (
             <EditWarrantyForm
               warranty={selectedWarranty}
               onSuccess={() => setIsEditDialogOpen(false)}
             />
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -119,7 +106,7 @@ const WarrantyManager: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the warranty "{selectedWarranty?.name}" and all associated products.
+              This will permanently delete the warranty "{selectedWarranty?.name}".
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

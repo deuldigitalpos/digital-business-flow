@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,10 +49,9 @@ const BrandManager: React.FC = () => {
     if (selectedBrand) {
       try {
         await deleteBrand.mutateAsync(selectedBrand.id);
+        setIsDeleteDialogOpen(false);
       } catch (error) {
         console.error("Error deleting brand:", error);
-      } finally {
-        setIsDeleteDialogOpen(false);
       }
     }
   };
@@ -84,19 +84,19 @@ const BrandManager: React.FC = () => {
       />
 
       {/* Edit Dialog */}
-      {selectedBrand && (
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Brand</DialogTitle>
-            </DialogHeader>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Brand</DialogTitle>
+          </DialogHeader>
+          {selectedBrand && (
             <EditBrandForm
               brand={selectedBrand}
               onSuccess={() => setIsEditDialogOpen(false)}
             />
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

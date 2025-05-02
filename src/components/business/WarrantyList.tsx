@@ -1,6 +1,5 @@
 
 import React from "react";
-import { BusinessWarranty } from "@/types/business-warranty";
 import {
   Table,
   TableBody,
@@ -10,16 +9,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
-import { format, isAfter, parseISO } from "date-fns";
+import { BusinessWarranty } from "@/types/business-warranty";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface WarrantyListProps {
   warranties: BusinessWarranty[];
   onEdit: (warranty: BusinessWarranty) => void;
   onDelete: (warranty: BusinessWarranty) => void;
-  isLoading: boolean;
-  productCounts?: Record<string, number>;
+  isLoading?: boolean;
 }
 
 const WarrantyList: React.FC<WarrantyListProps> = ({
@@ -27,39 +27,46 @@ const WarrantyList: React.FC<WarrantyListProps> = ({
   onEdit,
   onDelete,
   isLoading,
-  productCounts = {},
 }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center py-8">
-        <div className="animate-pulse text-center">
-          <div className="h-6 bg-gray-200 rounded w-48 mb-4 mx-auto"></div>
-          <div className="h-4 bg-gray-200 rounded w-full mb-2.5"></div>
-          <div className="h-4 bg-gray-200 rounded w-full mb-2.5"></div>
-          <div className="h-4 bg-gray-200 rounded w-full"></div>
-        </div>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Expiration</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <TableRow key={index}>
+                <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                <TableCell><Skeleton className="h-9 w-20 ml-auto" /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     );
   }
 
   if (warranties.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="w-full h-40 flex flex-col items-center justify-center rounded-md border">
         <p className="text-muted-foreground">No warranties found</p>
+        <p className="text-sm text-muted-foreground">
+          Create a new warranty to get started
+        </p>
       </div>
     );
   }
-
-  const getExpirationStatusBadge = (warranty: BusinessWarranty) => {
-    const today = new Date();
-    const expirationDate = parseISO(warranty.expiration_date);
-    
-    if (isAfter(expirationDate, today)) {
-      return <Badge variant="default" className="bg-green-500">Valid</Badge>;
-    } else {
-      return <Badge variant="destructive">Expired</Badge>;
-    }
-  };
 
   return (
     <div className="rounded-md border">
@@ -68,9 +75,8 @@ const WarrantyList: React.FC<WarrantyListProps> = ({
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead>Expiration Date</TableHead>
+            <TableHead>Expiration</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Products Count</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -78,37 +84,37 @@ const WarrantyList: React.FC<WarrantyListProps> = ({
           {warranties.map((warranty) => (
             <TableRow key={warranty.id}>
               <TableCell className="font-medium">{warranty.name}</TableCell>
-              <TableCell className="max-w-xs truncate">
-                {warranty.description || "-"}
-              </TableCell>
+              <TableCell>{warranty.description || "-"}</TableCell>
               <TableCell>
-                {warranty.expiration_date ? format(new Date(warranty.expiration_date), "PP") : "-"}
-              </TableCell>
-              <TableCell>
-                {warranty.is_active ? 
-                  getExpirationStatusBadge(warranty) : 
-                  <Badge variant="secondary">Inactive</Badge>
+                {warranty.expiration_date ? 
+                  format(new Date(warranty.expiration_date), "MMM d, yyyy") : 
+                  `${warranty.duration} ${warranty.duration_unit}`
                 }
               </TableCell>
               <TableCell>
-                {productCounts[warranty.id] || 0}
+                <Badge variant={warranty.is_active ? "success" : "secondary"}>
+                  {warranty.is_active ? "Active" : "Inactive"}
+                </Badge>
               </TableCell>
-              <TableCell className="text-right space-x-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => onEdit(warranty)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => onDelete(warranty)}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(warranty)}
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(warranty)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}

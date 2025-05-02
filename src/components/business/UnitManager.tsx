@@ -53,7 +53,7 @@ const UnitManager: React.FC = () => {
   // Check if default units exist and create them if they don't
   useEffect(() => {
     const setupDefaultUnits = async () => {
-      if (!units || units.length === 0) return;
+      if (!units) return;
       
       // Get existing default unit short names
       const existingShortNames = units
@@ -68,6 +68,8 @@ const UnitManager: React.FC = () => {
       // Create missing default units
       if (missingUnits.length > 0) {
         try {
+          console.log(`Adding ${missingUnits.length} missing default units`);
+          
           // Create all missing default units
           for (const unit of missingUnits) {
             await createUnit.mutateAsync({
@@ -151,19 +153,19 @@ const UnitManager: React.FC = () => {
       />
 
       {/* Edit dialog */}
-      {selectedUnit && (
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Unit</DialogTitle>
-            </DialogHeader>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Unit</DialogTitle>
+          </DialogHeader>
+          {selectedUnit && (
             <EditUnitForm 
               unit={selectedUnit} 
               onSuccess={() => setIsEditDialogOpen(false)} 
             />
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
