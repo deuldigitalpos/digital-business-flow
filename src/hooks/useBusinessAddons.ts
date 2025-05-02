@@ -50,7 +50,7 @@ export const useBusinessAddons = () => {
       // Process the data to add quantities
       const processedAddons = addons.map(addon => {
         // Handle possible SelectQueryError for unit
-        const unitData = addon.unit && !addon.unit.error
+        const unitData = addon.unit && typeof addon.unit !== 'string' && !addon.unit.error
           ? { id: addon.unit.id, name: addon.unit.name, short_name: addon.unit.short_name }
           : null;
           
@@ -63,6 +63,7 @@ export const useBusinessAddons = () => {
         };
       });
 
+      // Cast to BusinessAddon[] because we've verified the structure is correct
       return processedAddons as BusinessAddon[];
     },
     enabled: !!businessUser?.business_id

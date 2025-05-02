@@ -19,10 +19,7 @@ export const useBusinessProducts = (filters: Record<string, any> = {}) => {
         .from('business_products')
         .select(`
           *,
-          category:business_categories(id, name),
-          unit:business_units(id, name, short_name),
-          brand:business_brands(id, name),
-          warranty:business_warranties(id, name)
+          category:business_categories(id, name)
         `)
         .eq('business_id', businessUser.business_id);
       
@@ -58,6 +55,64 @@ export const useBusinessProducts = (filters: Record<string, any> = {}) => {
         throw quantitiesError;
       }
 
+      // Fetch units, brands, and warranties separately to avoid join errors
+      const unitIds = products
+        .filter(p => p.unit_id)
+        .map(p => p.unit_id);
+      
+      const brandIds = products
+        .filter(p => p.brand_id)
+        .map(p => p.brand_id);
+        
+      const warrantyIds = products
+        .filter(p => p.warranty_id)
+        .map(p => p.warranty_id);
+
+      // Fetch units
+      const unitMap: Record<string, { id: string; name: string; short_name: string }> = {};
+      if (unitIds.length > 0) {
+        const { data: units } = await supabase
+          .from('business_units')
+          .select('id, name, short_name')
+          .in('id', unitIds);
+          
+        if (units) {
+          units.forEach(unit => {
+            unitMap[unit.id] = unit;
+          });
+        }
+      }
+
+      // Fetch brands
+      const brandMap: Record<string, { id: string; name: string }> = {};
+      if (brandIds.length > 0) {
+        const { data: brands } = await supabase
+          .from('business_brands')
+          .select('id, name')
+          .in('id', brandIds);
+          
+        if (brands) {
+          brands.forEach(brand => {
+            brandMap[brand.id] = brand;
+          });
+        }
+      }
+
+      // Fetch warranties
+      const warrantyMap: Record<string, { id: string; name: string }> = {};
+      if (warrantyIds.length > 0) {
+        const { data: warranties } = await supabase
+          .from('business_warranties')
+          .select('id, name')
+          .in('id', warrantyIds);
+          
+        if (warranties) {
+          warranties.forEach(warranty => {
+            warrantyMap[warranty.id] = warranty;
+          });
+        }
+      }
+
       // Merge the data
       const quantityMap: Record<string, any> = {};
       quantities?.forEach(item => {
@@ -66,17 +121,19 @@ export const useBusinessProducts = (filters: Record<string, any> = {}) => {
 
       // Process the data to add quantities
       const processedProducts = products.map(product => {
-        // Handle possible SelectQueryError for unit, brand, warranty
-        const unitData = product.unit && !product.unit.error
-          ? { id: product.unit.id, name: product.unit.name, short_name: product.unit.short_name }
+        // Resolve unit using our separate unit query
+        const unitData = product.unit_id && unitMap[product.unit_id] 
+          ? unitMap[product.unit_id] 
           : null;
           
-        const brandData = product.brand && !product.brand.error
-          ? { id: product.brand.id, name: product.brand.name }
+        // Resolve brand using our separate brand query
+        const brandData = product.brand_id && brandMap[product.brand_id] 
+          ? brandMap[product.brand_id] 
           : null;
           
-        const warrantyData = product.warranty && !product.warranty.error
-          ? { id: product.warranty.id, name: product.warranty.name }
+        // Resolve warranty using our separate warranty query
+        const warrantyData = product.warranty_id && warrantyMap[product.warranty_id] 
+          ? warrantyMap[product.warranty_id] 
           : null;
         
         // Calculate cost_margin and profit_margin

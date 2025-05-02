@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   DialogContent,
@@ -106,7 +105,11 @@ const ConsumableTransactionHistory: React.FC<ConsumableTransactionHistoryProps> 
                     </Badge>
                   </TableCell>
                   <TableCell>{Math.abs(transaction.quantity)}</TableCell>
-                  <TableCell>{transaction.unit?.short_name || '-'}</TableCell>
+                  <TableCell>
+                    {transaction.unit && typeof transaction.unit === 'object' && !transaction.unit.error 
+                      ? transaction.unit.short_name 
+                      : ''}
+                  </TableCell>
                   <TableCell>${transaction.cost_per_unit.toFixed(2)}</TableCell>
                   <TableCell>${transaction.total_cost.toFixed(2)}</TableCell>
                   <TableCell>

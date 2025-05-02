@@ -1,4 +1,3 @@
-
 export interface BusinessProduct {
   id: string;
   business_id: string;
@@ -25,7 +24,6 @@ export interface BusinessProduct {
   brand?: { id: string; name: string } | null;
   warranty?: { id: string; name: string } | null;
   category?: { id: string; name: string } | null;
-  // Add these properties to fix the errors
   quantity?: number;
   cost_margin?: number;
   profit_margin?: number;

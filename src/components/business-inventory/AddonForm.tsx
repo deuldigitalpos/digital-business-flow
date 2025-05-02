@@ -38,7 +38,7 @@ export const AddonForm: React.FC<AddonFormProps> = ({ addon, onClose }) => {
       if (isEditing && addon) {
         await updateAddon.mutateAsync({
           id: addon.id,
-          ...values
+          addonData: values // Fix: Wrap the values in addonData object
         });
       } else {
         // Make sure the form values match the expected type

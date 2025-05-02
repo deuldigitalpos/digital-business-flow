@@ -36,7 +36,7 @@ export const useBusinessConsumables = () => {
         .select(`
           *,
           category:business_categories(id, name),
-          unit:business_units(id, name, short_name)
+          unit_id
         `)
         .eq('business_id', businessUser.business_id);
       
@@ -57,17 +57,37 @@ export const useBusinessConsumables = () => {
         throw quantitiesError;
       }
 
+      // Get units separately (since we have a relationship error)
+      const unitIds = consumables
+        .filter(c => c.unit_id)
+        .map(c => c.unit_id);
+      
+      const unitMap: Record<string, { id: string; name: string; short_name: string }> = {};
+      
+      if (unitIds.length > 0) {
+        const { data: units } = await supabase
+          .from('business_units')
+          .select('id, name, short_name')
+          .in('id', unitIds);
+          
+        if (units) {
+          units.forEach(unit => {
+            unitMap[unit.id] = unit;
+          });
+        }
+      }
+
       // Merge the data
       const quantityMap: Record<string, any> = {};
       quantities?.forEach(item => {
         quantityMap[item.item_id] = item;
       });
 
-      // Process the data to add quantities
+      // Process the data to add quantities and resolve unit relations
       const processedConsumables = consumables.map(consumable => {
-        // Handle possible SelectQueryError for unit
-        const unitData = consumable.unit && !consumable.unit.error
-          ? { id: consumable.unit.id, name: consumable.unit.name, short_name: consumable.unit.short_name }
+        // Resolve unit using our separate unit query
+        const unitData = consumable.unit_id && unitMap[consumable.unit_id] 
+          ? unitMap[consumable.unit_id] 
           : null;
           
         return {

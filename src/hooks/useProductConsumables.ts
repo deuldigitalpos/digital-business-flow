@@ -11,17 +11,10 @@ export const useProductConsumables = (productId?: string) => {
         return [];
       }
       
-      const { data, error } = await supabase
+      // Get consumables without relations that cause errors
+      const { data: consumableRecords, error } = await supabase
         .from('business_product_consumables')
-        .select(`
-          *,
-          consumable:business_consumables(
-            id, 
-            name,
-            unit:business_units(id, name, short_name)
-          ),
-          unit:business_units(id, name, short_name)
-        `)
+        .select(`id, product_id, consumable_id, quantity, unit_id, cost`)
         .eq('product_id', productId);
       
       if (error) {
@@ -29,31 +22,55 @@ export const useProductConsumables = (productId?: string) => {
         throw error;
       }
 
+      // If no consumables, return empty array
+      if (!consumableRecords || consumableRecords.length === 0) {
+        return [];
+      }
+
+      // Get consumable info separately
+      const consumableIds = consumableRecords.map(r => r.consumable_id);
+      const { data: consumables } = await supabase
+        .from('business_consumables')
+        .select(`id, name, unit_id`)
+        .in('id', consumableIds);
+
+      // Get units separately
+      const unitIds = [
+        ...consumableRecords.filter(r => r.unit_id).map(r => r.unit_id),
+        ...consumables.filter(c => c.unit_id).map(c => c.unit_id)
+      ].filter(Boolean);
+      
+      const { data: units } = await supabase
+        .from('business_units')
+        .select(`id, name, short_name`)
+        .in('id', unitIds);
+
+      // Create maps for easy lookup
+      const consumableMap = consumables.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {} as Record<string, any>);
+      
+      const unitMap = units.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {} as Record<string, any>);
+
       // Process data to ensure correct types
-      const processedData = data.map(item => {
-        // Handle possible SelectQueryError for unit
-        const unitData = item.unit && !item.unit.error
-          ? { id: item.unit.id, name: item.unit.name, short_name: item.unit.short_name }
-          : null;
-
-        // Handle possible SelectQueryError for consumable.unit
-        let consumableData = null;
-        if (item.consumable && !item.consumable.error) {
-          const consumableUnitData = item.consumable.unit && !item.consumable.unit.error
-            ? { id: item.consumable.unit.id, name: item.consumable.unit.name, short_name: item.consumable.unit.short_name }
-            : null;
-            
-          consumableData = {
-            id: item.consumable.id,
-            name: item.consumable.name,
-            unit: consumableUnitData
-          };
-        }
-
+      const processedData = consumableRecords.map(item => {
+        const consumableData = consumableMap[item.consumable_id];
+        const recipeUnitData = item.unit_id ? unitMap[item.unit_id] : null;
+        const consumableUnitData = consumableData?.unit_id ? unitMap[consumableData.unit_id] : null;
+        
         return {
           ...item,
-          unit: unitData,
-          consumable: consumableData
+          name: consumableData?.name,
+          unit: recipeUnitData || null,
+          consumable: consumableData ? {
+            id: consumableData.id,
+            name: consumableData.name,
+            unit: consumableUnitData || null
+          } : null
         };
       });
 

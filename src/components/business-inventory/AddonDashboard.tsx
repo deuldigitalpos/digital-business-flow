@@ -2,7 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, DollarSign, BarChart } from 'lucide-react';
-import useBusinessAddons, { BusinessAddon } from '@/hooks/useBusinessAddons';
+import useBusinessAddons from '@/hooks/useBusinessAddons';
+import { BusinessAddon } from '@/types/business-addon'; // Import from types file instead
 
 interface AddonMetricsProps {
   addons: BusinessAddon[];

@@ -11,17 +11,10 @@ export const useProductIngredients = (productId?: string) => {
         return [];
       }
       
-      const { data, error } = await supabase
+      // Get recipes without relations that cause errors
+      const { data: recipes, error } = await supabase
         .from('business_product_recipes')
-        .select(`
-          *,
-          ingredient:business_ingredients(
-            id, 
-            name,
-            unit:business_units(id, name, short_name)
-          ),
-          unit:business_units(id, name, short_name)
-        `)
+        .select(`id, product_id, ingredient_id, quantity, unit_id, cost`)
         .eq('product_id', productId);
       
       if (error) {
@@ -29,31 +22,55 @@ export const useProductIngredients = (productId?: string) => {
         throw error;
       }
 
+      // If no recipes, return empty array
+      if (!recipes || recipes.length === 0) {
+        return [];
+      }
+
+      // Get ingredients separately
+      const ingredientIds = recipes.map(r => r.ingredient_id);
+      const { data: ingredients } = await supabase
+        .from('business_ingredients')
+        .select(`id, name, unit_id`)
+        .in('id', ingredientIds);
+
+      // Get units separately
+      const unitIds = [
+        ...recipes.filter(r => r.unit_id).map(r => r.unit_id),
+        ...ingredients.filter(i => i.unit_id).map(i => i.unit_id)
+      ].filter(Boolean);
+      
+      const { data: units } = await supabase
+        .from('business_units')
+        .select(`id, name, short_name`)
+        .in('id', unitIds);
+
+      // Create maps for easy lookup
+      const ingredientMap = ingredients.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {} as Record<string, any>);
+      
+      const unitMap = units.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {} as Record<string, any>);
+
       // Process data to ensure correct types
-      const processedData = data.map(item => {
-        // Handle possible SelectQueryError for unit
-        const unitData = item.unit && !item.unit.error
-          ? { id: item.unit.id, name: item.unit.name, short_name: item.unit.short_name }
-          : null;
-
-        // Handle possible SelectQueryError for ingredient.unit
-        let ingredientData = null;
-        if (item.ingredient && !item.ingredient.error) {
-          const ingredientUnitData = item.ingredient.unit && !item.ingredient.unit.error
-            ? { id: item.ingredient.unit.id, name: item.ingredient.unit.name, short_name: item.ingredient.unit.short_name }
-            : null;
-            
-          ingredientData = {
-            id: item.ingredient.id,
-            name: item.ingredient.name,
-            unit: ingredientUnitData
-          };
-        }
-
+      const processedData = recipes.map(item => {
+        const ingredientData = ingredientMap[item.ingredient_id];
+        const recipeUnitData = item.unit_id ? unitMap[item.unit_id] : null;
+        const ingredientUnitData = ingredientData?.unit_id ? unitMap[ingredientData.unit_id] : null;
+        
         return {
           ...item,
-          unit: unitData,
-          ingredient: ingredientData
+          name: ingredientData?.name,
+          unit: recipeUnitData || null,
+          ingredient: ingredientData ? {
+            id: ingredientData.id,
+            name: ingredientData.name,
+            unit: ingredientUnitData || null
+          } : null
         };
       });
 

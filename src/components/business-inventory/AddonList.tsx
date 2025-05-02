@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React from 'react';
+import { BusinessAddon } from '@/types/business-addon';
 import { 
   Table, 
   TableBody, 
@@ -23,7 +23,6 @@ import {
   Search, 
   Plus
 } from 'lucide-react';
-import { BusinessAddon } from '@/hooks/useBusinessAddons';
 import { useBusinessAddonMutations } from '@/hooks/useBusinessAddonMutations';
 import AddonForm from './AddonForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
