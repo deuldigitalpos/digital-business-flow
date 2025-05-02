@@ -26,7 +26,7 @@ export const useBusinessConsumableMutations = () => {
   const queryClient = useQueryClient();
 
   // Helper function to ensure IDs are not empty strings
-  const sanitizeInput = (input: ConsumableCreateInput | ConsumableUpdateInput) => {
+  const sanitizeInput = <T extends ConsumableCreateInput | ConsumableUpdateInput>(input: T): T => {
     const sanitized = { ...input };
     
     // Convert empty strings to null for foreign keys
@@ -79,13 +79,15 @@ export const useBusinessConsumableMutations = () => {
 
   const updateConsumable = useMutation({
     mutationFn: async (consumable: ConsumableUpdateInput) => {
-      // Ensure the input is a ConsumableUpdateInput type with an id property
-      if (!('id' in consumable)) {
+      // Ensure we have an ID to work with
+      if (!consumable.id) {
         throw new Error('ID is required for updating a consumable');
       }
       
-      // Destructure to separate id from updateFields
-      const { id, ...updateFields } = sanitizeInput(consumable as ConsumableUpdateInput);
+      const sanitizedInput = sanitizeInput(consumable);
+      
+      // Safely extract the id first, then the rest of the fields
+      const { id, ...updateFields } = sanitizedInput;
       
       const { data, error } = await supabase
         .from('business_consumables')
