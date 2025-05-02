@@ -71,7 +71,8 @@ export const useBusinessConsumables = () => {
         // Properly check if unit exists and is a valid object without error property
         if (consumable.unit && 
             typeof consumable.unit === 'object' && 
-            !('error' in consumable.unit)) {
+            !('error' in consumable.unit) && 
+            consumable.unit !== null) {
           unitValue = consumable.unit;
         }
 
