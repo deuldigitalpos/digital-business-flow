@@ -44,13 +44,20 @@ export const useBusinessConsumableMutations = () => {
 
       const sanitizedInput = sanitizeInput(consumable);
 
-      // Make sure to create a single object, not an array for insert
+      // Explicitly cast the input to match the expected DB schema
+      const insertData = {
+        business_id: businessUser.business_id,
+        name: sanitizedInput.name,
+        description: sanitizedInput.description,
+        category_id: sanitizedInput.category_id,
+        unit_id: sanitizedInput.unit_id,
+        image_url: sanitizedInput.image_url
+      };
+
+      // Insert as a single object
       const { data, error } = await supabase
         .from('business_consumables')
-        .insert({
-          ...sanitizedInput,
-          business_id: businessUser.business_id
-        })
+        .insert(insertData)
         .select('*')
         .single();
 
@@ -72,11 +79,12 @@ export const useBusinessConsumableMutations = () => {
 
   const updateConsumable = useMutation({
     mutationFn: async (consumable: ConsumableUpdateInput) => {
-      const { id, ...updateData } = sanitizeInput(consumable);
-
+      // Destructure to separate id from updateData
+      const { id, ...updateFields } = sanitizeInput(consumable);
+      
       const { data, error } = await supabase
         .from('business_consumables')
-        .update(updateData)
+        .update(updateFields)
         .eq('id', id)
         .eq('business_id', businessUser?.business_id)
         .select('*')
