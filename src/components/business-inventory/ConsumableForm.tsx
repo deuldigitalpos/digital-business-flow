@@ -6,13 +6,21 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useBusinessConsumables } from "@/hooks/useBusinessConsumables";
-import ImageUploader from "@/components/ImageUploader";
-import { ConsumableFormValues, consumableFormSchema } from "./consumable-form/types";
-import CategorySelect from "./shared/CategorySelect";
+import useBusinessConsumableMutations from "@/hooks/useBusinessConsumableMutations";
+import { z } from "zod";
+
+// Define schema for the form
+const consumableFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  category_id: z.string().optional(),
+  image_url: z.string().optional(),
+});
+
+type ConsumableFormValues = z.infer<typeof consumableFormSchema>;
 
 const ConsumableForm = ({ consumable, onClose }: { consumable: any | null, onClose: () => void }) => {
-  const { createConsumable, updateConsumable } = useBusinessConsumables();
+  const { createConsumable, updateConsumable } = useBusinessConsumableMutations();
   
   const defaultValues: ConsumableFormValues = consumable ? {
     name: consumable.name || "",
@@ -99,10 +107,14 @@ const ConsumableForm = ({ consumable, onClose }: { consumable: any | null, onClo
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <CategorySelect
+              <select
+                className="w-full p-2 border rounded"
                 value={field.value || ''}
-                onChange={field.onChange}
-              />
+                onChange={(e) => field.onChange(e.target.value)}
+              >
+                <option value="">Select Category</option>
+                {/* We'd populate this with categories */}
+              </select>
               <FormMessage />
             </FormItem>
           )}
@@ -113,12 +125,12 @@ const ConsumableForm = ({ consumable, onClose }: { consumable: any | null, onClo
           name="image_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image</FormLabel>
+              <FormLabel>Image URL</FormLabel>
               <FormControl>
-                <ImageUploader
+                <Input
+                  placeholder="Image URL"
+                  {...field}
                   value={field.value || ''}
-                  onChange={field.onChange}
-                  bucketName="product-images"
                 />
               </FormControl>
               <FormMessage />

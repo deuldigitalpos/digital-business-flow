@@ -16,7 +16,6 @@ import { IngredientFormProps, IngredientFormValues, ingredientFormSchema } from 
 import { NameField } from './ingredient-form/NameField';
 import { DescriptionField } from './ingredient-form/DescriptionField';
 import { CategorySelect } from './ingredient-form/CategorySelect';
-import { UnitSelect } from './ingredient-form/UnitSelect';
 
 const IngredientForm: React.FC<IngredientFormProps> = ({ ingredient, onClose }) => {
   const { createIngredient, updateIngredient } = useBusinessIngredientMutations();
@@ -28,7 +27,6 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ ingredient, onClose }) 
       name: '',
       description: '',
       category_id: null,
-      unit_id: null,
       image_url: null
     }
   });
@@ -39,7 +37,6 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ ingredient, onClose }) 
         name: ingredient.name,
         description: ingredient.description || '',
         category_id: ingredient.category_id || null,
-        unit_id: ingredient.unit_id || null,
         image_url: ingredient.image_url || null
       });
     } else {
@@ -47,7 +44,6 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ ingredient, onClose }) 
         name: '',
         description: '',
         category_id: null,
-        unit_id: null,
         image_url: null
       });
     }
@@ -62,7 +58,6 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ ingredient, onClose }) 
           name: data.name,
           description: data.description || '',
           category_id: data.category_id || null,
-          unit_id: data.unit_id || null,
           image_url: data.image_url || null
         });
       } else {
@@ -70,7 +65,6 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ ingredient, onClose }) 
           name: data.name,
           description: data.description || '',
           category_id: data.category_id || null,
-          unit_id: data.unit_id || null,
           image_url: data.image_url || null
         });
       }
@@ -92,7 +86,6 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ ingredient, onClose }) 
           <NameField form={form} />
           <DescriptionField form={form} />
           <CategorySelect form={form} />
-          <UnitSelect form={form} />
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>

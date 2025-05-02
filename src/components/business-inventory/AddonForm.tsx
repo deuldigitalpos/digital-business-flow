@@ -6,13 +6,23 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import useBusinessAddonMutations from "@/hooks/useBusinessAddonMutations";
 import { useBusinessAddons } from "@/hooks/useBusinessAddons";
-import ImageUploader from "@/components/ImageUploader";
-import { AddonFormValues, addonFormSchema } from "./addon-form/types";
-import CategorySelect from "./shared/CategorySelect";
+import { z } from "zod";
+
+// Define schema for the form
+const addonFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  category_id: z.string().optional(),
+  image_url: z.string().optional(),
+});
+
+type AddonFormValues = z.infer<typeof addonFormSchema>;
 
 const AddonForm = ({ addon, onClose }: { addon: any | null, onClose: () => void }) => {
-  const { createAddon, updateAddon } = useBusinessAddons();
+  const { addons } = useBusinessAddons();
+  const { createAddon, updateAddon } = useBusinessAddonMutations();
   
   const defaultValues: AddonFormValues = addon ? {
     name: addon.name || "",
@@ -99,10 +109,14 @@ const AddonForm = ({ addon, onClose }: { addon: any | null, onClose: () => void 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <CategorySelect
+              <select
+                className="w-full p-2 border rounded"
                 value={field.value || ''}
-                onChange={field.onChange}
-              />
+                onChange={(e) => field.onChange(e.target.value)}
+              >
+                <option value="">Select Category</option>
+                {/* We'd populate this with categories */}
+              </select>
               <FormMessage />
             </FormItem>
           )}
@@ -113,12 +127,12 @@ const AddonForm = ({ addon, onClose }: { addon: any | null, onClose: () => void 
           name="image_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image</FormLabel>
+              <FormLabel>Image URL</FormLabel>
               <FormControl>
-                <ImageUploader
+                <Input
+                  placeholder="Image URL"
+                  {...field}
                   value={field.value || ''}
-                  onChange={field.onChange}
-                  bucketName="product-images"
                 />
               </FormControl>
               <FormMessage />

@@ -94,7 +94,7 @@ function App() {
               <Route path="suppliers" element={<BusinessSuppliers />} />
               <Route path="activity-log" element={<BusinessActivityLog />} />
               
-              {/* New Inventory Routes */}
+              {/* Inventory Routes */}
               <Route path="inventory/products" element={<BusinessProducts />} />
               <Route path="inventory/consumables" element={<BusinessConsumables />} />
               <Route path="inventory/ingredients" element={<BusinessIngredients />} />
