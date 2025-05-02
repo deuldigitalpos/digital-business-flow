@@ -35,7 +35,7 @@ const ConsumableTransactionHistory: React.FC<ConsumableTransactionHistoryProps> 
     isLoading 
   } = useBusinessStockTransactions({
     itemId: consumable.id,
-    itemType: 'consumable'
+    transactionType: 'consumable'  // Changed from itemType to transactionType
   });
 
   const getTransactionTypeLabel = (type: string) => {
