@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -93,10 +94,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode }) => {
             <FormLabel>Description</FormLabel>
             <FormControl>
               <Textarea placeholder="Product description" {...field} />
-            </FormItem>
-          )}
-        />
-      </FormField>
+            </FormControl>
+          </FormItem>
+        )}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <FormField
