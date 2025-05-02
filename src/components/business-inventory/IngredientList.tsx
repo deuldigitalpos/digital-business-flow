@@ -18,16 +18,16 @@ const IngredientList: React.FC<IngredientListProps> = ({
 }) => {
   const { ingredients, isLoading, refetch } = useBusinessIngredients();
   const { deleteIngredient } = useBusinessIngredientMutations();
-  const [selectedIngredient, setSelectedIngredient] = useState<BusinessIngredient | null>(null);
+  const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isTransactionHistoryOpen, setIsTransactionHistoryOpen] = useState(false);
 
-  const handleEdit = (ingredient: BusinessIngredient) => {
+  const handleEdit = (ingredient) => {
     setSelectedIngredient(ingredient);
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this ingredient?')) {
       try {
         await deleteIngredient.mutateAsync(id);
@@ -37,7 +37,7 @@ const IngredientList: React.FC<IngredientListProps> = ({
     }
   };
 
-  const handleViewTransactions = (ingredient: BusinessIngredient) => {
+  const handleViewTransactions = (ingredient) => {
     setSelectedIngredient(ingredient);
     setIsTransactionHistoryOpen(true);
   };
