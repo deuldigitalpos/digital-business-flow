@@ -3,11 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessUnit } from '@/types/business-unit';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { useToast } from '@/hooks/use-toast';
 
 export function useBusinessUnits() {
   const { business, businessUser } = useBusinessAuth();
-  const { toast } = useToast();
   
   const businessId = business?.id || businessUser?.business_id;
 
@@ -20,7 +18,6 @@ export function useBusinessUnits() {
       }
       
       console.log('Fetching units for business ID:', businessId);
-      console.log('Current business user ID:', businessUser?.id);
       
       const { data, error } = await supabase
         .from('business_units')
@@ -30,11 +27,6 @@ export function useBusinessUnits() {
         
       if (error) {
         console.error('Error fetching units:', error);
-        toast({
-          title: "Error fetching units",
-          description: error.message,
-          variant: "destructive",
-        });
         throw error;
       }
       
@@ -42,13 +34,12 @@ export function useBusinessUnits() {
       return data as BusinessUnit[];
     },
     enabled: !!businessId,
-    retry: 2,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 
 export function useBusinessUnit(id: string | undefined) {
   const { business, businessUser } = useBusinessAuth();
-  const { toast } = useToast();
   const businessId = business?.id || businessUser?.business_id;
   
   return useQuery({
@@ -67,11 +58,6 @@ export function useBusinessUnit(id: string | undefined) {
 
       if (error) {
         console.error('Error fetching unit details:', error);
-        toast({
-          title: "Error fetching unit details",
-          description: error.message,
-          variant: "destructive",
-        });
         throw error;
       }
 

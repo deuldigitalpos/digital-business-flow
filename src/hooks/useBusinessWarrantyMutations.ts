@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { BusinessWarrantyFormValues } from '@/types/business-warranty';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { toast } from 'sonner';
-import { differenceInDays } from 'date-fns';
 
 export function useBusinessWarrantyMutations() {
   const queryClient = useQueryClient();
@@ -20,35 +19,21 @@ export function useBusinessWarrantyMutations() {
     return businessId;
   };
 
-  // Helper to convert from form values to database structure
-  const convertFormToDbValues = (warrantyData: BusinessWarrantyFormValues) => {
-    // Calculate duration in days from expiration_date
-    const today = new Date();
-    const expirationDate = new Date(warrantyData.expiration_date);
-    const durationDays = differenceInDays(expirationDate, today);
-
-    return {
-      name: warrantyData.name,
-      description: warrantyData.description,
-      business_id: getBusinessId(),
-      duration: durationDays > 0 ? durationDays : 30, // Store as days, default to 30 if calculation gives invalid value
-      duration_unit: 'days', // Always store as days
-      is_active: warrantyData.is_active !== undefined ? warrantyData.is_active : true,
-      expiration_date: warrantyData.expiration_date // Store the expiration date directly as well
-    };
-  };
-
   const createWarranty = useMutation({
-    mutationFn: async (warrantyData: BusinessWarrantyFormValues) => {
+    mutationFn: async (warrantyData: any) => {
       const businessId = getBusinessId();
       console.log('Creating warranty for business ID:', businessId);
 
-      const dbValues = convertFormToDbValues(warrantyData);
-      console.log('Converted warranty data:', dbValues);
-
       const { data, error } = await supabase
         .from('business_warranties')
-        .insert(dbValues)
+        .insert({
+          business_id: businessId,
+          name: warrantyData.name,
+          description: warrantyData.description,
+          duration: warrantyData.duration,
+          duration_unit: warrantyData.duration_unit,
+          is_active: warrantyData.is_active
+        })
         .select()
         .single();
 
@@ -66,17 +51,23 @@ export function useBusinessWarrantyMutations() {
     },
     onError: (error) => {
       console.error('Failed to create warranty:', error);
+      toast.error("Failed to create warranty: " + (error.message || "Unknown error"));
     }
   });
 
   const updateWarranty = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: BusinessWarrantyFormValues }) => {
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
       console.log('Updating warranty ID:', id, 'with data:', data);
-      const dbValues = convertFormToDbValues(data);
 
       const { data: updatedWarranty, error } = await supabase
         .from('business_warranties')
-        .update(dbValues)
+        .update({
+          name: data.name,
+          description: data.description,
+          duration: data.duration,
+          duration_unit: data.duration_unit,
+          is_active: data.is_active
+        })
         .eq('id', id)
         .select()
         .single();
@@ -95,6 +86,7 @@ export function useBusinessWarrantyMutations() {
     },
     onError: (error) => {
       console.error('Failed to update warranty:', error);
+      toast.error("Failed to update warranty: " + (error.message || "Unknown error"));
     }
   });
 
@@ -120,6 +112,7 @@ export function useBusinessWarrantyMutations() {
     },
     onError: (error) => {
       console.error('Failed to delete warranty:', error);
+      toast.error("Failed to delete warranty: " + (error.message || "Unknown error"));
     }
   });
 

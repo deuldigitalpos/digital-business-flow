@@ -10,7 +10,7 @@ export const useBusinessWarranties = () => {
   const { businessUser, business } = useBusinessAuth();
   
   const query = useQuery({
-    queryKey: ['business-warranties', business?.id],
+    queryKey: ['business-warranties', business?.id || businessUser?.business_id],
     queryFn: async (): Promise<BusinessWarranty[]> => {
       if (!business?.id && !businessUser?.business_id) {
         console.error('No business ID available for fetching warranties');
@@ -38,6 +38,16 @@ export const useBusinessWarranties = () => {
         
         if (warranty.duration_unit === 'days') {
           expiryDate = addDays(new Date(), warranty.duration).toISOString().split('T')[0];
+        } else if (warranty.duration_unit === 'weeks') {
+          expiryDate = addDays(new Date(), warranty.duration * 7).toISOString().split('T')[0];
+        } else if (warranty.duration_unit === 'months') {
+          expiryDate = new Date();
+          expiryDate.setMonth(expiryDate.getMonth() + warranty.duration);
+          expiryDate = expiryDate.toISOString().split('T')[0];
+        } else if (warranty.duration_unit === 'years') {
+          expiryDate = new Date();
+          expiryDate.setFullYear(expiryDate.getFullYear() + warranty.duration);
+          expiryDate = expiryDate.toISOString().split('T')[0];
         } else {
           // Default to 30 days if unit is not recognized
           expiryDate = addDays(new Date(), 30).toISOString().split('T')[0];
@@ -45,7 +55,7 @@ export const useBusinessWarranties = () => {
         
         return {
           ...warranty,
-          expiration_date: expiryDate
+          expiration_date: warranty.expiration_date || expiryDate
         };
       });
       
@@ -53,7 +63,7 @@ export const useBusinessWarranties = () => {
       return warrantiesWithExpiry as BusinessWarranty[];
     },
     enabled: !!(business?.id || businessUser?.business_id),
-    retry: 2,
+    staleTime: 1000 * 60 * 5, // 5 minutes
     meta: {
       onError: (error: Error) => {
         console.error('Error in useBusinessWarranties hook:', error);
@@ -106,7 +116,7 @@ export const useWarrantyProductsCount = () => {
       return counts;
     },
     enabled: !!businessId,
-    retry: 1
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   return query;
@@ -144,7 +154,7 @@ export const useExpiredWarranties = () => {
       return data as unknown as BusinessWarrantyProduct[];
     },
     enabled: !!businessId,
-    retry: 1
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   return query;

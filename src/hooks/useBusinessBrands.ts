@@ -3,11 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessBrand } from '@/types/business-brand';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { useToast } from '@/hooks/use-toast';
 
 export const useBusinessBrands = () => {
   const { business, businessUser } = useBusinessAuth();
-  const { toast } = useToast();
   
   const businessId = business?.id || businessUser?.business_id;
 
@@ -20,7 +18,6 @@ export const useBusinessBrands = () => {
       }
       
       console.log('Fetching brands for business ID:', businessId);
-      console.log('Current business user ID:', businessUser?.id);
       
       const { data, error } = await supabase
         .from('business_brands')
@@ -30,11 +27,6 @@ export const useBusinessBrands = () => {
       
       if (error) {
         console.error('Error fetching brands:', error);
-        toast({
-          title: "Error fetching brands",
-          description: error.message,
-          variant: "destructive",
-        });
         throw error;
       }
       
@@ -42,7 +34,7 @@ export const useBusinessBrands = () => {
       return data as BusinessBrand[];
     },
     enabled: !!businessId,
-    retry: 2,
+    staleTime: 1000 * 60 * 5, // 5 minutes
     meta: {
       onError: (error: Error) => {
         console.error('Error in useBusinessBrands hook:', error);
@@ -61,7 +53,6 @@ export const useBusinessBrands = () => {
 
 export const useBusinessBrand = (brandId: string | undefined) => {
   const { business, businessUser } = useBusinessAuth();
-  const { toast } = useToast();
   const businessId = business?.id || businessUser?.business_id;
   
   return useQuery({
@@ -80,15 +71,10 @@ export const useBusinessBrand = (brandId: string | undefined) => {
 
       if (error) {
         console.error('Error fetching brand:', error);
-        toast({
-          title: "Error fetching brand details",
-          description: error.message,
-          variant: "destructive",
-        });
         return null;
       }
 
-      return data;
+      return data as BusinessBrand;
     },
     enabled: !!brandId && !!businessId,
   });

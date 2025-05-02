@@ -1,35 +1,39 @@
 
 import React from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from "@/components/ui/form";
-import { BusinessWarrantyFormValues } from "@/types/business-warranty";
 import { useBusinessWarrantyMutations } from "@/hooks/useBusinessWarrantyMutations";
 import { Switch } from "@/components/ui/switch";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
-import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DialogClose } from "@/components/ui/dialog";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "Warranty name is required"),
   description: z.string().optional(),
-  expiration_date: z.string().min(1, "Expiration date is required"),
+  duration: z.coerce.number().positive("Duration must be positive"),
+  duration_unit: z.enum(["days", "weeks", "months", "years"]),
   is_active: z.boolean().default(true),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface AddWarrantyFormProps {
   onSuccess?: () => void;
@@ -38,26 +42,30 @@ interface AddWarrantyFormProps {
 const AddWarrantyForm: React.FC<AddWarrantyFormProps> = ({ onSuccess }) => {
   const { createWarranty } = useBusinessWarrantyMutations();
 
-  const form = useForm<BusinessWarrantyFormValues>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       description: "",
-      expiration_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"), // Default: 30 days from now
+      duration: 30,
+      duration_unit: "days",
       is_active: true,
     },
   });
 
-  const onSubmit = async (data: BusinessWarrantyFormValues) => {
+  const onSubmit = async (values: FormValues) => {
     try {
-      console.log("Submitting warranty data:", data);
-      await createWarranty.mutateAsync(data);
-      form.reset();
-      toast.success("Warranty created successfully");
+      await createWarranty.mutateAsync({
+        name: values.name,
+        description: values.description,
+        duration: values.duration,
+        duration_unit: values.duration_unit,
+        is_active: values.is_active,
+      });
       if (onSuccess) onSuccess();
+      form.reset();
     } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Failed to create warranty");
+      console.error("Error creating warranty:", error);
     }
   };
 
@@ -69,7 +77,7 @@ const AddWarrantyForm: React.FC<AddWarrantyFormProps> = ({ onSuccess }) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Warranty Name</FormLabel>
               <FormControl>
                 <Input placeholder="Enter warranty name" {...field} />
               </FormControl>
@@ -83,7 +91,7 @@ const AddWarrantyForm: React.FC<AddWarrantyFormProps> = ({ onSuccess }) => {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Description (Optional)</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Enter warranty description"
@@ -96,53 +104,64 @@ const AddWarrantyForm: React.FC<AddWarrantyFormProps> = ({ onSuccess }) => {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="expiration_date"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Expiration Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(new Date(field.value), "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="duration"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Duration</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min={1} 
+                    placeholder="Enter duration"
+                    {...field} 
                   />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="duration_unit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unit</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="days">Days</SelectItem>
+                    <SelectItem value="weeks">Weeks</SelectItem>
+                    <SelectItem value="months">Months</SelectItem>
+                    <SelectItem value="years">Years</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
           name="is_active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel>Active Status</FormLabel>
+                <FormLabel className="text-base">Active Status</FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Set whether this warranty is active or inactive
+                </p>
               </div>
               <FormControl>
                 <Switch
@@ -154,13 +173,16 @@ const AddWarrantyForm: React.FC<AddWarrantyFormProps> = ({ onSuccess }) => {
           )}
         />
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={createWarranty.isPending}
-        >
-          {createWarranty.isPending ? "Creating..." : "Create Warranty"}
-        </Button>
+        <div className="flex justify-end gap-2 pt-2">
+          <DialogClose asChild>
+            <Button variant="outline" type="button">
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button type="submit" disabled={createWarranty.isPending}>
+            {createWarranty.isPending ? "Creating..." : "Create Warranty"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

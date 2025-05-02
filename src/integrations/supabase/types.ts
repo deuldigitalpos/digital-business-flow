@@ -1160,6 +1160,7 @@ export type Database = {
           description: string | null
           duration: number
           duration_unit: string
+          expiration_date: string | null
           id: string
           is_active: boolean | null
           name: string
@@ -1171,6 +1172,7 @@ export type Database = {
           description?: string | null
           duration: number
           duration_unit: string
+          expiration_date?: string | null
           id?: string
           is_active?: boolean | null
           name: string
@@ -1182,6 +1184,7 @@ export type Database = {
           description?: string | null
           duration?: number
           duration_unit?: string
+          expiration_date?: string | null
           id?: string
           is_active?: boolean | null
           name?: string

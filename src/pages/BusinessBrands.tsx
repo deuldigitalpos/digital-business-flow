@@ -1,23 +1,28 @@
 
 import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import BrandManager from "@/components/business/BrandManager";
 import PermissionGuard from "@/components/business/PermissionGuard";
 
-export default function BusinessBrands() {
+const BusinessBrands: React.FC = () => {
   return (
     <PermissionGuard permission="products">
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Brand Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Brands</h1>
           <p className="text-muted-foreground">
-            Create and manage brands for your business products
+            Manage brands for your products and inventory
           </p>
         </div>
 
-        <div className="rounded-lg border shadow-sm p-4 md:p-6 bg-white">
-          <BrandManager />
-        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <BrandManager />
+          </CardContent>
+        </Card>
       </div>
     </PermissionGuard>
   );
-}
+};
+
+export default BusinessBrands;

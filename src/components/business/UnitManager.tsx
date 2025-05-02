@@ -39,6 +39,11 @@ const DEFAULT_UNITS = [
   { name: "Box", short_name: "box", description: "Container for multiple items" },
   { name: "Pack", short_name: "pack", description: "Group of items packaged together" },
   { name: "Dozen", short_name: "doz", description: "Twelve units" },
+  { name: "Tablespoon", short_name: "tbsp", description: "Cooking measurement (approx 15 ml)" },
+  { name: "Teaspoon", short_name: "tsp", description: "Cooking measurement (approx 5 ml)" },
+  { name: "Cup", short_name: "cup", description: "Volume unit used in cooking" },
+  { name: "Ounce", short_name: "oz", description: "Unit of weight" },
+  { name: "Pound", short_name: "lb", description: "Unit of weight (16 ounces)" }
 ];
 
 const UnitManager: React.FC = () => {
@@ -114,8 +119,10 @@ const UnitManager: React.FC = () => {
       try {
         await deleteUnit.mutateAsync(selectedUnit.id);
         setIsDeleteDialogOpen(false);
+        toast.success("Unit deleted successfully");
       } catch (error) {
         console.error("Error deleting unit:", error);
+        toast.error("Failed to delete unit");
       }
     }
   };
@@ -140,7 +147,11 @@ const UnitManager: React.FC = () => {
             <DialogHeader>
               <DialogTitle>Add New Unit</DialogTitle>
             </DialogHeader>
-            <AddUnitForm onSuccess={() => setIsAddDialogOpen(false)} />
+            <AddUnitForm onSuccess={() => {
+              setIsAddDialogOpen(false);
+              refetch();
+              toast.success("Unit created successfully");
+            }} />
           </DialogContent>
         </Dialog>
       </div>
@@ -161,7 +172,11 @@ const UnitManager: React.FC = () => {
           {selectedUnit && (
             <EditUnitForm 
               unit={selectedUnit} 
-              onSuccess={() => setIsEditDialogOpen(false)} 
+              onSuccess={() => {
+                setIsEditDialogOpen(false);
+                refetch();
+                toast.success("Unit updated successfully");
+              }} 
             />
           )}
         </DialogContent>
