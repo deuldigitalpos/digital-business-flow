@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { toast } from 'sonner';
-import { BusinessConsumable } from './useBusinessConsumables';
 
 export type ConsumableCreateInput = {
   name: string;

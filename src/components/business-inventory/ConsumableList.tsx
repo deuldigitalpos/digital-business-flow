@@ -18,7 +18,7 @@ import {
 import { Edit, MoreHorizontal, Trash2, Eye } from 'lucide-react';
 import { BusinessConsumable, useBusinessConsumables } from '@/hooks/useBusinessConsumables';
 import { useBusinessConsumableMutations } from '@/hooks/useBusinessConsumableMutations';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog } from '@/components/ui/dialog';
 import ConsumableForm from './ConsumableForm';
 import { Badge } from '@/components/ui/badge';
 import ConsumableTransactionHistory from './ConsumableTransactionHistory';
@@ -175,14 +175,24 @@ const ConsumableList: React.FC<ConsumableListProps> = ({
       </Table>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <ConsumableForm 
-          consumable={selectedConsumable} 
-          onClose={() => {
-            setIsFormOpen(false);
-            setSelectedConsumable(null);
-            refetch();
-          }}
-        />
+        {selectedConsumable ? (
+          <ConsumableForm 
+            consumable={selectedConsumable} 
+            onClose={() => {
+              setIsFormOpen(false);
+              setSelectedConsumable(null);
+              refetch();
+            }}
+          />
+        ) : (
+          <ConsumableForm 
+            consumable={null} 
+            onClose={() => {
+              setIsFormOpen(false);
+              refetch();
+            }}
+          />
+        )}
       </Dialog>
 
       <Dialog open={isTransactionHistoryOpen} onOpenChange={setIsTransactionHistoryOpen}>

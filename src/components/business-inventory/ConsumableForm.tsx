@@ -1,97 +1,111 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogFooter 
+} from '@/components/ui/dialog';
+import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useBusinessConsumableMutations } from '@/hooks/useBusinessConsumableMutations';
+import { Loader2 } from 'lucide-react';
+import { ConsumableFormProps, ConsumableFormValues, consumableFormSchema } from './consumable-form/types';
 import { NameField } from './consumable-form/NameField';
 import { DescriptionField } from './consumable-form/DescriptionField';
 import { CategorySelect } from './consumable-form/CategorySelect';
 import { UnitSelect } from './consumable-form/UnitSelect';
-import { ConsumableFormValues, consumableFormSchema } from './consumable-form/types';
-import { BusinessConsumable } from '@/hooks/useBusinessConsumables';
 
-export interface ConsumableFormProps {
-  consumable: BusinessConsumable | null;
-  onClose: () => void;
-}
-
-export const ConsumableForm: React.FC<ConsumableFormProps> = ({
-  consumable,
-  onClose,
-}) => {
+const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) => {
   const { createConsumable, updateConsumable } = useBusinessConsumableMutations();
-  const isEditMode = !!consumable;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ConsumableFormValues>({
     resolver: zodResolver(consumableFormSchema),
     defaultValues: {
-      name: consumable?.name || '',
-      description: consumable?.description || '',
-      category_id: consumable?.category_id || undefined,
-      unit_id: consumable?.unit_id || undefined,
-      image_url: consumable?.image_url || '',
-    },
+      name: '',
+      description: '',
+      category_id: null,
+      unit_id: null,
+      image_url: null
+    }
   });
 
+  useEffect(() => {
+    if (consumable) {
+      form.reset({
+        name: consumable.name,
+        description: consumable.description || '',
+        category_id: consumable.category_id || null,
+        unit_id: consumable.unit_id || null,
+        image_url: consumable.image_url || null
+      });
+    } else {
+      form.reset({
+        name: '',
+        description: '',
+        category_id: null,
+        unit_id: null,
+        image_url: null
+      });
+    }
+  }, [consumable, form]);
+
   const onSubmit = async (data: ConsumableFormValues) => {
+    setIsSubmitting(true);
     try {
-      if (isEditMode && consumable) {
+      if (consumable) {
         await updateConsumable.mutateAsync({
           id: consumable.id,
-          ...data,
+          name: data.name,
+          description: data.description || '',
+          category_id: data.category_id || null,
+          unit_id: data.unit_id || null,
+          image_url: data.image_url || null
         });
       } else {
-        // Ensure name is required for create operation
-        if (!data.name) {
-          form.setError('name', { message: 'Name is required' });
-          return;
-        }
         await createConsumable.mutateAsync({
           name: data.name,
-          description: data.description,
-          category_id: data.category_id,
-          unit_id: data.unit_id,
-          image_url: data.image_url,
+          description: data.description || '',
+          category_id: data.category_id || null,
+          unit_id: data.unit_id || null,
+          image_url: data.image_url || null
         });
       }
       onClose();
     } catch (error) {
-      console.error('Error saving consumable:', error);
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <NameField form={form} />
-        <DescriptionField form={form} />
-        <CategorySelect form={form} />
-        <UnitSelect form={form} />
+    <DialogContent className="sm:max-w-[500px]">
+      <DialogHeader>
+        <DialogTitle>{consumable ? 'Edit Consumable' : 'Add New Consumable'}</DialogTitle>
+      </DialogHeader>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <NameField form={form} />
+          <DescriptionField form={form} />
+          <CategorySelect form={form} />
+          <UnitSelect form={form} />
 
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={createConsumable.isPending || updateConsumable.isPending}
-          >
-            {isEditMode ? 'Update' : 'Create'} Consumable
-          </Button>
-        </div>
-      </form>
-    </Form>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {consumable ? 'Update' : 'Add'} Consumable
+            </Button>
+          </DialogFooter>
+        </form>
+      </Form>
+    </DialogContent>
   );
 };
 

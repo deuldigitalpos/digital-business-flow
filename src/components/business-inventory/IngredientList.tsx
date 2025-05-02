@@ -18,7 +18,7 @@ import {
 import { Edit, MoreHorizontal, Trash2, Eye } from 'lucide-react';
 import { BusinessIngredient, useBusinessIngredients } from '@/hooks/useBusinessIngredients';
 import { useBusinessIngredientMutations } from '@/hooks/useBusinessIngredientMutations';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog } from '@/components/ui/dialog';
 import IngredientForm from './IngredientForm';
 import { Badge } from '@/components/ui/badge';
 import ConsumableTransactionHistory from './ConsumableTransactionHistory'; // We'll reuse this for now
@@ -174,20 +174,33 @@ const IngredientList: React.FC<IngredientListProps> = ({
       </Table>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <IngredientForm 
-          ingredient={selectedIngredient} 
-          onClose={() => {
-            setIsFormOpen(false);
-            setSelectedIngredient(null);
-            refetch();
-          }}
-        />
+        {selectedIngredient ? (
+          <IngredientForm 
+            ingredient={selectedIngredient} 
+            onClose={() => {
+              setIsFormOpen(false);
+              setSelectedIngredient(null);
+              refetch();
+            }}
+          />
+        ) : (
+          <IngredientForm 
+            ingredient={null} 
+            onClose={() => {
+              setIsFormOpen(false);
+              refetch();
+            }}
+          />
+        )}
       </Dialog>
 
       <Dialog open={isTransactionHistoryOpen} onOpenChange={setIsTransactionHistoryOpen}>
         {selectedIngredient && (
           <ConsumableTransactionHistory 
-            consumable={{...selectedIngredient, id: selectedIngredient.id}}
+            consumable={{
+              ...selectedIngredient,
+              unit: selectedIngredient.unit || { id: '', name: '', short_name: '' }
+            }}
             onClose={() => {
               setIsTransactionHistoryOpen(false);
               setSelectedIngredient(null);
