@@ -79,8 +79,13 @@ export const useBusinessConsumableMutations = () => {
 
   const updateConsumable = useMutation({
     mutationFn: async (consumable: ConsumableUpdateInput) => {
-      // Destructure to separate id from updateData
-      const { id, ...updateFields } = sanitizeInput(consumable);
+      // Ensure the input is a ConsumableUpdateInput type with an id property
+      if (!('id' in consumable)) {
+        throw new Error('ID is required for updating a consumable');
+      }
+      
+      // Destructure to separate id from updateFields
+      const { id, ...updateFields } = sanitizeInput(consumable as ConsumableUpdateInput);
       
       const { data, error } = await supabase
         .from('business_consumables')
