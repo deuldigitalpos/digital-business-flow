@@ -20,7 +20,10 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { ProductFormValues, ProductConsumableInput, ProductIngredientInput, ProductSizeInput } from "@/types/business-product";
+import { IngredientSelector } from "./product-form/IngredientSelector";
+import { ConsumableSelector } from "./product-form/ConsumableSelector";
+import { SizeManager } from "./product-form/SizeManager";
+import { ProductFormValues } from "./product-form/types";
 import { useBusinessCategories } from "@/hooks/useBusinessCategories";
 import { useBusinessUnits } from "@/hooks/useBusinessUnits";
 import { useBusinessBrands } from "@/hooks/useBusinessBrands";
@@ -31,7 +34,7 @@ import useBusinessConsumables from "@/hooks/useBusinessConsumables";
 interface ProductFormProps {
   form: UseFormReturn<ProductFormValues>;
   isEditMode?: boolean;
-  onSubmit?: (values: ProductFormValues) => Promise<void>;
+  onSubmit: (values: ProductFormValues) => Promise<void>;
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit }) => {
@@ -45,19 +48,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit })
   useEffect(() => {
     // Reset the sizes field when isEditMode changes
     if (!isEditMode) {
-      form.reset({
-        ...form.getValues(),
-        sizes: [],
-        ingredients: [],
-        consumables: [],
-      });
+      form.setValue('ingredients', []);
+      form.setValue('consumables', []);
+      form.setValue('sizes', []);
     }
   }, [isEditMode, form]);
 
   const handleSubmit = (values: ProductFormValues) => {
-    if (onSubmit) {
-      onSubmit(values);
-    }
+    onSubmit(values);
   };
 
   return (
@@ -110,7 +108,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit })
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
@@ -134,7 +132,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit })
           render={({ field }) => (
             <FormItem>
               <FormLabel>Unit</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a unit" />
@@ -158,7 +156,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit })
           render={({ field }) => (
             <FormItem>
               <FormLabel>Brand</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a brand" />
@@ -184,7 +182,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit })
           render={({ field }) => (
             <FormItem>
               <FormLabel>Warranty</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a warranty" />
@@ -264,6 +262,60 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit })
           />
         </div>
       </div>
+
+      <Separator />
+
+      <Tabs defaultValue="general" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="sizes">Sizes</TabsTrigger>
+          <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
+          <TabsTrigger value="consumables">Consumables</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="general" className="space-y-4">
+          <FormField
+            control={form.control}
+            name="auto_generate_sku"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <div className="space-y-0.5">
+                  <FormLabel>Auto-generate SKU</FormLabel>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </TabsContent>
+        
+        <TabsContent value="sizes" className="space-y-2">
+          <SizeManager
+            form={form}
+            isEditMode={isEditMode}
+          />
+        </TabsContent>
+        
+        <TabsContent value="ingredients" className="space-y-2">
+          <IngredientSelector
+            form={form}
+            ingredients={ingredients || []}
+            isEditMode={isEditMode}
+          />
+        </TabsContent>
+        
+        <TabsContent value="consumables" className="space-y-2">
+          <ConsumableSelector
+            form={form}
+            consumables={consumables || []}
+            isEditMode={isEditMode}
+          />
+        </TabsContent>
+      </Tabs>
 
       <Button type="submit" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Submitting..." : "Submit"}

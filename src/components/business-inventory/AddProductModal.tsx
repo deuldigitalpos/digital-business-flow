@@ -4,9 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ProductFormValues } from "@/types/business-product";
 import useBusinessProductMutations from "@/hooks/useBusinessProductMutations";
 import ProductForm from "@/components/business-inventory/ProductForm";
+import { ProductFormValues } from "./product-form/types";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -29,12 +29,28 @@ const formSchema = z.object({
   has_sizes: z.boolean().default(false),
   auto_generate_sku: z.boolean().default(true),
   is_active: z.boolean().default(true),
+  sizes: z.array(z.object({
+    name: z.string(),
+    additional_price: z.number(),
+  })).optional().default([]),
+  ingredients: z.array(z.object({
+    ingredient_id: z.string(),
+    quantity: z.number(),
+    unit_id: z.string(),
+    cost: z.number(),
+  })).optional().default([]),
+  consumables: z.array(z.object({
+    consumable_id: z.string(),
+    quantity: z.number(),
+    unit_id: z.string(),
+    cost: z.number(),
+  })).optional().default([])
 });
 
 const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) => {
   const { createProduct } = useBusinessProductMutations();
   
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -47,19 +63,23 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) =>
       has_sizes: false,
       is_active: true,
       auto_generate_sku: true,
+      sizes: [],
+      ingredients: [],
+      consumables: []
     },
   });
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: ProductFormValues) => {
     try {
       await createProduct.mutateAsync({
-        product: values as ProductFormValues,
-        ingredients: [], 
-        consumables: [],
-        sizes: [],
+        product: values,
+        ingredients: values.ingredients || [], 
+        consumables: values.consumables || [],
+        sizes: values.sizes || [],
       });
       
       onClose();
+      form.reset();
     } catch (error) {
       console.error("Error creating product:", error);
     }

@@ -4,9 +4,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { BusinessProduct, ProductFormValues } from "@/types/business-product";
+import { BusinessProduct } from "@/types/business-product";
 import useBusinessProductMutations from "@/hooks/useBusinessProductMutations";
 import ProductForm from "@/components/business-inventory/ProductForm";
+import { ProductFormValues } from "./product-form/types";
+import useProductIngredients from "@/hooks/useProductIngredients";
+import useProductConsumables from "@/hooks/useProductConsumables";
+import useProductSizes from "@/hooks/useProductSizes";
+import { useEffect } from "react";
 
 interface EditProductModalProps {
   product: BusinessProduct;
@@ -30,12 +35,31 @@ const formSchema = z.object({
   has_sizes: z.boolean().default(false),
   auto_generate_sku: z.boolean().default(true),
   is_active: z.boolean().default(true),
+  sizes: z.array(z.object({
+    name: z.string(),
+    additional_price: z.number(),
+  })).optional().default([]),
+  ingredients: z.array(z.object({
+    ingredient_id: z.string(),
+    quantity: z.number(),
+    unit_id: z.string(),
+    cost: z.number(),
+  })).optional().default([]),
+  consumables: z.array(z.object({
+    consumable_id: z.string(),
+    quantity: z.number(),
+    unit_id: z.string(),
+    cost: z.number(),
+  })).optional().default([])
 });
 
 const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, onClose }) => {
   const { updateProduct } = useBusinessProductMutations();
+  const { productIngredients } = useProductIngredients(product.id);
+  const { productConsumables } = useProductConsumables(product.id);
+  const { productSizes } = useProductSizes(product.id);
   
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: product.name,
@@ -53,17 +77,48 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
       has_sizes: product.has_sizes,
       auto_generate_sku: product.auto_generate_sku,
       is_active: true,
+      sizes: [],
+      ingredients: [],
+      consumables: []
     },
   });
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  // Load related data when available
+  useEffect(() => {
+    if (productSizes && productSizes.length > 0) {
+      form.setValue('sizes', productSizes.map(size => ({
+        name: size.name,
+        additional_price: size.additional_price
+      })));
+    }
+    
+    if (productIngredients && productIngredients.length > 0) {
+      form.setValue('ingredients', productIngredients.map(ing => ({
+        ingredient_id: ing.ingredient_id,
+        quantity: ing.quantity,
+        unit_id: ing.unit_id || "",
+        cost: ing.cost
+      })));
+    }
+    
+    if (productConsumables && productConsumables.length > 0) {
+      form.setValue('consumables', productConsumables.map(cons => ({
+        consumable_id: cons.consumable_id,
+        quantity: cons.quantity,
+        unit_id: cons.unit_id || "",
+        cost: cons.cost
+      })));
+    }
+  }, [productSizes, productIngredients, productConsumables, form]);
+
+  const handleSubmit = async (values: ProductFormValues) => {
     try {
       await updateProduct.mutateAsync({
         id: product.id,
-        product: values as ProductFormValues,
-        ingredients: [],
-        consumables: [],
-        sizes: [],
+        product: values,
+        ingredients: values.ingredients,
+        consumables: values.consumables,
+        sizes: values.sizes,
       });
       
       onClose();
