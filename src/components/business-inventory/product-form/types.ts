@@ -14,6 +14,9 @@ export interface ProductFormValues {
   has_sizes: boolean;
   auto_generate_sku: boolean;
   is_active: boolean;
+  unit_id?: string;
+  brand_id?: string;
+  warranty_id?: string;
   sizes?: ProductSizeInput[];
   ingredients?: ProductIngredientInput[];
   consumables?: ProductConsumableInput[];

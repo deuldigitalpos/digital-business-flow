@@ -21,7 +21,7 @@ interface WarrantySelectProps {
 }
 
 export const WarrantySelect: React.FC<WarrantySelectProps> = ({ form }) => {
-  const { data: warranties = [], isLoading } = useBusinessWarranties();
+  const { warranties = [], isLoading } = useBusinessWarranties();
   const [open, setOpen] = React.useState(false);
   
   // Ensure warranties is always a valid array
