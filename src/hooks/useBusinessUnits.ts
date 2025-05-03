@@ -1,51 +1,40 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { BusinessUnit } from '@/types/business-unit';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
+import { BusinessUnit } from '@/types/business-unit';
 
-export const useBusinessUnits = (type?: string) => {
-  const { business, businessUser } = useBusinessAuth();
-  const businessId = business?.id || businessUser?.business_id;
+export const useBusinessUnits = () => {
+  const { businessUser } = useBusinessAuth();
+  const businessId = businessUser?.business_id;
 
-  const query = useQuery({
-    queryKey: ['business-units', businessId, type],
+  return useQuery({
+    queryKey: ['business-units'],
     queryFn: async (): Promise<BusinessUnit[]> => {
       if (!businessId) {
-        console.warn('No business ID available for fetching units');
         return [];
       }
-
-      let query = supabase
-        .from('business_units')
-        .select('*')
-        .eq('business_id', businessId);
+      
+      try {
+        const { data, error } = await supabase
+          .from('business_units')
+          .select('*')
+          .eq('business_id', businessId)
+          .order('name');
         
-      if (type) {
-        query = query.eq('type', type);
+        if (error) {
+          console.error('Error fetching units:', error);
+          return [];
+        }
+        
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Caught error fetching units:', error);
+        return [];
       }
-      
-      query = query.order('is_default', { ascending: false })
-        .order('name', { ascending: true });
-
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching business units:', error);
-        throw error;
-      }
-
-      return data as BusinessUnit[];
     },
-    enabled: !!businessId,
+    enabled: !!businessId
   });
-
-  return {
-    data: query.data || [],
-    isLoading: query.isLoading,
-    error: query.error,
-    refetch: query.refetch
-  };
 };
 
 export default useBusinessUnits;

@@ -62,36 +62,39 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0">
-              <Command>
-                <CommandInput placeholder="Search categories..." />
-                <CommandEmpty>No category found.</CommandEmpty>
-                {validCategories.length > 0 ? (
-                  <CommandGroup>
-                    {validCategories.map(category => (
-                      <CommandItem
-                        key={category.id}
-                        value={category.name || ''}
-                        onSelect={() => {
-                          form.setValue("category_id", category.id);
-                          setOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            field.value === category.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {category.name || 'Unnamed Category'}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                ) : (
-                  <div className="py-6 text-center text-sm">
-                    {isLoading ? "Loading categories..." : "No categories available."}
-                  </div>
-                )}
-              </Command>
+              {/* Wrap Command in a proper error boundary to handle potential issues */}
+              <div className="command-wrapper">
+                <Command>
+                  <CommandInput placeholder="Search categories..." />
+                  <CommandEmpty>No category found.</CommandEmpty>
+                  {validCategories && validCategories.length > 0 ? (
+                    <CommandGroup>
+                      {validCategories.map(category => (
+                        <CommandItem
+                          key={category.id}
+                          value={category.name || ''}
+                          onSelect={() => {
+                            form.setValue("category_id", category.id);
+                            setOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              field.value === category.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {category.name || 'Unnamed Category'}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  ) : (
+                    <div className="py-6 text-center text-sm">
+                      {isLoading ? "Loading categories..." : "No categories available."}
+                    </div>
+                  )}
+                </Command>
+              </div>
             </PopoverContent>
           </Popover>
           <FormMessage />

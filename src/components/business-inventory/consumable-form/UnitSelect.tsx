@@ -62,36 +62,39 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0">
-              <Command>
-                <CommandInput placeholder="Search units..." />
-                <CommandEmpty>No unit found.</CommandEmpty>
-                {validUnits.length > 0 ? (
-                  <CommandGroup>
-                    {validUnits.map(unit => (
-                      <CommandItem
-                        key={unit.id}
-                        value={unit.name || ''}
-                        onSelect={() => {
-                          form.setValue("unit_id", unit.id);
-                          setOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            field.value === unit.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {unit.name} ({unit.short_name || ''})
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                ) : (
-                  <div className="py-6 text-center text-sm">
-                    {isLoading ? "Loading units..." : "No units available."}
-                  </div>
-                )}
-              </Command>
+              {/* Wrap Command in a proper error boundary to handle potential issues */}
+              <div className="command-wrapper">
+                <Command>
+                  <CommandInput placeholder="Search units..." />
+                  <CommandEmpty>No unit found.</CommandEmpty>
+                  {validUnits && validUnits.length > 0 ? (
+                    <CommandGroup>
+                      {validUnits.map(unit => (
+                        <CommandItem
+                          key={unit.id}
+                          value={unit.name || ''}
+                          onSelect={() => {
+                            form.setValue("unit_id", unit.id);
+                            setOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              field.value === unit.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {unit.name} ({unit.short_name || ''})
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  ) : (
+                    <div className="py-6 text-center text-sm">
+                      {isLoading ? "Loading units..." : "No units available."}
+                    </div>
+                  )}
+                </Command>
+              </div>
             </PopoverContent>
           </Popover>
           <FormMessage />

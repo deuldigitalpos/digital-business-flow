@@ -103,46 +103,49 @@ const BusinessConsumables: React.FC = () => {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Search categories..." />
-                      <CommandEmpty>No category found.</CommandEmpty>
-                      <CommandGroup>
-                        <CommandItem
-                          key="all-categories"
-                          value="All Categories"
-                          onSelect={() => {
-                            setSelectedCategory("all");
-                            setOpenCategoryPopover(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedCategory === "all" ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          All Categories
-                        </CommandItem>
-                        {validCategories.map((category) => (
+                    {/* Wrap Command in a proper container */}
+                    <div className="command-wrapper">
+                      <Command>
+                        <CommandInput placeholder="Search categories..." />
+                        <CommandEmpty>No category found.</CommandEmpty>
+                        <CommandGroup>
                           <CommandItem
-                            key={category.id}
-                            value={category.name || ''}
+                            key="all-categories"
+                            value="All Categories"
                             onSelect={() => {
-                              setSelectedCategory(category.id);
+                              setSelectedCategory("all");
                               setOpenCategoryPopover(false);
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                selectedCategory === category.id ? "opacity-100" : "opacity-0"
+                                selectedCategory === "all" ? "opacity-100" : "opacity-0"
                               )}
                             />
-                            {category.name || 'Unnamed Category'}
+                            All Categories
                           </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </Command>
+                          {validCategories && validCategories.length > 0 && validCategories.map((category) => (
+                            <CommandItem
+                              key={category.id}
+                              value={category.name || ''}
+                              onSelect={() => {
+                                setSelectedCategory(category.id);
+                                setOpenCategoryPopover(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedCategory === category.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {category.name || 'Unnamed Category'}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </div>
                   </PopoverContent>
                 </Popover>
               </div>
