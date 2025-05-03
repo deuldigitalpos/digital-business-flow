@@ -8,41 +8,32 @@ import {
   FormControl,
   FormMessage
 } from '@/components/ui/form';
-import { 
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem
-} from '@/components/ui/command';
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover';
+import { useBusinessBrands } from '@/hooks/useBusinessBrands';
+import { ProductFormValues } from './types';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 
-interface UnitSelectProps {
-  form: UseFormReturn<any>;
+interface BrandSelectProps {
+  form: UseFormReturn<ProductFormValues>;
 }
 
-export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
-  const { data: units = [], isLoading } = useBusinessUnits();
+export const BrandSelect: React.FC<BrandSelectProps> = ({ form }) => {
+  const { brands = [], isLoading } = useBusinessBrands();
   const [open, setOpen] = React.useState(false);
   
-  // Ensure we have a valid array of units
-  const validUnits = Array.isArray(units) ? units.filter(unit => unit && unit.id) : [];
-
+  // Ensure brands is always a valid array
+  const validBrands = Array.isArray(brands) ? brands.filter(brand => brand && brand.id) : [];
+  
   return (
     <FormField
       control={form.control}
-      name="unit_id"
+      name="brand_id"
       render={({ field }) => (
-        <FormItem>
-          <FormLabel>Unit</FormLabel>
+        <FormItem className="flex flex-col">
+          <FormLabel>Brand</FormLabel>
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <FormControl>
@@ -57,11 +48,11 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    "Loading units..."
-                  ) : field.value && validUnits.length > 0 ? (
-                    validUnits.find(unit => unit.id === field.value)?.name || "Select a unit"
+                    "Loading brands..."
+                  ) : field.value && validBrands.length > 0 ? (
+                    validBrands.find(brand => brand.id === field.value)?.name || "Select a brand"
                   ) : (
-                    "Select a unit"
+                    "Select a brand"
                   )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -69,32 +60,32 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
             </PopoverTrigger>
             <PopoverContent className="w-full p-0">
               <Command>
-                <CommandInput placeholder="Search units..." />
-                <CommandEmpty>No unit found.</CommandEmpty>
-                {validUnits.length > 0 ? (
+                <CommandInput placeholder="Search brands..." />
+                <CommandEmpty>No brand found.</CommandEmpty>
+                {validBrands && validBrands.length > 0 ? (
                   <CommandGroup>
-                    {validUnits.map(unit => (
+                    {validBrands.map(brand => (
                       <CommandItem
-                        key={unit.id}
-                        value={unit.name || ''}
+                        key={brand.id}
+                        value={brand.name || ''}
                         onSelect={() => {
-                          form.setValue("unit_id", unit.id);
+                          form.setValue("brand_id", brand.id);
                           setOpen(false);
                         }}
                       >
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            field.value === unit.id ? "opacity-100" : "opacity-0"
+                            field.value === brand.id ? "opacity-100" : "opacity-0"
                           )}
                         />
-                        {unit.name} ({unit.short_name || ''})
+                        {brand.name}
                       </CommandItem>
                     ))}
                   </CommandGroup>
                 ) : (
                   <div className="py-6 text-center text-sm">
-                    {isLoading ? "Loading units..." : "No units available."}
+                    {isLoading ? "Loading brands..." : "No brands available."}
                   </div>
                 )}
               </Command>

@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,9 @@ import { ProductFormValues } from "./product-form/types";
 import { useBusinessCategories } from "@/hooks/useBusinessCategories";
 import useBusinessIngredients from "@/hooks/useBusinessIngredients";
 import useBusinessConsumables from "@/hooks/useBusinessConsumables";
+import { UnitSelect } from "./product-form/UnitSelect";
+import { BrandSelect } from "./product-form/BrandSelect";
+import { WarrantySelect } from "./product-form/WarrantySelect";
 
 interface ProductFormProps {
   form: UseFormReturn<ProductFormValues>;
@@ -137,6 +141,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ form, isEditMode, onSubmit })
               </FormItem>
             )}
           />
+        </div>
+
+        <Separator />
+
+        {/* Add Unit, Brand, and Warranty selectors */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Product Details</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <UnitSelect form={form} />
+            <BrandSelect form={form} />
+            <WarrantySelect form={form} />
+          </div>
         </div>
 
         <Separator />

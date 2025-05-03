@@ -23,11 +23,13 @@ import {
   Trash2, 
   Eye, 
   ImageIcon,
-  PackagePlus 
+  PackagePlus, 
+  TagIcon,
+  ShieldIcon,
+  RulerIcon
 } from "lucide-react";
 import useBusinessProducts from "@/hooks/useBusinessProducts";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import { BusinessProduct } from "@/types/business-product";
 import EditProductModal from "@/components/business-inventory/EditProductModal";
 import ViewProductModal from "@/components/business-inventory/ViewProductModal";
@@ -83,7 +85,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ filters }) => {
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
               <TableHead className="text-right">Quantity</TableHead>
-              <TableHead className="text-right">Total Sales</TableHead>
+              <TableHead>Details</TableHead>
               <TableHead>Stock Status</TableHead>
               <TableHead className="text-right">Selling Price</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -141,7 +143,46 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ filters }) => {
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-right">{product.total_sales || 0}</TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    {product.unit && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <RulerIcon className="h-4 w-4 text-blue-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Unit: {product.unit.name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    {product.brand && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <TagIcon className="h-4 w-4 text-green-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Brand: {product.brand.name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    {product.warranty && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <ShieldIcon className="h-4 w-4 text-purple-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Warranty: {product.warranty.name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{getStockStatusBadge(product.stock_status)}</TableCell>
                 <TableCell className="text-right">${product.selling_price.toFixed(2)}</TableCell>
                 <TableCell className="text-right">

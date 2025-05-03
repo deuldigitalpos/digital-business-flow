@@ -8,40 +8,31 @@ import {
   FormControl,
   FormMessage
 } from '@/components/ui/form';
-import { 
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem
-} from '@/components/ui/command';
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover';
+import { useBusinessUnits } from '@/hooks/useBusinessUnits';
+import { ProductFormValues } from './types';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 
 interface UnitSelectProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<ProductFormValues>;
 }
 
 export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
   const { data: units = [], isLoading } = useBusinessUnits();
   const [open, setOpen] = React.useState(false);
   
-  // Ensure we have a valid array of units
+  // Ensure units is always a valid array
   const validUnits = Array.isArray(units) ? units.filter(unit => unit && unit.id) : [];
-
+  
   return (
     <FormField
       control={form.control}
       name="unit_id"
       render={({ field }) => (
-        <FormItem>
+        <FormItem className="flex flex-col">
           <FormLabel>Unit</FormLabel>
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -71,7 +62,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search units..." />
                 <CommandEmpty>No unit found.</CommandEmpty>
-                {validUnits.length > 0 ? (
+                {validUnits && validUnits.length > 0 ? (
                   <CommandGroup>
                     {validUnits.map(unit => (
                       <CommandItem

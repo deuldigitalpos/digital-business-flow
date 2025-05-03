@@ -19,7 +19,10 @@ const useBusinessProducts = (filters?: Record<string, any>) => {
         .from('business_products')
         .select(`
           *,
-          category:business_categories(id, name)
+          category:business_categories(id, name),
+          unit:business_units(id, name, short_name),
+          brand:business_brands(id, name),
+          warranty:business_warranties(id, name)
         `)
         .eq('business_id', businessUser.business_id);
 
@@ -91,10 +94,7 @@ const useBusinessProducts = (filters?: Record<string, any>) => {
           cost_margin: parseFloat(costMargin.toFixed(2)),
           profit_margin: parseFloat(profitMargin.toFixed(2)),
           stock_status: stockStatus,
-          total_value: quantityData?.total_value || 0,
-          unit: null, // Set to null for now
-          brand: null, // Set to null for now
-          warranty: null // Set to null for now
+          total_value: quantityData?.total_value || 0
         };
       });
 

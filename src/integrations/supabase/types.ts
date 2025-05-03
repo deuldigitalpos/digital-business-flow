@@ -51,6 +51,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -61,6 +62,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -71,6 +73,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -86,6 +89,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_addons_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
             referencedColumns: ["id"]
           },
         ]
@@ -181,6 +191,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -191,6 +202,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -201,6 +213,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -216,6 +229,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_consumables_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
             referencedColumns: ["id"]
           },
         ]
@@ -316,6 +336,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -326,6 +347,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -336,6 +358,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -351,6 +374,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_ingredients_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
             referencedColumns: ["id"]
           },
         ]
@@ -633,6 +663,7 @@ export type Database = {
       business_products: {
         Row: {
           auto_generate_sku: boolean | null
+          brand_id: string | null
           business_id: string
           category_id: string | null
           cost_price: number | null
@@ -649,10 +680,13 @@ export type Database = {
           selling_price: number | null
           sku: string | null
           total_sales: number | null
+          unit_id: string | null
           updated_at: string
+          warranty_id: string | null
         }
         Insert: {
           auto_generate_sku?: boolean | null
+          brand_id?: string | null
           business_id: string
           category_id?: string | null
           cost_price?: number | null
@@ -669,10 +703,13 @@ export type Database = {
           selling_price?: number | null
           sku?: string | null
           total_sales?: number | null
+          unit_id?: string | null
           updated_at?: string
+          warranty_id?: string | null
         }
         Update: {
           auto_generate_sku?: boolean | null
+          brand_id?: string | null
           business_id?: string
           category_id?: string | null
           cost_price?: number | null
@@ -689,9 +726,18 @@ export type Database = {
           selling_price?: number | null
           sku?: string | null
           total_sales?: number | null
+          unit_id?: string | null
           updated_at?: string
+          warranty_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "business_products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "business_brands"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "business_products_business_id_fkey"
             columns: ["business_id"]
@@ -704,6 +750,20 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "business_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_products_warranty_id_fkey"
+            columns: ["warranty_id"]
+            isOneToOne: false
+            referencedRelation: "business_warranties"
             referencedColumns: ["id"]
           },
         ]

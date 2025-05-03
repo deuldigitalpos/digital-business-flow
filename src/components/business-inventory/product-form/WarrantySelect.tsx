@@ -8,41 +8,32 @@ import {
   FormControl,
   FormMessage
 } from '@/components/ui/form';
-import { 
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem
-} from '@/components/ui/command';
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover';
+import { useBusinessWarranties } from '@/hooks/useBusinessWarranties';
+import { ProductFormValues } from './types';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useBusinessUnits } from '@/hooks/useBusinessUnits';
 
-interface UnitSelectProps {
-  form: UseFormReturn<any>;
+interface WarrantySelectProps {
+  form: UseFormReturn<ProductFormValues>;
 }
 
-export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
-  const { data: units = [], isLoading } = useBusinessUnits();
+export const WarrantySelect: React.FC<WarrantySelectProps> = ({ form }) => {
+  const { data: warranties = [], isLoading } = useBusinessWarranties();
   const [open, setOpen] = React.useState(false);
   
-  // Ensure we have a valid array of units
-  const validUnits = Array.isArray(units) ? units.filter(unit => unit && unit.id) : [];
-
+  // Ensure warranties is always a valid array
+  const validWarranties = Array.isArray(warranties) ? warranties.filter(warranty => warranty && warranty.id) : [];
+  
   return (
     <FormField
       control={form.control}
-      name="unit_id"
+      name="warranty_id"
       render={({ field }) => (
-        <FormItem>
-          <FormLabel>Unit</FormLabel>
+        <FormItem className="flex flex-col">
+          <FormLabel>Warranty</FormLabel>
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <FormControl>
@@ -57,11 +48,11 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    "Loading units..."
-                  ) : field.value && validUnits.length > 0 ? (
-                    validUnits.find(unit => unit.id === field.value)?.name || "Select a unit"
+                    "Loading warranties..."
+                  ) : field.value && validWarranties.length > 0 ? (
+                    validWarranties.find(warranty => warranty.id === field.value)?.name || "Select a warranty"
                   ) : (
-                    "Select a unit"
+                    "Select a warranty"
                   )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -69,32 +60,32 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
             </PopoverTrigger>
             <PopoverContent className="w-full p-0">
               <Command>
-                <CommandInput placeholder="Search units..." />
-                <CommandEmpty>No unit found.</CommandEmpty>
-                {validUnits.length > 0 ? (
+                <CommandInput placeholder="Search warranties..." />
+                <CommandEmpty>No warranty found.</CommandEmpty>
+                {validWarranties && validWarranties.length > 0 ? (
                   <CommandGroup>
-                    {validUnits.map(unit => (
+                    {validWarranties.map(warranty => (
                       <CommandItem
-                        key={unit.id}
-                        value={unit.name || ''}
+                        key={warranty.id}
+                        value={warranty.name || ''}
                         onSelect={() => {
-                          form.setValue("unit_id", unit.id);
+                          form.setValue("warranty_id", warranty.id);
                           setOpen(false);
                         }}
                       >
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            field.value === unit.id ? "opacity-100" : "opacity-0"
+                            field.value === warranty.id ? "opacity-100" : "opacity-0"
                           )}
                         />
-                        {unit.name} ({unit.short_name || ''})
+                        {warranty.name}
                       </CommandItem>
                     ))}
                   </CommandGroup>
                 ) : (
                   <div className="py-6 text-center text-sm">
-                    {isLoading ? "Loading units..." : "No units available."}
+                    {isLoading ? "Loading warranties..." : "No warranties available."}
                   </div>
                 )}
               </Command>

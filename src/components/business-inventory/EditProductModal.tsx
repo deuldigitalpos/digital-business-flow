@@ -32,6 +32,9 @@ const formSchema = z.object({
   has_sizes: z.boolean().default(false),
   auto_generate_sku: z.boolean().default(true),
   is_active: z.boolean().default(true),
+  unit_id: z.string().optional(),
+  brand_id: z.string().optional(),
+  warranty_id: z.string().optional(),
   sizes: z.array(z.object({
     name: z.string(),
     additional_price: z.number(),
@@ -69,6 +72,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
       has_sizes: product.has_sizes,
       auto_generate_sku: product.auto_generate_sku,
       is_active: true,
+      unit_id: product.unit_id || undefined,
+      brand_id: product.brand_id || undefined,
+      warranty_id: product.warranty_id || undefined,
       sizes: [],
       ingredients: [],
       consumables: []
