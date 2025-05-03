@@ -65,7 +65,7 @@ export const WarrantySelect: React.FC<WarrantySelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search warranties..." />
                 <CommandEmpty>No warranty found.</CommandEmpty>
-                {validWarranties.length > 0 && (
+                {validWarranties.length > 0 ? (
                   <CommandGroup>
                     {validWarranties.map(warranty => (
                       <CommandItem
@@ -86,8 +86,7 @@ export const WarrantySelect: React.FC<WarrantySelectProps> = ({ form }) => {
                       </CommandItem>
                     ))}
                   </CommandGroup>
-                )}
-                {validWarranties.length === 0 && (
+                ) : (
                   <div className="py-6 text-center text-sm">
                     {isLoading ? "Loading warranties..." : "No warranties available."}
                   </div>
