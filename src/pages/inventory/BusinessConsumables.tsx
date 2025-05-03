@@ -25,10 +25,13 @@ const BusinessConsumables: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
-  const { data: categoriesData = [] } = useBusinessCategories();
+  const { data: categoriesData = [], isLoading: isCategoriesLoading } = useBusinessCategories();
   
   // Ensure categories is always a valid array
   const categories = Array.isArray(categoriesData) ? categoriesData : [];
+  
+  // Further filter to make sure all categories have valid ids
+  const validCategories = categories.filter(category => category && category.id);
 
   return (
     <PermissionGuard permission="inventory">
@@ -91,9 +94,11 @@ const BusinessConsumables: React.FC = () => {
                       aria-expanded={openCategoryPopover}
                       className="w-full sm:w-[200px] justify-between"
                     >
-                      {selectedCategory === "all"
-                        ? "All Categories"
-                        : categories.find(category => category.id === selectedCategory)?.name || "All Categories"}
+                      {isCategoriesLoading 
+                        ? "Loading categories..."
+                        : selectedCategory === "all"
+                          ? "All Categories"
+                          : validCategories.find(category => category.id === selectedCategory)?.name || "All Categories"}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -117,7 +122,7 @@ const BusinessConsumables: React.FC = () => {
                           />
                           All Categories
                         </CommandItem>
-                        {categories.filter(category => category && category.id).map((category) => (
+                        {validCategories.map((category) => (
                           <CommandItem
                             key={category.id}
                             value={category.name}

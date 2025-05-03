@@ -21,7 +21,7 @@ interface CategorySelectProps {
 }
 
 export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
-  const { data: categoriesData = [] } = useBusinessCategories();
+  const { data: categoriesData = [], isLoading } = useBusinessCategories();
   const [open, setOpen] = React.useState(false);
   
   // Ensure categories is always a valid array
@@ -48,10 +48,15 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
                     "w-full justify-between",
                     !field.value && "text-muted-foreground"
                   )}
+                  disabled={isLoading}
                 >
-                  {field.value && validCategories.length > 0
-                    ? validCategories.find(category => category.id === field.value)?.name || "Select a category"
-                    : "Select a category"}
+                  {isLoading ? (
+                    "Loading categories..."
+                  ) : field.value && validCategories.length > 0 ? (
+                    validCategories.find(category => category.id === field.value)?.name || "Select a category"
+                  ) : (
+                    "Select a category"
+                  )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>
@@ -60,26 +65,32 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search categories..." />
                 <CommandEmpty>No category found.</CommandEmpty>
-                <CommandGroup>
-                  {validCategories.map(category => (
-                    <CommandItem
-                      key={category.id}
-                      value={category.name || ''}
-                      onSelect={() => {
-                        form.setValue("category_id", category.id);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          field.value === category.id ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {category.name || 'Unnamed Category'}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {validCategories.length > 0 ? (
+                  <CommandGroup>
+                    {validCategories.map(category => (
+                      <CommandItem
+                        key={category.id}
+                        value={category.name || ''}
+                        onSelect={() => {
+                          form.setValue("category_id", category.id);
+                          setOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            field.value === category.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {category.name || 'Unnamed Category'}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                ) : (
+                  <div className="py-6 text-center text-sm">
+                    {isLoading ? "Loading categories..." : "No categories available."}
+                  </div>
+                )}
               </Command>
             </PopoverContent>
           </Popover>

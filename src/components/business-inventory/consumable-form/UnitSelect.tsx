@@ -21,7 +21,7 @@ interface UnitSelectProps {
 }
 
 export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
-  const { data: unitsData = [] } = useBusinessUnits();
+  const { data: unitsData = [], isLoading } = useBusinessUnits();
   const [open, setOpen] = React.useState(false);
   
   // Ensure units is always a valid array
@@ -48,10 +48,15 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
                     "w-full justify-between",
                     !field.value && "text-muted-foreground"
                   )}
+                  disabled={isLoading}
                 >
-                  {field.value && validUnits.length > 0
-                    ? validUnits.find(unit => unit.id === field.value)?.name || "Select a unit"
-                    : "Select a unit"}
+                  {isLoading ? (
+                    "Loading units..."
+                  ) : field.value && validUnits.length > 0 ? (
+                    validUnits.find(unit => unit.id === field.value)?.name || "Select a unit"
+                  ) : (
+                    "Select a unit"
+                  )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>
@@ -60,26 +65,32 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search units..." />
                 <CommandEmpty>No unit found.</CommandEmpty>
-                <CommandGroup>
-                  {validUnits.map(unit => (
-                    <CommandItem
-                      key={unit.id}
-                      value={unit.name || ''}
-                      onSelect={() => {
-                        form.setValue("unit_id", unit.id);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          field.value === unit.id ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {unit.name} ({unit.short_name || ''})
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {validUnits.length > 0 ? (
+                  <CommandGroup>
+                    {validUnits.map(unit => (
+                      <CommandItem
+                        key={unit.id}
+                        value={unit.name || ''}
+                        onSelect={() => {
+                          form.setValue("unit_id", unit.id);
+                          setOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            field.value === unit.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {unit.name} ({unit.short_name || ''})
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                ) : (
+                  <div className="py-6 text-center text-sm">
+                    {isLoading ? "Loading units..." : "No units available."}
+                  </div>
+                )}
               </Command>
             </PopoverContent>
           </Popover>
