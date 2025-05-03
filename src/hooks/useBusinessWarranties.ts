@@ -18,19 +18,24 @@ export const useBusinessWarranties = () => {
       
       console.log('Fetching warranties for business ID:', businessId);
       
-      const { data, error } = await supabase
-        .from('business_warranties')
-        .select('*')
-        .eq('business_id', businessId)
-        .order('name', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching warranties:', error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('business_warranties')
+          .select('*')
+          .eq('business_id', businessId)
+          .order('name', { ascending: true });
+        
+        if (error) {
+          console.error('Error fetching warranties:', error);
+          return [];
+        }
+        
+        console.log('Fetched warranties:', data);
+        return Array.isArray(data) ? data : [];
+      } catch (e) {
+        console.error('Exception in fetching warranties:', e);
+        return [];
       }
-      
-      console.log('Fetched warranties:', data);
-      return data || [];
     },
     enabled: !!businessId,
     retry: 2,

@@ -65,7 +65,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search units..." />
                 <CommandEmpty>No unit found.</CommandEmpty>
-                {validUnits.length > 0 && (
+                {validUnits.length > 0 ? (
                   <CommandGroup>
                     {validUnits.map(unit => (
                       <CommandItem
@@ -86,8 +86,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
                       </CommandItem>
                     ))}
                   </CommandGroup>
-                )}
-                {validUnits.length === 0 && (
+                ) : (
                   <div className="py-6 text-center text-sm">
                     {isLoading ? "Loading units..." : "No units available."}
                   </div>

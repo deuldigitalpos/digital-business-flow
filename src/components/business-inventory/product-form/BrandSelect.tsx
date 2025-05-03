@@ -65,7 +65,7 @@ export const BrandSelect: React.FC<BrandSelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search brands..." />
                 <CommandEmpty>No brand found.</CommandEmpty>
-                {validBrands.length > 0 && (
+                {validBrands.length > 0 ? (
                   <CommandGroup>
                     {validBrands.map(brand => (
                       <CommandItem
@@ -86,8 +86,7 @@ export const BrandSelect: React.FC<BrandSelectProps> = ({ form }) => {
                       </CommandItem>
                     ))}
                   </CommandGroup>
-                )}
-                {validBrands.length === 0 && (
+                ) : (
                   <div className="py-6 text-center text-sm">
                     {isLoading ? "Loading brands..." : "No brands available."}
                   </div>
