@@ -27,7 +27,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
   // Ensure units is always a valid array
   const units = Array.isArray(unitsData) ? unitsData : [];
   
-  // Make sure units have valid IDs
+  // Make sure units have valid IDs and filter out any invalid units
   const validUnits = units.filter(unit => unit && unit.id && typeof unit.id === 'string' && unit.id.trim() !== '');
   
   return (

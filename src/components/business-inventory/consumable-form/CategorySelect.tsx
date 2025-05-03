@@ -27,7 +27,7 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({ form }) => {
   // Ensure categories is always a valid array
   const categories = Array.isArray(categoriesData) ? categoriesData : [];
   
-  // Make sure categories have valid IDs
+  // Make sure categories have valid IDs and filter out any invalid categories
   const validCategories = categories.filter(category => category && category.id && typeof category.id === 'string' && category.id.trim() !== '');
   
   return (

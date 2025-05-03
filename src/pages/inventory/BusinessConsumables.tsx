@@ -31,7 +31,7 @@ const BusinessConsumables: React.FC = () => {
   const categories = Array.isArray(categoriesData) ? categoriesData : [];
   
   // Further filter to make sure all categories have valid ids
-  const validCategories = categories.filter(category => category && category.id);
+  const validCategories = categories.filter(category => category && category.id && typeof category.id === 'string' && category.id.trim() !== '');
 
   return (
     <PermissionGuard permission="inventory">
@@ -108,6 +108,7 @@ const BusinessConsumables: React.FC = () => {
                       <CommandEmpty>No category found.</CommandEmpty>
                       <CommandGroup>
                         <CommandItem
+                          key="all-categories"
                           value="All Categories"
                           onSelect={() => {
                             setSelectedCategory("all");
@@ -125,7 +126,7 @@ const BusinessConsumables: React.FC = () => {
                         {validCategories.map((category) => (
                           <CommandItem
                             key={category.id}
-                            value={category.name}
+                            value={category.name || ''}
                             onSelect={() => {
                               setSelectedCategory(category.id);
                               setOpenCategoryPopover(false);
