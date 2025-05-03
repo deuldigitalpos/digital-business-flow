@@ -25,7 +25,10 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
   const [open, setOpen] = React.useState(false);
   
   // Ensure units is always a valid array
-  const validUnits = Array.isArray(units) ? units.filter(unit => unit && unit.id) : [];
+  const validUnits = React.useMemo(() => {
+    if (!units || !Array.isArray(units)) return [];
+    return units.filter(unit => unit && unit.id);
+  }, [units]);
   
   return (
     <FormField
@@ -62,7 +65,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search units..." />
                 <CommandEmpty>No unit found.</CommandEmpty>
-                {validUnits && validUnits.length > 0 && (
+                {validUnits.length > 0 && (
                   <CommandGroup>
                     {validUnits.map(unit => (
                       <CommandItem
@@ -84,7 +87,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({ form }) => {
                     ))}
                   </CommandGroup>
                 )}
-                {(!validUnits || validUnits.length === 0) && (
+                {validUnits.length === 0 && (
                   <div className="py-6 text-center text-sm">
                     {isLoading ? "Loading units..." : "No units available."}
                   </div>

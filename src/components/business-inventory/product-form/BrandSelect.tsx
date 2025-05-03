@@ -25,7 +25,10 @@ export const BrandSelect: React.FC<BrandSelectProps> = ({ form }) => {
   const [open, setOpen] = React.useState(false);
   
   // Ensure brands is always a valid array
-  const validBrands = Array.isArray(brands) ? brands.filter(brand => brand && brand.id) : [];
+  const validBrands = React.useMemo(() => {
+    if (!brands || !Array.isArray(brands)) return [];
+    return brands.filter(brand => brand && brand.id);
+  }, [brands]);
   
   return (
     <FormField
@@ -62,7 +65,7 @@ export const BrandSelect: React.FC<BrandSelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search brands..." />
                 <CommandEmpty>No brand found.</CommandEmpty>
-                {validBrands && validBrands.length > 0 && (
+                {validBrands.length > 0 && (
                   <CommandGroup>
                     {validBrands.map(brand => (
                       <CommandItem
@@ -84,7 +87,7 @@ export const BrandSelect: React.FC<BrandSelectProps> = ({ form }) => {
                     ))}
                   </CommandGroup>
                 )}
-                {(!validBrands || validBrands.length === 0) && (
+                {validBrands.length === 0 && (
                   <div className="py-6 text-center text-sm">
                     {isLoading ? "Loading brands..." : "No brands available."}
                   </div>

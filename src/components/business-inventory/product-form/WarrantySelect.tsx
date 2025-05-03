@@ -25,7 +25,10 @@ export const WarrantySelect: React.FC<WarrantySelectProps> = ({ form }) => {
   const [open, setOpen] = React.useState(false);
   
   // Ensure warranties is always a valid array
-  const validWarranties = Array.isArray(warranties) ? warranties.filter(warranty => warranty && warranty.id) : [];
+  const validWarranties = React.useMemo(() => {
+    if (!warranties || !Array.isArray(warranties)) return [];
+    return warranties.filter(warranty => warranty && warranty.id);
+  }, [warranties]);
   
   return (
     <FormField
@@ -62,7 +65,7 @@ export const WarrantySelect: React.FC<WarrantySelectProps> = ({ form }) => {
               <Command>
                 <CommandInput placeholder="Search warranties..." />
                 <CommandEmpty>No warranty found.</CommandEmpty>
-                {validWarranties && validWarranties.length > 0 && (
+                {validWarranties.length > 0 && (
                   <CommandGroup>
                     {validWarranties.map(warranty => (
                       <CommandItem
@@ -84,7 +87,7 @@ export const WarrantySelect: React.FC<WarrantySelectProps> = ({ form }) => {
                     ))}
                   </CommandGroup>
                 )}
-                {(!validWarranties || validWarranties.length === 0) && (
+                {validWarranties.length === 0 && (
                   <div className="py-6 text-center text-sm">
                     {isLoading ? "Loading warranties..." : "No warranties available."}
                   </div>
