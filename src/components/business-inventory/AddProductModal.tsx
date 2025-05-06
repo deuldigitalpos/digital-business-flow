@@ -31,17 +31,19 @@ const formSchema = z.object({
   warranty_id: z.string().optional(),
   sizes: z.array(z.object({
     name: z.string(),
-    additional_price: z.number(),
+    additional_price: z.coerce.number(),
   })).optional().default([]),
   ingredients: z.array(z.object({
     ingredient_id: z.string(),
-    quantity: z.number(),
-    cost: z.number(),
+    quantity: z.coerce.number(),
+    unit_id: z.string().optional(),
+    cost: z.coerce.number().optional(),
   })).optional().default([]),
   consumables: z.array(z.object({
     consumable_id: z.string(),
-    quantity: z.number(),
-    cost: z.number(),
+    quantity: z.coerce.number(),
+    unit_id: z.string().optional(),
+    cost: z.coerce.number().optional(),
   })).optional().default([])
 });
 
@@ -71,6 +73,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) =>
   });
 
   const handleSubmit = async (values: ProductFormValues) => {
+    console.log("Submitting product with values:", values);
     try {
       await createProduct.mutateAsync({
         product: values,

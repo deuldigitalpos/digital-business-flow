@@ -12,6 +12,7 @@ export const useBusinessUnits = () => {
     queryKey: ['business-units'],
     queryFn: async (): Promise<BusinessUnit[]> => {
       if (!businessId) {
+        console.log('No business ID available for fetching units');
         return [];
       }
       
@@ -56,6 +57,7 @@ export const useBusinessUnits = () => {
           };
         }) : [];
         
+        console.log('Fetched units:', validatedUnits.length);
         return validatedUnits;
       } catch (error) {
         console.error('Caught error fetching units:', error);

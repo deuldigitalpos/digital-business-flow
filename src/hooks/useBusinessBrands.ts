@@ -19,19 +19,24 @@ export const useBusinessBrands = () => {
       
       console.log('Fetching brands for business ID:', businessId);
       
-      const { data, error } = await supabase
-        .from('business_brands')
-        .select('*')
-        .eq('business_id', businessId)
-        .order('name', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching brands:', error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('business_brands')
+          .select('*')
+          .eq('business_id', businessId)
+          .order('name', { ascending: true });
+        
+        if (error) {
+          console.error('Error fetching brands:', error);
+          return [];
+        }
+        
+        console.log('Fetched brands:', data);
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error in useBusinessBrands hook:', error);
+        return [];
       }
-      
-      console.log('Fetched brands:', data);
-      return data as BusinessBrand[];
     },
     enabled: !!businessId,
     retry: 2,
@@ -62,19 +67,24 @@ export const useBusinessBrand = (brandId: string | undefined) => {
         return null;
       }
 
-      const { data, error } = await supabase
-        .from('business_brands')
-        .select('*')
-        .eq('id', brandId)
-        .eq('business_id', businessId)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('business_brands')
+          .select('*')
+          .eq('id', brandId)
+          .eq('business_id', businessId)
+          .single();
 
-      if (error) {
-        console.error('Error fetching brand:', error);
+        if (error) {
+          console.error('Error fetching brand:', error);
+          return null;
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error in useBusinessBrand hook:', error);
         return null;
       }
-
-      return data;
     },
     enabled: !!brandId && !!businessId,
   });
