@@ -19,6 +19,17 @@ import {
   Box,
   Utensils,
   Plus,
+  CreditCard,
+  FileText,
+  BookOpen,
+  ChefHat,
+  ShoppingBag,
+  Calendar,
+  PersonStanding,
+  Briefcase,
+  TrendingUp,
+  FileBarChart,
+  ListOrdered,
 } from 'lucide-react';
 
 export interface SidebarNavItem {
@@ -141,6 +152,96 @@ export const sidebarNavigation: SidebarNavSection[] = [
           },
         ],
       },
+      {
+        title: 'Payment Accounts',
+        icon: CreditCard,
+        permission: 'accounts',
+        children: [
+          {
+            title: 'List of Accounts',
+            href: '/business-dashboard/accounts',
+            icon: FileText,
+            permission: 'accounts'
+          },
+          {
+            title: 'Account Reports',
+            href: '/business-dashboard/account-reports',
+            icon: FileBarChart,
+            permission: 'accounts'
+          },
+        ],
+      },
+      {
+        title: 'Bookings',
+        href: '/business-dashboard/bookings',
+        icon: BookOpen,
+        permission: 'bookings'
+      },
+      {
+        title: 'Kitchen',
+        href: '/business-dashboard/kitchen',
+        icon: ChefHat,
+        permission: 'kitchen'
+      },
+      {
+        title: 'Orders',
+        href: '/business-dashboard/orders',
+        icon: ShoppingBag,
+        permission: 'orders'
+      },
+      {
+        title: 'Reservation',
+        href: '/business-dashboard/reservation',
+        icon: Calendar,
+        permission: 'reservation'
+      },
+      {
+        title: 'HRM',
+        href: '/business-dashboard/hrm',
+        icon: PersonStanding,
+        permission: 'hrm'
+      },
+      {
+        title: 'Essentials',
+        href: '/business-dashboard/essentials',
+        icon: Briefcase,
+        permission: 'essentials'
+      },
+    ],
+  },
+  {
+    title: 'Reports',
+    items: [
+      {
+        title: 'Profit and Loss Report',
+        href: '/business-dashboard/reports/profit-loss',
+        icon: TrendingUp,
+        permission: 'reports'
+      },
+      {
+        title: 'Stock Report',
+        href: '/business-dashboard/reports/stock',
+        icon: FileBarChart,
+        permission: 'reports'
+      },
+      {
+        title: 'Trending Products',
+        href: '/business-dashboard/reports/trending-products',
+        icon: TrendingUp,
+        permission: 'reports'
+      },
+      {
+        title: 'Register Report',
+        href: '/business-dashboard/reports/register',
+        icon: ListOrdered,
+        permission: 'reports'
+      },
+      {
+        title: 'Activity Log',
+        href: '/business-dashboard/activity-log',
+        icon: FileText,
+        permission: 'activity_log'
+      },
     ],
   },
   {
@@ -173,12 +274,6 @@ export const sidebarNavigation: SidebarNavSection[] = [
             href: '/business-dashboard/warranties',
             icon: Clock,
             permission: 'warranties'
-          },
-          {
-            title: 'Activity Log',
-            href: '/business-dashboard/activity-log',
-            icon: BarChart2,
-            permission: 'activity_log'
           },
         ],
       },
