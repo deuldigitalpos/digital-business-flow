@@ -7,9 +7,11 @@ import BusinessSidebar from '@/components/business-dashboard/BusinessSidebar';
 import { SidebarProvider } from '@/hooks/useSidebar';
 import { Loader2 } from 'lucide-react';
 import { setSupabaseBusinessAuth, clearSupabaseBusinessAuth } from '@/integrations/supabase/client';
+import { isBusinessActive } from '@/utils/business';
+import BusinessDeactivationOverlay from '@/components/business/BusinessDeactivationOverlay';
 
 const BusinessDashboardLayout = () => {
-  const { isAuthenticated, isLoading, businessUser } = useBusinessAuth();
+  const { isAuthenticated, isLoading, businessUser, business } = useBusinessAuth();
   const location = useLocation();
   
   // Set up business user authentication for Supabase
@@ -50,6 +52,9 @@ const BusinessDashboardLayout = () => {
     return <Navigate to="/business-login" replace />;
   }
 
+  // Check if business is active
+  const isActive = business ? isBusinessActive(business) : true;
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-orange-50/30">
@@ -60,6 +65,9 @@ const BusinessDashboardLayout = () => {
             <Outlet />
           </main>
         </div>
+        
+        {/* Show deactivation overlay if business is not active */}
+        {business && !isActive && <BusinessDeactivationOverlay />}
       </div>
     </SidebarProvider>
   );
