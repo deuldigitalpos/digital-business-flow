@@ -41,12 +41,16 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
         onClick={onPercentClick} 
         className="bg-orange-50 hover:bg-orange-100 text-orange-700"
         icon={Percent}
-      />
+      >
+        %
+      </CalculatorButton>
       <CalculatorButton 
         onClick={() => onOperatorClick("/")} 
         className="bg-orange-200 hover:bg-orange-300 text-orange-800"
         icon={Divide}
-      />
+      >
+        ÷
+      </CalculatorButton>
       
       <CalculatorButton onClick={() => onDigitClick("7")}>7</CalculatorButton>
       <CalculatorButton onClick={() => onDigitClick("8")}>8</CalculatorButton>
@@ -55,7 +59,9 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
         onClick={() => onOperatorClick("*")} 
         className="bg-orange-200 hover:bg-orange-300 text-orange-800"
         icon={X}
-      />
+      >
+        ×
+      </CalculatorButton>
       
       <CalculatorButton onClick={() => onDigitClick("4")}>4</CalculatorButton>
       <CalculatorButton onClick={() => onDigitClick("5")}>5</CalculatorButton>
@@ -64,7 +70,9 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
         onClick={() => onOperatorClick("-")} 
         className="bg-orange-200 hover:bg-orange-300 text-orange-800"
         icon={Minus}
-      />
+      >
+        −
+      </CalculatorButton>
       
       <CalculatorButton onClick={() => onDigitClick("1")}>1</CalculatorButton>
       <CalculatorButton onClick={() => onDigitClick("2")}>2</CalculatorButton>
@@ -73,7 +81,9 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
         onClick={() => onOperatorClick("+")} 
         className="bg-orange-200 hover:bg-orange-300 text-orange-800"
         icon={Plus}
-      />
+      >
+        +
+      </CalculatorButton>
       
       <CalculatorButton 
         onClick={() => onDigitClick("0")} 
@@ -86,7 +96,9 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
         onClick={onEqualClick} 
         className="bg-orange-500 hover:bg-orange-600 text-white"
         icon={Equal}
-      />
+      >
+        =
+      </CalculatorButton>
     </div>
   );
 };
