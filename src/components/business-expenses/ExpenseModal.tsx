@@ -34,6 +34,11 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
             {expense ? 'Edit the expense details below.' : 'Fill in the details to add a new expense.'}
+            {expense?.creator_name && (
+              <div className="mt-1 text-xs">
+                Created by: <span className="font-medium">{expense.creator_name}</span>
+              </div>
+            )}
           </DialogDescription>
         </DialogHeader>
         <ExpenseForm expense={expense} onSubmit={onSubmit} isLoading={isLoading} />

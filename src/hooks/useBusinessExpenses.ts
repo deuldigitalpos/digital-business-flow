@@ -9,6 +9,7 @@ export type Expense = {
   id: string;
   business_id: string;
   created_by: string | null;
+  creator_name?: string;
   amount: number;
   name: string;
   description: string | null;
@@ -59,7 +60,14 @@ export const useBusinessExpenses = () => {
       
       const { data, error } = await supabase
         .from('business_expenses')
-        .select('*')
+        .select(`
+          *,
+          creator:created_by(
+            id, 
+            first_name, 
+            last_name
+          )
+        `)
         .eq('business_id', business.id)
         .order('expense_date', { ascending: false });
       
@@ -68,7 +76,15 @@ export const useBusinessExpenses = () => {
         throw error;
       }
       
-      return data as Expense[];
+      // Transform the data to include creator_name
+      const expensesWithCreatorName = data.map(expense => ({
+        ...expense,
+        creator_name: expense.creator ? `${expense.creator.first_name} ${expense.creator.last_name}` : 'Unknown',
+        // Remove the creator object as we now have creator_name
+        creator: undefined
+      }));
+      
+      return expensesWithCreatorName as Expense[];
     },
     enabled: !!business?.id
   });

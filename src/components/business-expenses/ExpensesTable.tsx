@@ -26,17 +26,18 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ expenses, onEdit, onDelet
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Payment Method</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Created By</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-6">Loading expenses...</TableCell>
+              <TableCell colSpan={8} className="text-center py-6">Loading expenses...</TableCell>
             </TableRow>
           ) : expenses.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-6">No expenses found</TableCell>
+              <TableCell colSpan={8} className="text-center py-6">No expenses found</TableCell>
             </TableRow>
           ) : (
             expenses.map((expense) => (
@@ -64,6 +65,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ expenses, onEdit, onDelet
                     {expense.status || 'completed'}
                   </span>
                 </TableCell>
+                <TableCell>{expense.creator_name || '-'}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button
