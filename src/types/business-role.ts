@@ -25,6 +25,13 @@ export interface BusinessRolePermissions {
   reports?: boolean;
   settings?: boolean;
   locations?: boolean;
-  customers?: boolean; // Now explicitly defined
+  customers?: boolean;
+  suppliers?: boolean;
+  leads?: boolean;
+  activity_log?: boolean;
+  categories?: boolean;
+  units?: boolean;
+  brands?: boolean;
+  warranties?: boolean;
   [key: string]: boolean | undefined;
 }

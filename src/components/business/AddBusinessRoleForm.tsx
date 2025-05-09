@@ -57,6 +57,15 @@ const AddBusinessRoleForm: React.FC<AddBusinessRoleFormProps> = ({
       ]
     },
     {
+      name: 'Contacts',
+      key: 'contacts',
+      permissions: [
+        { key: 'customers', label: 'Customers' },
+        { key: 'leads', label: 'Leads' },
+        { key: 'suppliers', label: 'Suppliers' }
+      ]
+    },
+    {
       name: 'Point of Sale',
       key: 'pos',
       permissions: [
@@ -85,13 +94,20 @@ const AddBusinessRoleForm: React.FC<AddBusinessRoleFormProps> = ({
       permissions: [
         { key: 'expenses', label: 'Expenses' },
         { key: 'financials', label: 'Financial Management' },
-        { key: 'reports', label: 'Reports' }
+        { key: 'reports', label: 'Reports' },
+        { key: 'activity_log', label: 'Activity Log' }
       ]
     },
     {
       name: 'Settings',
       key: 'settings',
-      permissions: [{ key: 'settings', label: 'Settings' }]
+      permissions: [
+        { key: 'settings', label: 'Settings' },
+        { key: 'categories', label: 'Categories' },
+        { key: 'units', label: 'Units' },
+        { key: 'brands', label: 'Brands' },
+        { key: 'warranties', label: 'Warranties' }
+      ]
     }
   ];
 
