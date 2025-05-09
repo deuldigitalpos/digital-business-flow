@@ -59,7 +59,7 @@ const POSLayout: React.FC = () => {
           <h1 className="text-2xl font-bold">POS System</h1>
           {business && (
             <span className="ml-4 text-sm opacity-80">
-              {business.name}
+              {business.business_name}
             </span>
           )}
         </div>
