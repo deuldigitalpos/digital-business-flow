@@ -20,7 +20,7 @@ const DashboardLayout = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex min-h-screen bg-orange-50/30">
         <Sidebar />
         <div className="flex flex-col flex-1 w-full">
           <DashboardHeader />

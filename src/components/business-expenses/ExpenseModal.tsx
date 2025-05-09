@@ -32,24 +32,28 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
     try {
       console.log("Modal submitting expense data:", data);
       await onSubmit(data);
-      toast.success(expense ? 'Expense updated successfully' : 'Expense added successfully');
+      toast.success(expense ? 'Expense updated successfully' : 'Expense added successfully', {
+        className: "bg-orange-50 border-l-4 border-secondary text-primary",
+      });
       onClose();
     } catch (error) {
       console.error("Error in expense modal submission:", error);
-      toast.error(`Failed to ${expense ? 'update' : 'add'} expense. Please try again.`);
+      toast.error(`Failed to ${expense ? 'update' : 'add'} expense. Please try again.`, {
+        className: "bg-red-50 border-l-4 border-red-500 text-primary",
+      });
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] border-t-4 border-t-secondary">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-primary">{title}</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             {expense ? 'Edit the expense details below.' : 'Fill in the details to add a new expense.'}
             {expense?.creator_name && (
               <div className="mt-1 text-xs">
-                Created by: <span className="font-medium">{expense.creator_name}</span>
+                Created by: <span className="font-medium text-secondary">{expense.creator_name}</span>
               </div>
             )}
           </DialogDescription>

@@ -45,32 +45,32 @@ export const AdminDashboardSummary = () => {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
       {/* Businesses Count Card */}
-      <Card>
+      <Card className="border-t-4 border-t-secondary shadow-md hover:shadow-lg transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Businesses</CardTitle>
-          <Building2 className="h-4 w-4 text-muted-foreground" />
+          <Building2 className="h-4 w-4 text-secondary" />
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="animate-pulse h-9 bg-muted rounded" />
+            <div className="animate-pulse h-9 bg-orange-100 rounded" />
           ) : (
-            <div className="text-2xl font-bold">{businessQuery.data}</div>
+            <div className="text-2xl font-bold text-primary">{businessQuery.data}</div>
           )}
           <p className="text-xs text-muted-foreground">Registered businesses</p>
         </CardContent>
       </Card>
 
       {/* Business Users Count Card */}
-      <Card>
+      <Card className="border-t-4 border-t-secondary shadow-md hover:shadow-lg transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Business Users</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
+          <Users className="h-4 w-4 text-secondary" />
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="animate-pulse h-9 bg-muted rounded" />
+            <div className="animate-pulse h-9 bg-orange-100 rounded" />
           ) : (
-            <div className="text-2xl font-bold">{usersQuery.data}</div>
+            <div className="text-2xl font-bold text-primary">{usersQuery.data}</div>
           )}
           <p className="text-xs text-muted-foreground">All business users combined</p>
         </CardContent>

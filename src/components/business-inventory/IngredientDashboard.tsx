@@ -21,15 +21,15 @@ const IngredientDashboard = () => {
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      <Card className="bg-white">
+      <Card className="bg-white border-t-4 border-t-secondary shadow-md hover:shadow-lg transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium">Total Ingredients</CardTitle>
-          <Database className="w-4 h-4 text-gray-500" />
+          <CardTitle className="text-sm font-medium text-primary">Total Ingredients</CardTitle>
+          <Database className="w-4 h-4 text-secondary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-bold text-primary">
             {isLoading ? (
-              <div className="h-8 w-16 animate-pulse bg-slate-200 rounded"></div>
+              <div className="h-8 w-16 animate-pulse bg-orange-100 rounded"></div>
             ) : (
               getTotalIngredients()
             )}
@@ -40,15 +40,15 @@ const IngredientDashboard = () => {
         </CardContent>
       </Card>
       
-      <Card className="bg-white">
+      <Card className="bg-white border-t-4 border-t-secondary shadow-md hover:shadow-lg transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-          <CircleDollarSign className="w-4 h-4 text-gray-500" />
+          <CardTitle className="text-sm font-medium text-primary">Total Value</CardTitle>
+          <CircleDollarSign className="w-4 h-4 text-secondary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-bold text-primary">
             {isLoading ? (
-              <div className="h-8 w-24 animate-pulse bg-slate-200 rounded"></div>
+              <div className="h-8 w-24 animate-pulse bg-orange-100 rounded"></div>
             ) : (
               `$${getTotalValue().toFixed(2)}`
             )}
@@ -59,15 +59,15 @@ const IngredientDashboard = () => {
         </CardContent>
       </Card>
       
-      <Card className="bg-white">
+      <Card className="bg-white border-t-4 border-t-secondary shadow-md hover:shadow-lg transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-          <AlertTriangle className="w-4 h-4 text-gray-500" />
+          <CardTitle className="text-sm font-medium text-primary">Out of Stock</CardTitle>
+          <AlertTriangle className="w-4 h-4 text-secondary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-bold text-primary">
             {isLoading ? (
-              <div className="h-8 w-16 animate-pulse bg-slate-200 rounded"></div>
+              <div className="h-8 w-16 animate-pulse bg-orange-100 rounded"></div>
             ) : (
               getOutOfStockCount()
             )}

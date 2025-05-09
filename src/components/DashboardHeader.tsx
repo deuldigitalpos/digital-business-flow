@@ -23,12 +23,12 @@ const DashboardHeader = () => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center bg-white border-b border-gray-200 px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center bg-gradient-to-r from-orange-50 to-orange-100 border-b border-orange-200 px-4 md:px-6 shadow-sm">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="md:hidden text-primary hover:bg-orange-200"
           onClick={toggleSidebar}
         >
           <Menu className="h-5 w-5" />
@@ -53,24 +53,24 @@ const DashboardHeader = () => {
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-orange-200">
               <Avatar>
                 <AvatarImage src="/placeholder.svg" alt={user?.username || ''} />
-                <AvatarFallback className="bg-primary text-white">
+                <AvatarFallback className="bg-secondary text-primary">
                   {user ? getInitials(user.username) : 'U'}
                 </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuContent className="w-56 border border-orange-200" align="end" forceMount>
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
+            <DropdownMenuSeparator className="bg-orange-200" />
+            <DropdownMenuItem className="flex items-center gap-2 hover:bg-orange-100">
+              <Settings className="w-4 h-4 text-orange-500" />
               <span>Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="flex items-center gap-2" onClick={logout}>
-              <LogOut className="w-4 h-4" />
+            <DropdownMenuItem className="flex items-center gap-2 hover:bg-orange-100" onClick={logout}>
+              <LogOut className="w-4 h-4 text-orange-500" />
               <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
