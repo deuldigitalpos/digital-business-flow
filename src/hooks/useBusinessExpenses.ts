@@ -31,10 +31,11 @@ export const useBusinessExpenses = () => {
   } = useExpenseUIState();
 
   // Confirm deletion
-  const confirmDelete = () => {
+  const confirmDelete = async (): Promise<void> => {
     if (expenseToDelete) {
-      deleteExpense(expenseToDelete);
+      await deleteExpense(expenseToDelete);
     }
+    return;
   };
 
   return {

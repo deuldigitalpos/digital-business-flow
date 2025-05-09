@@ -11,7 +11,7 @@ export const useExpenseMutations = () => {
 
   // Add expense mutation
   const { 
-    mutateAsync: addExpense, 
+    mutateAsync: addExpenseAsync, 
     isPending: isAddingExpense
   } = useMutation({
     mutationFn: async (data: ExpenseFormData) => {
@@ -51,9 +51,15 @@ export const useExpenseMutations = () => {
     }
   });
 
+  // Wrapper for addExpense that returns void
+  const addExpense = async (data: ExpenseFormData): Promise<void> => {
+    await addExpenseAsync(data);
+    return;
+  };
+
   // Update expense mutation
   const { 
-    mutateAsync: updateExpense, 
+    mutateAsync: updateExpenseAsync, 
     isPending: isUpdatingExpense 
   } = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ExpenseFormData }) => {
@@ -94,9 +100,15 @@ export const useExpenseMutations = () => {
     }
   });
 
+  // Wrapper for updateExpense that returns void
+  const updateExpense = async ({ id, data }: { id: string; data: ExpenseFormData }): Promise<void> => {
+    await updateExpenseAsync({ id, data });
+    return;
+  };
+
   // Delete expense mutation
   const { 
-    mutateAsync: deleteExpense, 
+    mutateAsync: deleteExpenseAsync, 
     isPending: isDeletingExpense 
   } = useMutation({
     mutationFn: async (id: string) => {
@@ -126,6 +138,12 @@ export const useExpenseMutations = () => {
       toast.error(`Failed to delete expense: ${error.message}`);
     }
   });
+
+  // Wrapper for deleteExpense that returns void
+  const deleteExpense = async (id: string): Promise<void> => {
+    await deleteExpenseAsync(id);
+    return;
+  };
 
   return {
     addExpense,

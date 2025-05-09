@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import ExpenseModal from '@/components/business-expenses/ExpenseModal';
 import DeleteExpenseDialog from '@/components/business-expenses/DeleteExpenseDialog';
 import ExpenseSummary from '@/components/business-expenses/ExpenseSummary';
 import ExpensesTable from '@/components/business-expenses/ExpensesTable';
+import { ExpenseFormData } from '@/types/business-expense';
 
 const BusinessExpenses = () => {
   const {
@@ -51,6 +53,19 @@ const BusinessExpenses = () => {
     );
   }
 
+  // Wrapper functions to handle the void return type expected by ExpenseModal
+  const handleAddExpense = async (data: ExpenseFormData): Promise<void> => {
+    await addExpense(data);
+    return;
+  };
+
+  const handleUpdateExpense = async (data: ExpenseFormData): Promise<void> => {
+    if (editingExpense) {
+      await updateExpense({ id: editingExpense.id, data });
+    }
+    return;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -94,7 +109,7 @@ const BusinessExpenses = () => {
       <ExpenseModal
         isOpen={isAddExpenseOpen}
         onClose={closeAddExpense}
-        onSubmit={addExpense}
+        onSubmit={handleAddExpense}
         isLoading={isAddingExpense}
         title="Add New Expense"
       />
@@ -105,7 +120,7 @@ const BusinessExpenses = () => {
           isOpen={!!editingExpense}
           onClose={closeEditExpense}
           expense={editingExpense}
-          onSubmit={(data) => updateExpense({ id: editingExpense.id, data })}
+          onSubmit={handleUpdateExpense}
           isLoading={isUpdatingExpense}
           title="Edit Expense"
         />

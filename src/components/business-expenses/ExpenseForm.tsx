@@ -52,8 +52,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   isEditing,
 }) => {
   // Get the categories and payment methods
-  const { data: categories } = useExpenseCategories();
-  const { data: paymentMethods } = useExpensePaymentMethods();
+  const { categories, isLoading: isCategoriesLoading } = useExpenseCategories();
+  const { paymentMethods, isLoading: isPaymentMethodsLoading } = useExpensePaymentMethods();
 
   // Initialize the form with default values or existing data
   const form = useForm<ExpenseFormData>({
