@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSidebar } from '@/hooks/useSidebar';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LogOut, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 import { sidebarNavigation } from './navigation';
 import { NavLink } from 'react-router-dom';
 import SidebarCollapsibleSection from './SidebarCollapsibleSection';
@@ -41,6 +41,16 @@ const BusinessSidebar = () => {
           onClick={closeSidebar}
         />
       )}
+      
+      {/* Mobile toggle button - visible only on mobile */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={toggleSidebar}
+        className="fixed bottom-4 right-4 z-50 rounded-full shadow-lg md:hidden bg-[#072536] text-white hover:bg-[#f99b23] hover:text-[#1A1F2C]"
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
       
       <div
         className={cn(
