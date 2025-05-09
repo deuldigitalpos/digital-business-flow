@@ -21,4 +21,5 @@ export interface BusinessUser {
   primary_work_location?: string;
   daily_rate?: number;
   business_locations?: { name: string };
+  avatar_url?: string;
 }

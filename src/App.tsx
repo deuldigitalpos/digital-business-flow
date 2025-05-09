@@ -10,6 +10,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Dashboard from '@/pages/Dashboard';
 import UserManagement from '@/pages/UserManagement';
 import Settings from '@/pages/Settings';
+import ProfileSettings from '@/pages/ProfileSettings';
 import PackageManagement from '@/pages/PackageManagement';
 import DiscountManagement from '@/pages/DiscountManagement';
 import ReferralManagement from '@/pages/ReferralManagement';
@@ -26,6 +27,7 @@ import BusinessExpenses from '@/pages/BusinessExpenses';
 import BusinessCustomers from '@/pages/BusinessCustomers';
 import BusinessLeads from '@/pages/BusinessLeads';
 import BusinessSuppliers from '@/pages/BusinessSuppliers';
+import BusinessProfileSettings from '@/pages/BusinessProfileSettings';
 import PermissionDenied from '@/pages/PermissionDenied';
 import BusinessCategories from '@/pages/BusinessCategories';
 import BusinessUnits from '@/pages/BusinessUnits';
@@ -69,6 +71,7 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="profile" element={<ProfileSettings />} />
               <Route path="packages" element={<PackageManagement />} />
               <Route path="discounts" element={<DiscountManagement />} />
               <Route path="referrals" element={<ReferralManagement />} />
@@ -99,6 +102,7 @@ function App() {
               <Route path="brands" element={<BusinessBrands />} />
               <Route path="warranties" element={<BusinessWarranties />} />
               <Route path="activity-log" element={<BusinessActivityLog />} />
+              <Route path="profile" element={<BusinessProfileSettings />} />
               
               {/* New Inventory Routes */}
               <Route path="inventory/products" element={<BusinessProducts />} />
