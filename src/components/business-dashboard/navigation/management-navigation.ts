@@ -2,7 +2,7 @@
 import { 
   Users, ShieldCheck, MapPin, DollarSign, 
   UserCog, Package, LayoutGrid, Box, PackagePlus, 
-  ShoppingBag, PackageOpen
+  ShoppingBag, PackageOpen, UserPlus, Briefcase
 } from 'lucide-react';
 
 export const managementNavigation = {
@@ -25,6 +25,18 @@ export const managementNavigation = {
           permission: 'roles'
         }
       ]
+    },
+    {
+      title: 'Customers',
+      href: '/business-dashboard/customers',
+      icon: UserPlus,
+      permission: 'customers'
+    },
+    {
+      title: 'Suppliers',
+      href: '/business-dashboard/suppliers',
+      icon: Briefcase,
+      permission: 'suppliers'
     },
     {
       title: 'Inventory',
