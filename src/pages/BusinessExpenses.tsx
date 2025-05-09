@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,12 +7,8 @@ import ExpenseModal from '@/components/business-expenses/ExpenseModal';
 import DeleteExpenseDialog from '@/components/business-expenses/DeleteExpenseDialog';
 import ExpenseSummary from '@/components/business-expenses/ExpenseSummary';
 import ExpensesTable from '@/components/business-expenses/ExpensesTable';
-import ExpenseFilters from '@/components/business-expenses/ExpenseFilters';
 
 const BusinessExpenses = () => {
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string | null>(null);
-
   const {
     expenses,
     expenseSummary,
@@ -36,18 +31,14 @@ const BusinessExpenses = () => {
     refetch
   } = useBusinessExpenses();
 
-  // Filter expenses based on selected filters
+  // We're keeping the filteredExpenses variable, but it will now just be the expenses array
+  // since we've removed the filters
   const filteredExpenses = useMemo(() => {
     if (!expenses) return [];
     
-    console.log("Filtering expenses:", expenses.length, "items");
-    
-    return expenses.filter(expense => {
-      const matchesCategory = !categoryFilter || expense.category === categoryFilter;
-      const matchesPaymentMethod = !paymentMethodFilter || expense.payment_method === paymentMethodFilter;
-      return matchesCategory && matchesPaymentMethod;
-    });
-  }, [expenses, categoryFilter, paymentMethodFilter]);
+    console.log("Expenses data:", expenses.length, "items");
+    return expenses;
+  }, [expenses]);
 
   console.log("Filtered expenses:", filteredExpenses.length, "items");
 
@@ -88,13 +79,6 @@ const BusinessExpenses = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ExpenseFilters
-            categoryFilter={categoryFilter}
-            paymentMethodFilter={paymentMethodFilter}
-            onCategoryChange={setCategoryFilter}
-            onPaymentMethodChange={setPaymentMethodFilter}
-          />
-          
           <div className="mt-4">
             <ExpensesTable
               expenses={filteredExpenses}
