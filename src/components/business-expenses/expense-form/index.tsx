@@ -4,8 +4,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Expense } from '@/hooks/useBusinessExpenses';
-import { ExpenseFormProps, ExpenseFormData } from './types';
+import { ExpenseFormProps, ExpenseFormData, ExpenseFormSchema } from './types';
 
 // Import field components
 import NameField from './NameField';
@@ -16,33 +15,29 @@ import PaymentMethodField from './PaymentMethodField';
 import StatusField from './StatusField';
 import DescriptionField from './DescriptionField';
 
-const expenseSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  amount: z.coerce.number().positive('Amount must be positive'),
-  description: z.string().optional(),
-  expense_date: z.string().min(1, 'Date is required'),
-  category: z.string().optional(),
-  payment_method: z.string().optional(),
-  status: z.string().optional(),
-});
-
-const ExpenseForm: React.FC<ExpenseFormProps> = ({ expense, onSubmit, isLoading }) => {
+const ExpenseForm: React.FC<ExpenseFormProps> = ({ initialValues = {}, onSuccess, isEditing = false }) => {
   const form = useForm<ExpenseFormData>({
-    resolver: zodResolver(expenseSchema),
+    resolver: zodResolver(ExpenseFormSchema),
     defaultValues: {
-      name: expense?.name || '',
-      amount: expense ? Number(expense.amount) : 0,
-      description: expense?.description || '',
-      expense_date: expense ? expense.expense_date.split('T')[0] : new Date().toISOString().split('T')[0],
-      category: expense?.category || '',
-      payment_method: expense?.payment_method || '',
-      status: expense?.status || 'completed',
+      name: initialValues?.name || '',
+      amount: initialValues?.amount || 0,
+      description: initialValues?.description || '',
+      expense_date: initialValues?.expense_date ? initialValues.expense_date.split('T')[0] : new Date().toISOString().split('T')[0],
+      category: initialValues?.category || '',
+      payment_method: initialValues?.payment_method || '',
+      status: initialValues?.status || 'completed',
     },
   });
 
+  const handleSubmit = (data: ExpenseFormData) => {
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
+
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <NameField />
         <AmountField />
         <DateField />
@@ -52,8 +47,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ expense, onSubmit, isLoading 
         <DescriptionField />
 
         <div className="flex justify-end mt-6 gap-2">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : expense ? 'Update Expense' : 'Add Expense'}
+          <Button type="submit">
+            {isEditing ? 'Update Expense' : 'Add Expense'}
           </Button>
         </div>
       </form>

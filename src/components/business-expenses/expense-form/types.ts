@@ -3,7 +3,7 @@ import { z } from "zod";
 import { Expense } from "@/types/business-expense";
 
 export interface ExpenseFormProps {
-  initialValues?: Partial<ExpenseFormData>;
+  initialValues?: Partial<ExpenseFormData> & { id?: string };
   onSuccess?: () => void;
   isEditing?: boolean;
 }

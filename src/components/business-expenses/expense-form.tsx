@@ -24,7 +24,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   onSuccess,
   isEditing = false
 }) => {
-  const { addExpense, updateExpense } = useExpenseMutations();
+  const { addExpense, updateExpense, isAddingExpense, isUpdatingExpense } = useExpenseMutations();
   
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(ExpenseFormSchema),
@@ -40,18 +40,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     }
   });
 
-  const isPending = addExpense.isPending || updateExpense.isPending;
+  const isPending = isAddingExpense || isUpdatingExpense;
 
   const onSubmit = async (data: ExpenseFormValues) => {
     try {
-      if (isEditing && initialValues.id) {
-        await updateExpense.mutateAsync({
-          id: initialValues.id,
+      if (isEditing && initialValues && 'id' in initialValues) {
+        await updateExpense({
+          id: initialValues.id as string,
           data
         });
         toast.success('Expense updated successfully');
       } else {
-        await addExpense.mutateAsync(data);
+        await addExpense(data);
         toast.success('Expense created successfully');
       }
       

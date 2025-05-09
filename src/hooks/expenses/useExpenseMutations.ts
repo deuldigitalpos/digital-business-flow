@@ -10,7 +10,10 @@ export const useExpenseMutations = () => {
   const queryClient = useQueryClient();
 
   // Add expense mutation
-  const { mutate: addExpense, isPending: isAddingExpense } = useMutation({
+  const { 
+    mutate: addExpense, 
+    isPending: isAddingExpense
+  } = useMutation({
     mutationFn: async (data: ExpenseFormData) => {
       if (!business?.id) throw new Error('No business selected');
       
@@ -42,7 +45,10 @@ export const useExpenseMutations = () => {
   });
 
   // Update expense mutation
-  const { mutate: updateExpense, isPending: isUpdatingExpense } = useMutation({
+  const { 
+    mutate: updateExpense, 
+    isPending: isUpdatingExpense 
+  } = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ExpenseFormData }) => {
       if (!business?.id) throw new Error('No business selected');
       
@@ -75,7 +81,10 @@ export const useExpenseMutations = () => {
   });
 
   // Delete expense mutation
-  const { mutate: deleteExpense, isPending: isDeletingExpense } = useMutation({
+  const { 
+    mutate: deleteExpense, 
+    isPending: isDeletingExpense 
+  } = useMutation({
     mutationFn: async (id: string) => {
       if (!business?.id) throw new Error('No business selected');
       
