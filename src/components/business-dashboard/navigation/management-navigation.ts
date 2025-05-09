@@ -2,7 +2,8 @@
 import { 
   Users, ShieldCheck, MapPin, DollarSign, 
   UserCog, Package, LayoutGrid, Box, PackagePlus, 
-  ShoppingBag, PackageOpen, UserPlus, Briefcase
+  ShoppingBag, PackageOpen, UserPlus, Briefcase,
+  UserCheck
 } from 'lucide-react';
 
 export const managementNavigation = {
@@ -30,6 +31,12 @@ export const managementNavigation = {
       title: 'Customers',
       href: '/business-dashboard/customers',
       icon: UserPlus,
+      permission: 'customers'
+    },
+    {
+      title: 'Leads',
+      href: '/business-dashboard/leads',
+      icon: UserCheck,
       permission: 'customers'
     },
     {
