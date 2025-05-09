@@ -8,7 +8,7 @@ import { Form } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useExpenseMutations } from '@/hooks/expenses/useExpenseMutations';
-import { ExpenseFormSchema, ExpenseFormProps } from './expense-form/types';
+import { ExpenseFormSchema, ExpenseFormProps, ExpenseFormData } from './expense-form/types';
 import AmountField from './expense-form/AmountField';
 import NameField from './expense-form/NameField';
 import DateField from './expense-form/DateField';
@@ -29,14 +29,13 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(ExpenseFormSchema),
     defaultValues: {
-      name: '',
-      amount: 0,
-      expense_date: new Date().toISOString().split('T')[0],
-      category: '',
-      payment_method: 'cash',
-      status: 'pending',
-      description: '',
-      ...initialValues
+      name: initialValues?.name || '',
+      amount: initialValues?.amount || 0,
+      expense_date: initialValues?.expense_date || new Date().toISOString().split('T')[0],
+      category: initialValues?.category || '',
+      payment_method: initialValues?.payment_method || 'Cash',
+      status: initialValues?.status || 'completed',
+      description: initialValues?.description || '',
     }
   });
 
@@ -47,11 +46,11 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       if (isEditing && initialValues && 'id' in initialValues) {
         await updateExpense({
           id: initialValues.id as string,
-          data
+          data: data as ExpenseFormData
         });
         toast.success('Expense updated successfully');
       } else {
-        await addExpense(data);
+        await addExpense(data as ExpenseFormData);
         toast.success('Expense created successfully');
       }
       
