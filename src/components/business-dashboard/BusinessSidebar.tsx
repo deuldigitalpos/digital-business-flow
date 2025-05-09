@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,8 @@ const BusinessSidebar = () => {
   const {
     businessUser,
     logout,
-    hasPermission
+    hasPermission,
+    business
   } = useBusinessAuth();
 
   // Track open/closed state of each collapsible section
@@ -53,7 +55,7 @@ const BusinessSidebar = () => {
               alt="Logo" 
               className="h-8 w-auto" 
             />
-            <span className="font-bold text-lg">DeulDigital</span>
+            <span className="font-bold text-lg">{business?.business_name || 'DeulDigital'}</span>
           </div>
           
           <Button 

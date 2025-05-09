@@ -1,5 +1,2 @@
 
-// Re-export all navigation sections
-import { sidebarNavigation } from './sidebar-navigation';
-
-export { sidebarNavigation };
+export { sidebarNavigation } from './sidebar-navigation';

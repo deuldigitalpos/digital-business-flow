@@ -57,7 +57,7 @@ const BusinessDashboardLayout = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-orange-50/30">
+      <div className="flex min-h-screen w-full bg-orange-50/30">
         <BusinessSidebar />
         <div className="flex flex-col flex-1 w-full">
           <BusinessDashboardHeader />
