@@ -28,22 +28,28 @@ export const managementNavigation = {
       ]
     },
     {
-      title: 'Customers',
-      href: '/business-dashboard/customers',
-      icon: UserPlus,
-      permission: 'customers'
-    },
-    {
-      title: 'Leads',
-      href: '/business-dashboard/leads',
-      icon: UserCheck,
-      permission: 'customers'
-    },
-    {
-      title: 'Suppliers',
-      href: '/business-dashboard/suppliers',
-      icon: Briefcase,
-      permission: 'suppliers'
+      title: 'Contacts',
+      icon: Users,
+      children: [
+        {
+          title: 'Customers',
+          href: '/business-dashboard/customers',
+          icon: UserPlus,
+          permission: 'customers'
+        },
+        {
+          title: 'Leads',
+          href: '/business-dashboard/leads',
+          icon: UserCheck,
+          permission: 'customers'
+        },
+        {
+          title: 'Suppliers',
+          href: '/business-dashboard/suppliers',
+          icon: Briefcase,
+          permission: 'suppliers'
+        }
+      ]
     },
     {
       title: 'Inventory',
