@@ -89,6 +89,9 @@ export const useExpenseQueries = () => {
         creator_name: expense.creator ? `${expense.creator.first_name} ${expense.creator.last_name}` : 'Unknown',
         category_name: expense.category ? categoriesMap[expense.category] || 'Unknown' : 'Uncategorized',
         payment_method_name: expense.payment_method ? paymentMethodsMap[expense.payment_method] || 'Unknown' : 'Not specified',
+        // Make sure we include tax_amount and tax_included fields, defaulting to null if not present
+        tax_amount: expense.tax_amount !== undefined ? expense.tax_amount : null,
+        tax_included: expense.tax_included !== undefined ? expense.tax_included : null,
         // Remove the details objects to avoid circular references
         creator: undefined
       }));
