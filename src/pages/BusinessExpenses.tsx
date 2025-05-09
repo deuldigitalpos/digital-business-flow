@@ -39,12 +39,16 @@ const BusinessExpenses = () => {
   const filteredExpenses = useMemo(() => {
     if (!expenses) return [];
     
+    console.log("Filtering expenses:", expenses.length, "items");
+    
     return expenses.filter(expense => {
       const matchesCategory = !categoryFilter || expense.category === categoryFilter;
       const matchesPaymentMethod = !paymentMethodFilter || expense.payment_method === paymentMethodFilter;
       return matchesCategory && matchesPaymentMethod;
     });
   }, [expenses, categoryFilter, paymentMethodFilter]);
+
+  console.log("Filtered expenses:", filteredExpenses.length, "items");
 
   if (isLoading) {
     return (
@@ -89,12 +93,15 @@ const BusinessExpenses = () => {
             onCategoryChange={setCategoryFilter}
             onPaymentMethodChange={setPaymentMethodFilter}
           />
-          <ExpensesTable
-            expenses={filteredExpenses}
-            onEdit={openEditExpense}
-            onDelete={openDeleteDialog}
-            isLoading={isLoading}
-          />
+          
+          <div className="mt-4">
+            <ExpensesTable
+              expenses={filteredExpenses}
+              onEdit={openEditExpense}
+              onDelete={openDeleteDialog}
+              isLoading={isLoading}
+            />
+          </div>
         </CardContent>
       </Card>
 

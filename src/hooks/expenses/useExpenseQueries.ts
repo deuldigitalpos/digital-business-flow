@@ -19,7 +19,8 @@ export const useExpenseQueries = () => {
     queryFn: async () => {
       if (!business?.id) return [];
       
-      const { data, error } = await supabase
+      // Fetch expenses data
+      const { data: expensesData, error: expensesError } = await supabase
         .from('business_expenses')
         .select(`
           *,
@@ -32,18 +33,22 @@ export const useExpenseQueries = () => {
         .eq('business_id', business.id)
         .order('expense_date', { ascending: false });
       
-      if (error) {
+      if (expensesError) {
         toast.error('Failed to load expenses');
-        throw error;
+        throw expensesError;
+      }
+      
+      if (!expensesData || expensesData.length === 0) {
+        return [];
       }
       
       // Now let's fetch categories and payment methods separately
       // First, collect the category and payment method IDs
-      const categoryIds = data
+      const categoryIds = expensesData
         .map(expense => expense.category)
         .filter(id => id !== null) as string[];
       
-      const paymentMethodIds = data
+      const paymentMethodIds = expensesData
         .map(expense => expense.payment_method)
         .filter(id => id !== null) as string[];
       
@@ -79,12 +84,12 @@ export const useExpenseQueries = () => {
       }, {} as Record<string, string>);
       
       // Transform the data to include display names
-      const expensesWithNames = data.map(expense => ({
+      const expensesWithNames = expensesData.map(expense => ({
         ...expense,
         creator_name: expense.creator ? `${expense.creator.first_name} ${expense.creator.last_name}` : 'Unknown',
         category_name: expense.category ? categoriesMap[expense.category] || 'Unknown' : 'Uncategorized',
         payment_method_name: expense.payment_method ? paymentMethodsMap[expense.payment_method] || 'Unknown' : 'Not specified',
-        // Remove the details objects
+        // Remove the details objects to avoid circular references
         creator: undefined
       }));
       
@@ -115,6 +120,9 @@ export const useExpenseQueries = () => {
     todayCount: 0,
     weekCount: 0
   };
+
+  console.log("Fetched expenses:", expenses);
+  console.log("Expense summary:", expenseSummary);
 
   return {
     expenses,

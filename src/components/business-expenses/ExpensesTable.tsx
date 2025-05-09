@@ -41,7 +41,17 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
   onDelete,
   isLoading,
 }) => {
-  if (expenses.length === 0 && !isLoading) {
+  console.log("ExpensesTable received:", expenses?.length, "expenses");
+  
+  if (isLoading) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-muted-foreground">Loading expenses...</p>
+      </div>
+    );
+  }
+  
+  if (!expenses || expenses.length === 0) {
     return (
       <div className="text-center py-10">
         <p className="text-muted-foreground">No expenses found that match your filters.</p>
