@@ -8,6 +8,7 @@ import ExpenseModal from '@/components/business-expenses/ExpenseModal';
 import DeleteExpenseDialog from '@/components/business-expenses/DeleteExpenseDialog';
 import ExpenseSummary from '@/components/business-expenses/ExpenseSummary';
 import ExpensesTable from '@/components/business-expenses/ExpensesTable';
+import { toast } from 'sonner';
 
 const BusinessExpenses = () => {
   const {
@@ -22,6 +23,7 @@ const BusinessExpenses = () => {
     openEditExpense,
     closeEditExpense,
     openDeleteDialog,
+    closeDeleteDialog,
     addExpense,
     updateExpense,
     isAddingExpense,
@@ -100,7 +102,7 @@ const BusinessExpenses = () => {
       {/* Delete Confirmation Dialog */}
       <DeleteExpenseDialog
         isOpen={isDeleteDialogOpen}
-        onClose={() => closeEditExpense()}
+        onClose={closeDeleteDialog}
         onConfirm={confirmDelete}
         isLoading={isDeletingExpense}
       />

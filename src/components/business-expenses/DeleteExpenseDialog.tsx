@@ -10,6 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
 
 interface DeleteExpenseDialogProps {
   isOpen: boolean;
@@ -24,6 +26,11 @@ const DeleteExpenseDialog: React.FC<DeleteExpenseDialogProps> = ({
   onConfirm,
   isLoading,
 }) => {
+  const handleConfirm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onConfirm();
+  };
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
@@ -36,7 +43,7 @@ const DeleteExpenseDialog: React.FC<DeleteExpenseDialogProps> = ({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={onConfirm}
+            onClick={handleConfirm}
             disabled={isLoading}
             className="bg-red-600 hover:bg-red-700"
           >

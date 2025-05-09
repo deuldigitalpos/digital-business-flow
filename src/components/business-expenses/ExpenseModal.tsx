@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import ExpenseForm from './ExpenseForm';
 import { Expense, ExpenseFormData } from '@/hooks/useBusinessExpenses';
@@ -31,6 +32,9 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {expense ? 'Edit the expense details below.' : 'Fill in the details to add a new expense.'}
+          </DialogDescription>
         </DialogHeader>
         <ExpenseForm expense={expense} onSubmit={onSubmit} isLoading={isLoading} />
       </DialogContent>
