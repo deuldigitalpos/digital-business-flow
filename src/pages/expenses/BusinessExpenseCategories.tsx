@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Loader2, Category } from 'lucide-react';
+import { Plus, Loader2, FolderTree } from 'lucide-react';
 import { useExpenseCategories } from '@/hooks/expenses/useExpenseCategories';
 import ExpenseCategoryModal from '@/components/business-expenses/categories/ExpenseCategoryModal';
 import DeleteExpenseCategoryDialog from '@/components/business-expenses/categories/DeleteExpenseCategoryDialog';
@@ -43,7 +43,7 @@ const BusinessExpenseCategories = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Category className="h-8 w-8 text-orange-500" />
+            <FolderTree className="h-8 w-8 text-orange-500" />
             Expense Categories
           </h1>
           <p className="text-muted-foreground">

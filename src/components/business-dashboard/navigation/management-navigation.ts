@@ -3,7 +3,7 @@ import {
   Users, ShieldCheck, MapPin, DollarSign, 
   UserCog, Package, LayoutGrid, Box, PackagePlus, 
   ShoppingBag, PackageOpen, UserPlus, Briefcase,
-  UserCheck, CreditCard, List, Category
+  UserCheck, CreditCard, List, FolderTree
 } from 'lucide-react';
 
 export const managementNavigation = {
@@ -107,7 +107,7 @@ export const managementNavigation = {
         {
           title: 'Categories',
           href: '/business-dashboard/expenses/categories',
-          icon: Category,
+          icon: FolderTree,
           permission: 'expenses'
         },
         {

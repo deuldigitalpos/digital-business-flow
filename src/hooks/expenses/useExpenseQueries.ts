@@ -28,8 +28,8 @@ export const useExpenseQueries = () => {
             first_name, 
             last_name
           ),
-          category_details:category(name),
-          payment_method_details:payment_method(name)
+          category_details:business_expense_categories!category(name),
+          payment_method_details:business_expense_payment_methods!payment_method(name)
         `)
         .eq('business_id', business.id)
         .order('expense_date', { ascending: false });
