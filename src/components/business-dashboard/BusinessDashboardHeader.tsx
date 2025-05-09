@@ -11,9 +11,10 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Menu, Calculator, ShoppingCart, Clock, Settings, LogOut } from 'lucide-react';
+import { Menu, ShoppingCart, Clock, Settings, LogOut } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import { useNavigate } from 'react-router-dom';
+import CalculatorPopover from './calculator/CalculatorPopover';
 
 const BusinessDashboardHeader = () => {
   const { businessUser, business, logout } = useBusinessAuth();
@@ -73,15 +74,7 @@ const BusinessDashboardHeader = () => {
           <span className="sr-only">POS</span>
         </Button>
         
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="rounded-full border-orange-200 hover:bg-orange-50 hover:text-orange-600" 
-          title="Calculator"
-        >
-          <Calculator className="h-4 w-4" />
-          <span className="sr-only">Calculator</span>
-        </Button>
+        <CalculatorPopover />
         
         <Button 
           variant="outline" 
