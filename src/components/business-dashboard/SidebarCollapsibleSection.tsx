@@ -9,7 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { SidebarNavItem } from './sidebar-navigation';
+import { SidebarNavItem } from './navigation/types';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 interface SidebarCollapsibleSectionProps {
