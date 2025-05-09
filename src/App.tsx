@@ -38,6 +38,7 @@ import BusinessConsumables from '@/pages/inventory/BusinessConsumables';
 import BusinessIngredients from '@/pages/inventory/BusinessIngredients';
 import BusinessAddons from '@/pages/inventory/BusinessAddons';
 import BusinessStock from '@/pages/inventory/BusinessStock';
+import POSPage from '@/pages/pos/POSPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,7 +101,7 @@ function App() {
               <Route path="warranties" element={<BusinessWarranties />} />
               <Route path="activity-log" element={<BusinessActivityLog />} />
               
-              {/* New Inventory Routes */}
+              {/* Inventory Routes */}
               <Route path="inventory/products" element={<BusinessProducts />} />
               <Route path="inventory/consumables" element={<BusinessConsumables />} />
               <Route path="inventory/ingredients" element={<BusinessIngredients />} />
@@ -110,6 +111,16 @@ function App() {
               <Route path="no-permission" element={<PermissionDenied />} />
               <Route path="*" element={<PlaceholderPage />} />
             </Route>
+
+            {/* POS Page - Standalone route wrapped in BusinessAuthProvider */}
+            <Route 
+              path="/business-dashboard/pos" 
+              element={
+                <BusinessAuthProvider>
+                  <POSPage />
+                </BusinessAuthProvider>
+              } 
+            />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

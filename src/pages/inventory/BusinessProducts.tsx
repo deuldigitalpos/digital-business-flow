@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useBusinessAuth } from "@/context/BusinessAuthContext";
 import PermissionGuard from "@/components/business/PermissionGuard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, LayoutGrid } from "lucide-react";
+import { Link } from "react-router-dom";
 import ProductsSummary from "@/components/business-inventory/ProductsSummary";
 import ProductsFilters from "@/components/business-inventory/ProductsFilters";
 import ProductsTable from "@/components/business-inventory/ProductsTable";
@@ -70,9 +71,20 @@ const BusinessProducts: React.FC = () => {
               Manage your product catalog, ingredients, consumables, and pricing
             </p>
           </div>
-          <Button onClick={() => setIsAddModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Add Product
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              to="/business-dashboard/pos"
+              as={Link}
+              className="flex items-center gap-2"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              Open POS
+            </Button>
+            <Button onClick={() => setIsAddModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Add Product
+            </Button>
+          </div>
         </div>
 
         <ProductsSummary />
