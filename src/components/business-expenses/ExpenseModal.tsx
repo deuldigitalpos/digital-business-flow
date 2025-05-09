@@ -15,7 +15,7 @@ interface ExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   expense?: Expense;
-  onSubmit: (data: ExpenseFormData) => void;
+  onSubmit: (data: ExpenseFormData) => Promise<void>;
   isLoading: boolean;
   title: string;
 }
@@ -28,10 +28,15 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
   isLoading,
   title,
 }) => {
-  // The handling function to pass to the form
-  const handleSuccess = () => {
-    toast.success(expense ? 'Expense updated successfully' : 'Expense added successfully');
-    onClose();
+  const handleSubmit = async (data: ExpenseFormData) => {
+    try {
+      await onSubmit(data);
+      toast.success(expense ? 'Expense updated successfully' : 'Expense added successfully');
+      onClose();
+    } catch (error) {
+      console.error("Error in expense modal submission:", error);
+      toast.error(`Failed to ${expense ? 'update' : 'add'} expense. Please try again.`);
+    }
   };
 
   return (
@@ -50,7 +55,8 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         </DialogHeader>
         <ExpenseForm 
           initialValues={expense} 
-          onSuccess={handleSuccess} 
+          onSubmit={handleSubmit}
+          isSubmitting={isLoading}
           isEditing={!!expense} 
         />
       </DialogContent>

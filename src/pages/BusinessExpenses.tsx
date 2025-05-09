@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Plus, Loader2, DollarSign } from 'lucide-react';
@@ -36,11 +36,11 @@ const BusinessExpenses = () => {
   const filteredExpenses = useMemo(() => {
     if (!expenses) return [];
     
-    console.log("Expenses data:", expenses.length, "items");
+    console.log("Expenses data:", expenses?.length, "items");
     return expenses;
   }, [expenses]);
 
-  console.log("Filtered expenses:", filteredExpenses.length, "items");
+  console.log("Filtered expenses:", filteredExpenses?.length, "items");
 
   if (isLoading) {
     return (

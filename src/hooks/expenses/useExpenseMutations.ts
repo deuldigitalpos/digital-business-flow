@@ -11,7 +11,7 @@ export const useExpenseMutations = () => {
 
   // Add expense mutation
   const { 
-    mutate: addExpense, 
+    mutateAsync: addExpense, 
     isPending: isAddingExpense
   } = useMutation({
     mutationFn: async (data: ExpenseFormData) => {
@@ -43,7 +43,6 @@ export const useExpenseMutations = () => {
       return newExpense;
     },
     onSuccess: () => {
-      toast.success('Expense added successfully');
       queryClient.invalidateQueries({ queryKey: ['business-expenses'] });
     },
     onError: (error) => {
@@ -54,7 +53,7 @@ export const useExpenseMutations = () => {
 
   // Update expense mutation
   const { 
-    mutate: updateExpense, 
+    mutateAsync: updateExpense, 
     isPending: isUpdatingExpense 
   } = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ExpenseFormData }) => {
@@ -87,7 +86,6 @@ export const useExpenseMutations = () => {
       return updatedExpense;
     },
     onSuccess: () => {
-      toast.success('Expense updated successfully');
       queryClient.invalidateQueries({ queryKey: ['business-expenses'] });
     },
     onError: (error) => {
@@ -98,7 +96,7 @@ export const useExpenseMutations = () => {
 
   // Delete expense mutation
   const { 
-    mutate: deleteExpense, 
+    mutateAsync: deleteExpense, 
     isPending: isDeletingExpense 
   } = useMutation({
     mutationFn: async (id: string) => {
@@ -121,7 +119,6 @@ export const useExpenseMutations = () => {
       return id;
     },
     onSuccess: () => {
-      toast.success('Expense deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['business-expenses'] });
     },
     onError: (error) => {
