@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSidebar } from '@/hooks/useSidebar';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
-import { LogOut, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { sidebarNavigation } from './navigation';
 import { NavLink } from 'react-router-dom';
 import SidebarCollapsibleSection from './SidebarCollapsibleSection';
@@ -19,8 +18,7 @@ const BusinessSidebar = () => {
   const {
     businessUser,
     logout,
-    hasPermission,
-    business
+    hasPermission
   } = useBusinessAuth();
 
   // Track open/closed state of each collapsible section
@@ -42,16 +40,6 @@ const BusinessSidebar = () => {
         />
       )}
       
-      {/* Mobile toggle button - visible only on mobile */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={toggleSidebar}
-        className="fixed bottom-4 right-4 z-50 rounded-full shadow-lg md:hidden bg-[#072536] text-white hover:bg-[#f99b23] hover:text-[#1A1F2C]"
-      >
-        <Menu className="h-5 w-5" />
-      </Button>
-      
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#1A1F2C] text-white shadow-lg transition-transform duration-300 md:sticky md:top-0",
@@ -65,7 +53,7 @@ const BusinessSidebar = () => {
               alt="Logo" 
               className="h-8 w-auto" 
             />
-            <span className="font-bold text-lg">{business?.business_name || 'DeulDigital'}</span>
+            <span className="font-bold text-lg">DeulDigital</span>
           </div>
           
           <Button 

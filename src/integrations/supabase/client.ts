@@ -72,31 +72,3 @@ export const clearSupabaseBusinessAuth = () => {
 export const getCurrentBusinessUserId = () => {
   return currentBusinessUserId;
 };
-
-// Initialize storage bucket for profiles if it doesn't exist
-export const initProfileStorage = async () => {
-  try {
-    // Check if profiles bucket exists
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const profilesBucketExists = buckets?.some(bucket => bucket.name === 'profiles');
-    
-    if (!profilesBucketExists) {
-      // Create the profiles bucket
-      const { error } = await supabase.storage.createBucket('profiles', {
-        public: true,
-        fileSizeLimit: 5242880, // 5MB
-      });
-      
-      if (error) {
-        console.error('Error creating profiles storage bucket:', error);
-      } else {
-        console.log('Created profiles storage bucket');
-      }
-    }
-  } catch (error) {
-    console.error('Error initializing profile storage:', error);
-  }
-};
-
-// Call this function on app startup
-initProfileStorage();

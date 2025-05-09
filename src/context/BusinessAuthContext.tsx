@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BusinessUser } from '@/types/business-user';
 import { Business } from '@/types/business';
@@ -16,7 +17,6 @@ type BusinessAuthContextType = {
   logout: () => void;
   isAuthenticated: boolean;
   isDefaultUser: boolean;
-  updateBusinessUser: (userData: Partial<BusinessUser>) => void; // Add updateBusinessUser function
 };
 
 const BusinessAuthContext = createContext<BusinessAuthContextType | undefined>(undefined);
@@ -132,15 +132,6 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       });
     }
   }, []);
-
-  // Function to update business user data
-  const updateBusinessUser = useCallback((userData: Partial<BusinessUser>) => {
-    if (!businessUser) return;
-    
-    const updatedUser = { ...businessUser, ...userData };
-    setBusinessUser(updatedUser);
-    localStorage.setItem('businessUser', JSON.stringify(updatedUser));
-  }, [businessUser]);
 
   // Initial session check - runs only once
   useEffect(() => {
@@ -291,7 +282,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   return (
     <BusinessAuthContext.Provider 
       value={{ 
-        businessUser,
+        businessUser, // Explicitly provide businessUser
         business,
         userPermissions,
         hasPermission,
@@ -299,8 +290,7 @@ export const BusinessAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         login, 
         logout, 
         isAuthenticated,
-        isDefaultUser,
-        updateBusinessUser // Add the updateBusinessUser function to the context
+        isDefaultUser
       }}
     >
       {children}

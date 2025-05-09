@@ -5,17 +5,20 @@ import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from '@/integrations/supabase/types';
 
-// Define user types with all required properties
+// Define user types
 type User = {
   username: string;
   isAdmin: boolean;
+  id: string; // Add user ID to store
+};
+
+type AdminUser = {
   id: string;
+  username: string;
   first_name: string;
   last_name: string;
-  email: string;
-  avatar_url?: string;
-  status?: string;
-  role?: string;
+  role: string;
+  status: string;
 };
 
 type AuthContextType = {
@@ -23,7 +26,6 @@ type AuthContextType = {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
-  updateUser: (userData: Partial<User>) => void; // Add updateUser function
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,15 +55,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Function to update user data
-  const updateUser = (userData: Partial<User>) => {
-    if (!user) return;
-    
-    const updatedUser = { ...user, ...userData };
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-  };
-
   // Login function that checks credentials against adminuser table
   const login = async (username: string, password: string): Promise<boolean> => {
     // Simple validation
@@ -89,20 +82,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
-        const adminUser = data as unknown as any; // Use any for now
+        const adminUser = data as unknown as AdminUser;
         console.log('Login successful for user:', adminUser);
         
-        // Create a user object for the client with all required properties
+        // Create a user object for the client
         const userData: User = {
           username: adminUser.username,
-          isAdmin: adminUser.role?.toLowerCase() === 'admin',
-          id: adminUser.id,
-          first_name: adminUser.first_name,
-          last_name: adminUser.last_name,
-          email: adminUser.email || username, // Fallback to username if email is not available
-          avatar_url: adminUser.avatar_url,
-          status: adminUser.status,
-          role: adminUser.role
+          isAdmin: adminUser.role.toLowerCase() === 'admin',
+          id: adminUser.id, // Store the user ID
         };
         
         setUser(userData);
@@ -129,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, updateUser }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

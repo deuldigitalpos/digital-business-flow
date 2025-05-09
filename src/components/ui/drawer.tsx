@@ -44,7 +44,6 @@ const DrawerContent = React.forwardRef<
       className={cn(
         "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background p-4",
         "max-h-[90vh] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300",
-        "sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl mx-auto",
         className
       )}
       {...props}
