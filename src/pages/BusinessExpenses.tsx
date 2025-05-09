@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,7 +7,6 @@ import ExpenseModal from '@/components/business-expenses/ExpenseModal';
 import DeleteExpenseDialog from '@/components/business-expenses/DeleteExpenseDialog';
 import ExpenseSummary from '@/components/business-expenses/ExpenseSummary';
 import ExpensesTable from '@/components/business-expenses/ExpensesTable';
-import { toast } from 'sonner';
 
 const BusinessExpenses = () => {
   const {
