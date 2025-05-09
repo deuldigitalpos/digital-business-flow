@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const BusinessProfileSettings = () => {
-  const { businessUser, logout } = useBusinessAuth();
+  const { businessUser, logout, updateBusinessUser } = useBusinessAuth();
   const [loading, setLoading] = useState(true);
   
   // Business user profile update function
@@ -24,6 +24,16 @@ const BusinessProfileSettings = () => {
         .eq('id', businessUser.id);
         
       if (error) throw error;
+      
+      // Update local user data
+      if (updateBusinessUser) {
+        updateBusinessUser({
+          first_name: profileData.first_name,
+          last_name: profileData.last_name,
+          username: profileData.username,
+          ...(profileData.avatar_url ? { avatar_url: profileData.avatar_url } : {})
+        });
+      }
       
       return true;
     } catch (error) {

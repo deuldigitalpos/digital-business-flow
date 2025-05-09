@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import ProfileSettings from '@/components/shared/ProfileSettings';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +23,18 @@ const ProfileSettingsPage = () => {
         .eq('id', user.id);
         
       if (error) throw error;
+      
+      // Update local user data in AuthContext
+      const updatedUser = {
+        ...user,
+        first_name: profileData.first_name,
+        last_name: profileData.last_name,
+        username: profileData.username,
+        ...(profileData.avatar_url ? { avatar_url: profileData.avatar_url } : {})
+      };
+      
+      // Update local storage
+      localStorage.setItem('user', JSON.stringify(updatedUser));
       
       return true;
     } catch (error) {
