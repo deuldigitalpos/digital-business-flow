@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Plus, Loader2, DollarSign } from 'lucide-react';
@@ -7,8 +8,12 @@ import ExpenseModal from '@/components/business-expenses/ExpenseModal';
 import DeleteExpenseDialog from '@/components/business-expenses/DeleteExpenseDialog';
 import ExpenseSummary from '@/components/business-expenses/ExpenseSummary';
 import ExpensesTable from '@/components/business-expenses/ExpensesTable';
+import ExpenseFilters from '@/components/business-expenses/ExpenseFilters';
 
 const BusinessExpenses = () => {
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string | null>(null);
+
   const {
     expenses,
     expenseSummary,
@@ -29,6 +34,17 @@ const BusinessExpenses = () => {
     isDeletingExpense,
     confirmDelete
   } = useBusinessExpenses();
+
+  // Filter expenses based on selected filters
+  const filteredExpenses = useMemo(() => {
+    if (!expenses) return [];
+    
+    return expenses.filter(expense => {
+      const matchesCategory = !categoryFilter || expense.category === categoryFilter;
+      const matchesPaymentMethod = !paymentMethodFilter || expense.payment_method === paymentMethodFilter;
+      return matchesCategory && matchesPaymentMethod;
+    });
+  }, [expenses, categoryFilter, paymentMethodFilter]);
 
   if (isLoading) {
     return (
@@ -60,15 +76,21 @@ const BusinessExpenses = () => {
       <ExpenseSummary summary={expenseSummary} />
 
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-2">
           <CardTitle>Expense Records</CardTitle>
           <CardDescription>
             View and manage all your recorded expenses
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <ExpenseFilters
+            categoryFilter={categoryFilter}
+            paymentMethodFilter={paymentMethodFilter}
+            onCategoryChange={setCategoryFilter}
+            onPaymentMethodChange={setPaymentMethodFilter}
+          />
           <ExpensesTable
-            expenses={expenses || []}
+            expenses={filteredExpenses}
             onEdit={openEditExpense}
             onDelete={openDeleteDialog}
             isLoading={isLoading}
