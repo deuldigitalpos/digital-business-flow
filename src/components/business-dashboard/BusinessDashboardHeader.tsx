@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import CalculatorPopover from './calculator/CalculatorPopover';
 
 const BusinessDashboardHeader = () => {
-  const { businessUser, business, logout } = useBusinessAuth();
+  const { businessUser, business, logout, hasPermission } = useBusinessAuth();
   const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
 
@@ -28,6 +28,14 @@ const BusinessDashboardHeader = () => {
   const handleLogout = () => {
     logout();
     navigate('/business-login');
+  };
+
+  const navigateToPOS = () => {
+    if (hasPermission('pos')) {
+      navigate('/business-dashboard/pos');
+    } else {
+      navigate('/business-dashboard/permission-denied');
+    }
   };
 
   return (
@@ -69,6 +77,7 @@ const BusinessDashboardHeader = () => {
           size="icon" 
           className="rounded-full border-orange-200 hover:bg-orange-50 hover:text-orange-600" 
           title="POS"
+          onClick={navigateToPOS}
         >
           <ShoppingCart className="h-4 w-4" />
           <span className="sr-only">POS</span>
