@@ -28,6 +28,4 @@ export const ExpenseFormSchema = z.object({
   status: z.string().optional(),
 });
 
-export const paymentMethods = ['Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Check', 'Mobile Payment', 'Other'];
-export const categories = ['Rent', 'Utilities', 'Salary', 'Inventory', 'Equipment', 'Marketing', 'Transportation', 'Food', 'Office Supplies', 'Software', 'Insurance', 'Taxes', 'Other'];
 export const statusOptions = ['completed', 'pending', 'cancelled'];

@@ -3,7 +3,7 @@ import {
   Users, ShieldCheck, MapPin, DollarSign, 
   UserCog, Package, LayoutGrid, Box, PackagePlus, 
   ShoppingBag, PackageOpen, UserPlus, Briefcase,
-  UserCheck
+  UserCheck, CreditCard, List, Category
 } from 'lucide-react';
 
 export const managementNavigation = {
@@ -95,9 +95,28 @@ export const managementNavigation = {
     },
     {
       title: 'Expenses',
-      href: '/business-dashboard/expenses',
       icon: DollarSign,
-      permission: 'expenses'
+      permission: 'expenses',
+      children: [
+        {
+          title: 'Dashboard',
+          href: '/business-dashboard/expenses',
+          icon: DollarSign,
+          permission: 'expenses'
+        },
+        {
+          title: 'Categories',
+          href: '/business-dashboard/expenses/categories',
+          icon: Category,
+          permission: 'expenses'
+        },
+        {
+          title: 'Payment Methods',
+          href: '/business-dashboard/expenses/payment-methods',
+          icon: CreditCard,
+          permission: 'expenses'
+        }
+      ]
     },
     {
       title: 'Locations',

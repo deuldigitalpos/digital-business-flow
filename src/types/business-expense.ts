@@ -14,6 +14,8 @@ export type Expense = {
   receipt_url: string | null;
   created_at: string;
   updated_at: string;
+  category_name?: string;
+  payment_method_name?: string;
 };
 
 export type ExpenseSummary = {
@@ -31,4 +33,32 @@ export type ExpenseFormData = {
   category?: string;
   payment_method?: string;
   status?: string;
+};
+
+export type ExpenseCategory = {
+  id: string;
+  business_id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExpenseCategoryFormData = {
+  name: string;
+  description?: string;
+};
+
+export type ExpensePaymentMethod = {
+  id: string;
+  business_id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExpensePaymentMethodFormData = {
+  name: string;
+  description?: string;
 };

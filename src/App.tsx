@@ -23,6 +23,8 @@ import BusinessUsers from '@/pages/BusinessUsers';
 import BusinessRoles from '@/pages/BusinessRoles';
 import BusinessLocations from '@/pages/BusinessLocations';
 import BusinessExpenses from '@/pages/BusinessExpenses';
+import BusinessExpenseCategories from '@/pages/expenses/BusinessExpenseCategories';
+import BusinessExpensePaymentMethods from '@/pages/expenses/BusinessExpensePaymentMethods';
 import BusinessCustomers from '@/pages/BusinessCustomers';
 import BusinessLeads from '@/pages/BusinessLeads';
 import BusinessSuppliers from '@/pages/BusinessSuppliers';
@@ -92,7 +94,12 @@ function App() {
               <Route path="roles" element={<BusinessRoles />} />
               <Route path="locations" element={<BusinessLocations />} />
               <Route path="categories" element={<BusinessCategories />} />
+              
+              {/* Expenses routes */}
               <Route path="expenses" element={<BusinessExpenses />} />
+              <Route path="expenses/categories" element={<BusinessExpenseCategories />} />
+              <Route path="expenses/payment-methods" element={<BusinessExpensePaymentMethods />} />
+              
               <Route path="customers" element={<BusinessCustomers />} />
               <Route path="leads" element={<BusinessLeads />} />
               <Route path="suppliers" element={<BusinessSuppliers />} />

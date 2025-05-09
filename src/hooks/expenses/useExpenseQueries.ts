@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Expense, ExpenseSummary } from '@/types/business-expense';
+import { Expense, ExpenseSummary, ExpenseCategory, ExpensePaymentMethod } from '@/types/business-expense';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 export const useExpenseQueries = () => {
@@ -27,7 +27,9 @@ export const useExpenseQueries = () => {
             id, 
             first_name, 
             last_name
-          )
+          ),
+          category_details:category(name),
+          payment_method_details:payment_method(name)
         `)
         .eq('business_id', business.id)
         .order('expense_date', { ascending: false });
@@ -37,15 +39,19 @@ export const useExpenseQueries = () => {
         throw error;
       }
       
-      // Transform the data to include creator_name
-      const expensesWithCreatorName = data.map(expense => ({
+      // Transform the data to include display names
+      const expensesWithNames = data.map(expense => ({
         ...expense,
         creator_name: expense.creator ? `${expense.creator.first_name} ${expense.creator.last_name}` : 'Unknown',
-        // Remove the creator object as we now have creator_name
-        creator: undefined
+        category_name: expense.category_details?.name || 'Uncategorized',
+        payment_method_name: expense.payment_method_details?.name || 'Not specified',
+        // Remove the details objects
+        creator: undefined,
+        category_details: undefined,
+        payment_method_details: undefined
       }));
       
-      return expensesWithCreatorName as Expense[];
+      return expensesWithNames as Expense[];
     },
     enabled: !!business?.id
   });

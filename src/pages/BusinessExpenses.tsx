@@ -61,7 +61,7 @@ const BusinessExpenses = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <DollarSign className="h-8 w-8 text-orange-500" />
-            Expenses
+            Expenses Dashboard
           </h1>
           <p className="text-muted-foreground">
             Track and manage your business expenses
