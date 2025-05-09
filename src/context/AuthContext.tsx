@@ -5,20 +5,17 @@ import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from '@/integrations/supabase/types';
 
-// Define user types
+// Define user types with all required properties
 type User = {
   username: string;
   isAdmin: boolean;
-  id: string; // Add user ID to store
-};
-
-type AdminUser = {
   id: string;
-  username: string;
   first_name: string;
   last_name: string;
-  role: string;
-  status: string;
+  email: string;
+  avatar_url?: string;
+  status?: string;
+  role?: string;
 };
 
 type AuthContextType = {
@@ -82,14 +79,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
-        const adminUser = data as unknown as AdminUser;
+        const adminUser = data as unknown as any; // Use any for now
         console.log('Login successful for user:', adminUser);
         
-        // Create a user object for the client
+        // Create a user object for the client with all required properties
         const userData: User = {
           username: adminUser.username,
-          isAdmin: adminUser.role.toLowerCase() === 'admin',
-          id: adminUser.id, // Store the user ID
+          isAdmin: adminUser.role?.toLowerCase() === 'admin',
+          id: adminUser.id,
+          first_name: adminUser.first_name,
+          last_name: adminUser.last_name,
+          email: adminUser.email || username, // Fallback to username if email is not available
+          avatar_url: adminUser.avatar_url,
+          status: adminUser.status,
+          role: adminUser.role
         };
         
         setUser(userData);
