@@ -11,6 +11,7 @@ import { ProductFormValues } from "./product-form/types";
 import useProductIngredients from "@/hooks/useProductIngredients";
 import useProductConsumables from "@/hooks/useProductConsumables";
 import useProductSizes from "@/hooks/useProductSizes";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect } from "react";
 
 interface EditProductModalProps {
@@ -56,6 +57,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
   const { ingredients } = useProductIngredients(product.id);
   const { consumables } = useProductConsumables(product.id);
   const { sizes } = useProductSizes(product.id);
+  const isMobile = useIsMobile();
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
@@ -125,7 +127,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, isOpen, on
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`w-[95%] ${isMobile ? 'max-w-full p-3' : 'max-w-4xl p-6'} max-h-[90vh] overflow-y-auto`}>
         <DialogHeader>
           <DialogTitle>Edit Product: {product.name}</DialogTitle>
         </DialogHeader>

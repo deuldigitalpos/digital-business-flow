@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BusinessProduct } from "@/types/business-product";
@@ -13,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { format } from "date-fns";
 import { AlertCircle, ImageIcon, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ViewProductModalProps {
   product: BusinessProduct;
@@ -25,6 +25,7 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
   const { consumables } = useProductConsumables(product?.id);
   const { sizes } = useProductSizes(product?.id);
   const { availability, isLoading: availabilityLoading } = useProductAvailability(product);
+  const isMobile = useIsMobile();
   
   const getStockStatusBadge = (status?: string) => {
     switch (status) {
@@ -41,25 +42,25 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ product, isOpen, on
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`w-[95%] ${isMobile ? 'max-w-full p-3' : 'max-w-4xl p-6'} max-h-[90vh] overflow-y-auto`}>
         <DialogHeader>
-          <DialogTitle>Product Details: {product.name}</DialogTitle>
+          <DialogTitle className="text-xl">Product Details: {product.name}</DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="overview">
-          <TabsList className="mb-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+        <Tabs defaultValue="overview" className="mt-4">
+          <TabsList className="mb-4 flex w-full h-auto flex-wrap gap-2">
+            <TabsTrigger value="overview" className="h-9">Overview</TabsTrigger>
             {product.has_ingredients && (
-              <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
+              <TabsTrigger value="ingredients" className="h-9">Ingredients</TabsTrigger>
             )}
             {product.has_consumables && (
-              <TabsTrigger value="consumables">Consumables</TabsTrigger>
+              <TabsTrigger value="consumables" className="h-9">Consumables</TabsTrigger>
             )}
             {product.has_sizes && (
-              <TabsTrigger value="sizes">Sizes</TabsTrigger>
+              <TabsTrigger value="sizes" className="h-9">Sizes</TabsTrigger>
             )}
             {hasComponentInventory && (
-              <TabsTrigger value="availability">Availability</TabsTrigger>
+              <TabsTrigger value="availability" className="h-9">Availability</TabsTrigger>
             )}
           </TabsList>
           

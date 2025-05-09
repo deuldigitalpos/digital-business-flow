@@ -60,7 +60,7 @@ export const AddonForm: React.FC<AddonFormProps> = ({ addon, onClose }) => {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[95%] max-w-[425px] p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Add-on' : 'Add New Add-on'}</DialogTitle>
         </DialogHeader>
@@ -70,18 +70,18 @@ export const AddonForm: React.FC<AddonFormProps> = ({ addon, onClose }) => {
             <DescriptionField form={form} />
             <CategorySelect form={form} />
             <UnitSelect form={form} />
-            <DialogFooter>
+            <DialogFooter className="pt-2 sm:pt-4 gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="mt-4"
+                className="sm:w-auto w-full"
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                className="mt-4"
+                className="sm:w-auto w-full"
                 disabled={form.formState.isSubmitting || !form.formState.isDirty}
               >
                 {isEditing ? 'Update Add-on' : 'Create Add-on'}

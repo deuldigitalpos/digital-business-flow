@@ -83,7 +83,7 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
   };
 
   return (
-    <DialogContent className="sm:max-w-[500px]">
+    <DialogContent className="w-[95%] max-w-[500px] p-4 sm:p-6">
       <DialogHeader>
         <DialogTitle>{consumable ? 'Edit Consumable' : 'Add New Consumable'}</DialogTitle>
       </DialogHeader>
@@ -94,11 +94,11 @@ const ConsumableForm: React.FC<ConsumableFormProps> = ({ consumable, onClose }) 
           <CategorySelect form={form} />
           <UnitSelect form={form} />
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2 sm:pt-4">
+            <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {consumable ? 'Update' : 'Add'} Consumable
             </Button>

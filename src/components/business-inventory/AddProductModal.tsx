@@ -7,6 +7,7 @@ import { z } from "zod";
 import useBusinessProductMutations from "@/hooks/useBusinessProductMutations";
 import ProductForm from "@/components/business-inventory/ProductForm";
 import { ProductFormValues } from "./product-form/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -49,6 +50,7 @@ const formSchema = z.object({
 
 const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) => {
   const { createProduct } = useBusinessProductMutations();
+  const isMobile = useIsMobile();
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
@@ -91,7 +93,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) =>
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`w-[95%] ${isMobile ? 'max-w-full p-3' : 'max-w-4xl p-6'} max-h-[90vh] overflow-y-auto`}>
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
         </DialogHeader>
