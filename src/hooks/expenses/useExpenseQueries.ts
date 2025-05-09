@@ -27,9 +27,7 @@ export const useExpenseQueries = () => {
             id, 
             first_name, 
             last_name
-          ),
-          category_details:business_expense_categories!category(name),
-          payment_method_details:business_expense_payment_methods!payment_method(name)
+          )
         `)
         .eq('business_id', business.id)
         .order('expense_date', { ascending: false });
@@ -39,16 +37,55 @@ export const useExpenseQueries = () => {
         throw error;
       }
       
+      // Now let's fetch categories and payment methods separately
+      // First, collect the category and payment method IDs
+      const categoryIds = data
+        .map(expense => expense.category)
+        .filter(id => id !== null) as string[];
+      
+      const paymentMethodIds = data
+        .map(expense => expense.payment_method)
+        .filter(id => id !== null) as string[];
+      
+      // Fetch categories
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('business_expense_categories')
+        .select('id, name')
+        .in('id', categoryIds.length > 0 ? categoryIds : ['00000000-0000-0000-0000-000000000000']);
+      
+      if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError);
+      }
+      
+      // Fetch payment methods
+      const { data: paymentMethodsData, error: paymentMethodsError } = await supabase
+        .from('business_expense_payment_methods')
+        .select('id, name')
+        .in('id', paymentMethodIds.length > 0 ? paymentMethodIds : ['00000000-0000-0000-0000-000000000000']);
+      
+      if (paymentMethodsError) {
+        console.error('Error fetching payment methods:', paymentMethodsError);
+      }
+      
+      // Create lookup maps for categories and payment methods
+      const categoriesMap = (categoriesData || []).reduce((acc, category) => {
+        acc[category.id] = category.name;
+        return acc;
+      }, {} as Record<string, string>);
+      
+      const paymentMethodsMap = (paymentMethodsData || []).reduce((acc, method) => {
+        acc[method.id] = method.name;
+        return acc;
+      }, {} as Record<string, string>);
+      
       // Transform the data to include display names
       const expensesWithNames = data.map(expense => ({
         ...expense,
         creator_name: expense.creator ? `${expense.creator.first_name} ${expense.creator.last_name}` : 'Unknown',
-        category_name: expense.category_details?.name || 'Uncategorized',
-        payment_method_name: expense.payment_method_details?.name || 'Not specified',
+        category_name: expense.category ? categoriesMap[expense.category] || 'Unknown' : 'Uncategorized',
+        payment_method_name: expense.payment_method ? paymentMethodsMap[expense.payment_method] || 'Unknown' : 'Not specified',
         // Remove the details objects
-        creator: undefined,
-        category_details: undefined,
-        payment_method_details: undefined
+        creator: undefined
       }));
       
       return expensesWithNames as Expense[];
