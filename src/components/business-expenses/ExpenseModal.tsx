@@ -7,9 +7,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import ExpenseForm from './ExpenseForm';
 import { Expense, ExpenseFormData } from '@/types/business-expense';
 import { toast } from 'sonner';
+import ExpenseForm from './expense-form';  // Use the refactored form component
 
 interface ExpenseModalProps {
   isOpen: boolean;
@@ -60,8 +60,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         </DialogHeader>
         <ExpenseForm 
           initialValues={expense} 
-          onSubmit={handleSubmit}
-          isSubmitting={isLoading}
+          onSuccess={onClose}
           isEditing={!!expense} 
         />
       </DialogContent>

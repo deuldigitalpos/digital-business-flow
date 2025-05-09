@@ -33,8 +33,6 @@ const BusinessExpenses = () => {
     refetch
   } = useBusinessExpenses();
 
-  // We're keeping the filteredExpenses variable, but it will now just be the expenses array
-  // since we've removed the filters
   const filteredExpenses = useMemo(() => {
     if (!expenses) return [];
     
@@ -105,7 +103,7 @@ const BusinessExpenses = () => {
         </CardContent>
       </Card>
 
-      {/* Add Expense Modal */}
+      {/* Use the refactored ExpenseModal component that uses the new form */}
       <ExpenseModal
         isOpen={isAddExpenseOpen}
         onClose={closeAddExpense}
@@ -114,7 +112,6 @@ const BusinessExpenses = () => {
         title="Add New Expense"
       />
 
-      {/* Edit Expense Modal */}
       {editingExpense && (
         <ExpenseModal
           isOpen={!!editingExpense}
@@ -126,7 +123,6 @@ const BusinessExpenses = () => {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
       <DeleteExpenseDialog
         isOpen={isDeleteDialogOpen}
         onClose={closeDeleteDialog}

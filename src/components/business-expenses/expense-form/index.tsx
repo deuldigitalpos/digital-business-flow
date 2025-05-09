@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ExpenseFormProps, ExpenseFormData, ExpenseFormSchema } from './types';
 import { Loader2 } from 'lucide-react';
 import { useExpenseMutations } from '@/hooks/expenses/useExpenseMutations';
+import { toast } from 'sonner';
 
 // Import field components
 import NameField from './NameField';
@@ -16,6 +17,8 @@ import CategoryField from './CategoryField';
 import PaymentMethodField from './PaymentMethodField';
 import StatusField from './StatusField';
 import DescriptionField from './DescriptionField';
+import TaxAmountField from './TaxAmountField';
+import TaxIncludedField from './TaxIncludedField';
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ initialValues = {}, onSuccess, isEditing = false }) => {
   const { addExpense, updateExpense, isAddingExpense, isUpdatingExpense } = useExpenseMutations();
@@ -31,6 +34,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ initialValues = {}, onSuccess
       category: initialValues?.category || '',
       payment_method: initialValues?.payment_method || '',
       status: initialValues?.status || 'completed',
+      tax_amount: initialValues?.tax_amount || 0,
+      tax_included: initialValues?.tax_included || false,
     },
   });
 
@@ -43,10 +48,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ initialValues = {}, onSuccess
           id: initialValues.id as string,
           data
         });
-        console.log("Expense updated successfully");
+        toast.success("Expense updated successfully");
       } else {
         await addExpense(data);
-        console.log("Expense added successfully");
+        toast.success("Expense added successfully");
       }
       
       form.reset();
@@ -55,6 +60,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ initialValues = {}, onSuccess
       }
     } catch (error) {
       console.error('Error submitting expense:', error);
+      toast.error(`Failed to ${isEditing ? 'update' : 'add'} expense`);
     }
   };
 
@@ -74,6 +80,11 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ initialValues = {}, onSuccess
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <PaymentMethodField />
           <StatusField />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TaxAmountField />
+          <TaxIncludedField />
         </div>
 
         <DescriptionField />

@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { ExpensePaymentMethod } from '@/types/business-expense';
 import { Loader2 } from 'lucide-react';
+import { paymentMethodDefaultOptions } from './types';
 
 const PaymentMethodField = () => {
   const form = useFormContext();
@@ -54,6 +55,14 @@ const PaymentMethodField = () => {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
+              {/* Default options if no configured payment methods */}
+              {paymentMethods.length === 0 && paymentMethodDefaultOptions.map((method) => (
+                <SelectItem key={method} value={method}>
+                  {method}
+                </SelectItem>
+              ))}
+              
+              {/* Custom payment methods from database */}
               {paymentMethods.map((method) => (
                 <SelectItem key={method.id} value={method.id}>
                   {method.name}

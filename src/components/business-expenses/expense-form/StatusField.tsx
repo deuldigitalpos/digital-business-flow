@@ -3,7 +3,7 @@ import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFormContext } from "react-hook-form";
-import { statusOptions } from './types';
+import { statusOptions, formatStatus } from './types';
 
 const StatusField = () => {
   const form = useFormContext();
@@ -27,7 +27,7 @@ const StatusField = () => {
             <SelectContent>
               {statusOptions.map((status) => (
                 <SelectItem key={status} value={status}>
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                  {formatStatus(status)}
                 </SelectItem>
               ))}
             </SelectContent>

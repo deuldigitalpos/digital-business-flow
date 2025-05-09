@@ -12,6 +12,8 @@ export type Expense = {
   payment_method: string | null;
   status: string | null;
   receipt_url: string | null;
+  tax_amount: number | null;
+  tax_included: boolean | null;
   created_at: string;
   updated_at: string;
   category_name?: string;
@@ -33,6 +35,8 @@ export type ExpenseFormData = {
   category?: string;
   payment_method?: string;
   status?: string;
+  tax_amount?: number;
+  tax_included?: boolean;
 };
 
 export type ExpenseCategory = {

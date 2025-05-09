@@ -16,6 +16,8 @@ export interface ExpenseFormData {
   category?: string;
   payment_method?: string;
   status?: string;
+  tax_amount?: number;
+  tax_included?: boolean;
 }
 
 export const ExpenseFormSchema = z.object({
@@ -26,6 +28,14 @@ export const ExpenseFormSchema = z.object({
   category: z.string().optional(),
   payment_method: z.string().optional(),
   status: z.string().optional(),
+  tax_amount: z.coerce.number().optional(),
+  tax_included: z.boolean().optional(),
 });
 
 export const statusOptions = ['completed', 'pending', 'cancelled'];
+export const paymentMethodDefaultOptions = ['Cash', 'Credit Card', 'Bank Transfer', 'Mobile Payment'];
+
+// Helper function to format status display
+export const formatStatus = (status: string): string => {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
