@@ -53,7 +53,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         <Link
           to={to}
           className={cn(buttonVariants({ variant, size, className }))}
-          {...props}
+          {...(props as any)} // Cast props to any to avoid type errors
         >
           {props.children}
         </Link>

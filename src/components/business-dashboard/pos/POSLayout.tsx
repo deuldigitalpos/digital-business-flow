@@ -9,7 +9,7 @@ import POSCart from './POSCart';
 import { CalculatorPopover } from '../calculator';
 
 const POSLayout: React.FC = () => {
-  const { businessUser } = useBusinessAuth();
+  const { businessUser, business } = useBusinessAuth();
   const navigate = useNavigate();
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -57,9 +57,9 @@ const POSLayout: React.FC = () => {
         <div className="flex items-center">
           <ShoppingCart className="mr-2 h-6 w-6" />
           <h1 className="text-2xl font-bold">POS System</h1>
-          {businessUser && (
+          {business && (
             <span className="ml-4 text-sm opacity-80">
-              {businessUser.business_name}
+              {business.name}
             </span>
           )}
         </div>

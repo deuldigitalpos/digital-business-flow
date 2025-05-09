@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useBusinessProducts } from '@/hooks/useBusinessProducts';
+import useBusinessProducts from '@/hooks/useBusinessProducts';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,7 +18,8 @@ const POSProductGrid: React.FC = () => {
     category: categoryFilter
   });
   
-  const { categories } = useBusinessCategories();
+  const categoryQuery = useBusinessCategories();
+  const categories = categoryQuery.data || [];
   const { addToCart } = usePOSCart();
   
   const handleProductSelect = (product: BusinessProduct) => {
