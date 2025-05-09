@@ -30,6 +30,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
 }) => {
   const handleSubmit = async (data: ExpenseFormData) => {
     try {
+      console.log("Modal submitting expense data:", data);
       await onSubmit(data);
       toast.success(expense ? 'Expense updated successfully' : 'Expense added successfully');
       onClose();

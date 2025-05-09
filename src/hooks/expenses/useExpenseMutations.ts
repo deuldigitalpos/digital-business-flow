@@ -15,9 +15,13 @@ export const useExpenseMutations = () => {
     isPending: isAddingExpense
   } = useMutation({
     mutationFn: async (data: ExpenseFormData) => {
-      if (!business?.id) throw new Error('No business selected');
+      if (!business?.id) {
+        console.error("No business selected");
+        throw new Error('No business selected');
+      }
       
-      console.log("Adding expense:", data);
+      console.log("Adding expense for business:", business.id);
+      console.log("Adding expense data:", data);
       
       const { error, data: newExpense } = await supabase
         .from('business_expenses')
@@ -63,9 +67,13 @@ export const useExpenseMutations = () => {
     isPending: isUpdatingExpense 
   } = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ExpenseFormData }) => {
-      if (!business?.id) throw new Error('No business selected');
+      if (!business?.id) {
+        console.error("No business selected");
+        throw new Error('No business selected');
+      }
       
-      console.log("Updating expense:", id, data);
+      console.log("Updating expense:", id, "for business:", business.id);
+      console.log("Updating expense data:", data);
       
       const { error, data: updatedExpense } = await supabase
         .from('business_expenses')
@@ -112,9 +120,12 @@ export const useExpenseMutations = () => {
     isPending: isDeletingExpense 
   } = useMutation({
     mutationFn: async (id: string) => {
-      if (!business?.id) throw new Error('No business selected');
+      if (!business?.id) {
+        console.error("No business selected");
+        throw new Error('No business selected');
+      }
       
-      console.log("Deleting expense:", id);
+      console.log("Deleting expense:", id, "for business:", business.id);
       
       const { error } = await supabase
         .from('business_expenses')

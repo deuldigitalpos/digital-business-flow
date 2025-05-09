@@ -26,6 +26,7 @@ import { Loader2 } from 'lucide-react';
 import { ExpenseFormData, Expense } from '@/types/business-expense';
 import { useExpenseCategories } from '@/hooks/expenses/useExpenseCategories';
 import { useExpensePaymentMethods } from '@/hooks/expenses/useExpensePaymentMethods';
+import { useBusinessAuth } from '@/context/BusinessAuthContext';
 
 // Define the schema for expense form validation
 const expenseFormSchema = z.object({
@@ -51,6 +52,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   isSubmitting,
   isEditing,
 }) => {
+  // Get the business context to verify authentication
+  const { business } = useBusinessAuth();
+  console.log("Current business context:", business);
+
   // Get the categories and payment methods
   const { categories, isLoading: isCategoriesLoading } = useExpenseCategories();
   const { paymentMethods, isLoading: isPaymentMethodsLoading } = useExpensePaymentMethods();
@@ -62,8 +67,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       name: initialValues?.name || '',
       amount: initialValues?.amount || 0,
       expense_date: initialValues?.expense_date ? initialValues.expense_date.split('T')[0] : new Date().toISOString().split('T')[0],
-      category: initialValues?.category || '',
-      payment_method: initialValues?.payment_method || '',
+      category: initialValues?.category || 'none',
+      payment_method: initialValues?.payment_method || 'none',
       status: initialValues?.status || 'completed',
       description: initialValues?.description || '',
     },
@@ -72,7 +77,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   // Handle form submission
   const handleSubmit = async (data: ExpenseFormData) => {
     try {
-      await onSubmit(data);
+      console.log("Submitting form data:", data);
+      
+      // Convert 'none' values to null before submission
+      const processedData = {
+        ...data,
+        category: data.category === 'none' ? null : data.category,
+        payment_method: data.payment_method === 'none' ? null : data.payment_method,
+      };
+      
+      console.log("Processed form data for submission:", processedData);
+      await onSubmit(processedData);
     } catch (error) {
       console.error("Error in form submission:", error);
     }
@@ -152,7 +167,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Uncategorized</SelectItem>
+                    <SelectItem value="none">Uncategorized</SelectItem>
                     {categories?.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -183,7 +198,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Not specified</SelectItem>
+                    <SelectItem value="none">Not specified</SelectItem>
                     {paymentMethods?.map((method) => (
                       <SelectItem key={method.id} value={method.id}>
                         {method.name}
