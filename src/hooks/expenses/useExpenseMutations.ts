@@ -17,6 +17,8 @@ export const useExpenseMutations = () => {
     mutationFn: async (data: ExpenseFormData) => {
       if (!business?.id) throw new Error('No business selected');
       
+      console.log("Adding expense:", data);
+      
       const { error, data: newExpense } = await supabase
         .from('business_expenses')
         .insert({
@@ -32,7 +34,12 @@ export const useExpenseMutations = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding expense:", error);
+        throw error;
+      }
+      
+      console.log("New expense created:", newExpense);
       return newExpense;
     },
     onSuccess: () => {
@@ -40,6 +47,7 @@ export const useExpenseMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['business-expenses'] });
     },
     onError: (error) => {
+      console.error("Expense addition error:", error);
       toast.error(`Failed to add expense: ${error.message}`);
     }
   });
@@ -51,6 +59,8 @@ export const useExpenseMutations = () => {
   } = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ExpenseFormData }) => {
       if (!business?.id) throw new Error('No business selected');
+      
+      console.log("Updating expense:", id, data);
       
       const { error, data: updatedExpense } = await supabase
         .from('business_expenses')
@@ -68,7 +78,12 @@ export const useExpenseMutations = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating expense:", error);
+        throw error;
+      }
+      
+      console.log("Expense updated:", updatedExpense);
       return updatedExpense;
     },
     onSuccess: () => {
@@ -76,6 +91,7 @@ export const useExpenseMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['business-expenses'] });
     },
     onError: (error) => {
+      console.error("Expense update error:", error);
       toast.error(`Failed to update expense: ${error.message}`);
     }
   });
@@ -88,13 +104,20 @@ export const useExpenseMutations = () => {
     mutationFn: async (id: string) => {
       if (!business?.id) throw new Error('No business selected');
       
+      console.log("Deleting expense:", id);
+      
       const { error } = await supabase
         .from('business_expenses')
         .delete()
         .eq('id', id)
         .eq('business_id', business.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting expense:", error);
+        throw error;
+      }
+      
+      console.log("Expense deleted successfully");
       return id;
     },
     onSuccess: () => {
@@ -102,6 +125,7 @@ export const useExpenseMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['business-expenses'] });
     },
     onError: (error) => {
+      console.error("Expense deletion error:", error);
       toast.error(`Failed to delete expense: ${error.message}`);
     }
   });

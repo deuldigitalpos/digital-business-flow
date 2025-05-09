@@ -32,7 +32,8 @@ const BusinessExpenses = () => {
     isAddingExpense,
     isUpdatingExpense,
     isDeletingExpense,
-    confirmDelete
+    confirmDelete,
+    refetch
   } = useBusinessExpenses();
 
   // Filter expenses based on selected filters

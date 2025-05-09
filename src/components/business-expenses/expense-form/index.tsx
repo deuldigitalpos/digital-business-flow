@@ -36,13 +36,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ initialValues = {}, onSuccess
 
   const handleSubmit = async (data: ExpenseFormData) => {
     try {
+      console.log("Submitting expense form:", data);
+      
       if (isEditing && initialValues && 'id' in initialValues) {
         await updateExpense({
           id: initialValues.id as string,
           data
         });
+        console.log("Expense updated successfully");
       } else {
         await addExpense(data);
+        console.log("Expense added successfully");
       }
       
       form.reset();

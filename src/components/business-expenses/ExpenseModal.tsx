@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import ExpenseForm from './ExpenseForm';
 import { Expense, ExpenseFormData } from '@/types/business-expense';
+import { toast } from 'sonner';
 
 interface ExpenseModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
 }) => {
   // The handling function to pass to the form
   const handleSuccess = () => {
+    toast.success(expense ? 'Expense updated successfully' : 'Expense added successfully');
     onClose();
   };
 
