@@ -8,7 +8,7 @@ import { Form } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useExpenseMutations } from '@/hooks/expenses/useExpenseMutations';
-import { ExpenseFormSchema } from './expense-form/types';
+import { ExpenseFormSchema, ExpenseFormProps } from './expense-form/types';
 import AmountField from './expense-form/AmountField';
 import NameField from './expense-form/NameField';
 import DateField from './expense-form/DateField';
@@ -19,18 +19,12 @@ import DescriptionField from './expense-form/DescriptionField';
 
 export type ExpenseFormValues = z.infer<typeof ExpenseFormSchema>;
 
-interface ExpenseFormProps {
-  initialValues?: Partial<ExpenseFormValues>;
-  onSuccess?: () => void;
-  isEditing?: boolean;
-}
-
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ 
   initialValues = {},
   onSuccess,
   isEditing = false
 }) => {
-  const { createExpense, updateExpense } = useExpenseMutations();
+  const { addExpense, updateExpense } = useExpenseMutations();
   
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(ExpenseFormSchema),
@@ -46,18 +40,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     }
   });
 
-  const isPending = createExpense.isPending || updateExpense.isPending;
+  const isPending = addExpense.isPending || updateExpense.isPending;
 
   const onSubmit = async (data: ExpenseFormValues) => {
     try {
       if (isEditing && initialValues.id) {
         await updateExpense.mutateAsync({
           id: initialValues.id,
-          ...data
+          data
         });
         toast.success('Expense updated successfully');
       } else {
-        await createExpense.mutateAsync(data);
+        await addExpense.mutateAsync(data);
         toast.success('Expense created successfully');
       }
       

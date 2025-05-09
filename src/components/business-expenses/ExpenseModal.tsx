@@ -8,7 +8,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import ExpenseForm from './ExpenseForm';
-import { Expense, ExpenseFormData } from '@/hooks/useBusinessExpenses';
+import { Expense, ExpenseFormData } from '@/types/business-expense';
 
 interface ExpenseModalProps {
   isOpen: boolean;
@@ -27,6 +27,11 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
   isLoading,
   title,
 }) => {
+  // The handling function to pass to the form
+  const handleSuccess = () => {
+    onClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
@@ -41,7 +46,11 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
             )}
           </DialogDescription>
         </DialogHeader>
-        <ExpenseForm expense={expense} onSubmit={onSubmit} isLoading={isLoading} />
+        <ExpenseForm 
+          initialValues={expense} 
+          onSuccess={handleSuccess} 
+          isEditing={!!expense} 
+        />
       </DialogContent>
     </Dialog>
   );
