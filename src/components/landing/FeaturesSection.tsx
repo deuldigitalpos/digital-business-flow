@@ -41,7 +41,7 @@ const FeaturesSection = () => {
     <section className="py-16 px-4 md:py-24 bg-white">
       <div className="container">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Powerful Features for Every Business</h2>
+          <h2 className="text-3xl font-bold mb-4">Powerful Features for <span className="text-orange-500">Every Business</span></h2>
           <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
             Everything you need to run and grow your business in one intuitive platform
           </p>
