@@ -84,17 +84,20 @@ export const useExpenseQueries = () => {
       }, {} as Record<string, string>);
       
       // Transform the data to include display names
-      const expensesWithNames = expensesData.map(expense => ({
-        ...expense,
-        creator_name: expense.creator ? `${expense.creator.first_name} ${expense.creator.last_name}` : 'Unknown',
-        category_name: expense.category ? categoriesMap[expense.category] || 'Unknown' : 'Uncategorized',
-        payment_method_name: expense.payment_method ? paymentMethodsMap[expense.payment_method] || 'Unknown' : 'Not specified',
-        // Make sure we include tax_amount and tax_included fields, defaulting to null if not present
-        tax_amount: expense.tax_amount !== undefined ? expense.tax_amount : null,
-        tax_included: expense.tax_included !== undefined ? expense.tax_included : null,
-        // Remove the details objects to avoid circular references
-        creator: undefined
-      }));
+      const expensesWithNames = expensesData.map(expense => {
+        // Create a new expense object with added fields
+        return {
+          ...expense,
+          creator_name: expense.creator ? `${expense.creator.first_name} ${expense.creator.last_name}` : 'Unknown',
+          category_name: expense.category ? categoriesMap[expense.category] || 'Unknown' : 'Uncategorized',
+          payment_method_name: expense.payment_method ? paymentMethodsMap[expense.payment_method] || 'Unknown' : 'Not specified',
+          // Initialize tax fields as null if they don't exist
+          tax_amount: null,
+          tax_included: false,
+          // Remove the details objects to avoid circular references
+          creator: undefined
+        };
+      });
       
       return expensesWithNames as Expense[];
     },
