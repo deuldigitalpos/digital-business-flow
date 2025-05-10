@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -9,15 +9,47 @@ import {
   Wallet, 
   TrendingUp, 
   TrendingDown,
-  Loader2
+  Loader2,
+  Clock
 } from 'lucide-react';
 import { isBusinessActive } from '@/utils/business';
 import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { useClockInOut } from '@/hooks/useClockInOut';
 
 const BusinessDashboard = () => {
   const { businessUser, business, isLoading } = useBusinessAuth();
+  const { openClockModal, isUserClockedIn } = useClockInOut();
+  const [clockInTime, setClockInTime] = useState<Date | null>(null);
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
 
   const isActive = business ? isBusinessActive(business) : false;
+
+  useEffect(() => {
+    // Initialize clock-in time from localStorage
+    const savedClockInTime = localStorage.getItem('clockInTime');
+    if (savedClockInTime) {
+      setClockInTime(new Date(savedClockInTime));
+    }
+
+    // Update time every second
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+      
+      // Update elapsed time if clocked in
+      if (isUserClockedIn() && clockInTime) {
+        const diff = Math.floor((new Date().getTime() - clockInTime.getTime()) / 1000);
+        const hours = Math.floor(diff / 3600).toString().padStart(2, "0");
+        const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, "0");
+        const seconds = (diff % 60).toString().padStart(2, "0");
+        setElapsedTime(`${hours}:${minutes}:${seconds}`);
+      }
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [clockInTime, isUserClockedIn]);
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -40,6 +72,38 @@ const BusinessDashboard = () => {
           </div>
         )}
       </div>
+      
+      {/* Clock In/Out Status Card */}
+      {isUserClockedIn() && clockInTime && (
+        <Card className="border-t-4 border-t-orange-400">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Current Work Session</CardTitle>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200"
+              onClick={openClockModal}
+            >
+              Clock Out
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <div className="bg-orange-100 p-3 rounded-full">
+                <Clock className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Clocked in at {clockInTime ? format(clockInTime, "hh:mm a") : "--"}
+                </p>
+                <p className="font-semibold text-lg">
+                  {elapsedTime} <span className="text-xs text-muted-foreground">elapsed</span>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-t-4 border-t-orange-500">

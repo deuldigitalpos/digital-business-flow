@@ -15,11 +15,14 @@ import { Menu, ShoppingCart, Clock, Settings, LogOut } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import { useNavigate } from 'react-router-dom';
 import CalculatorPopover from './calculator/CalculatorPopover';
+import ClockInOutModal from './clock/ClockInOutModal';
+import { useClockInOut } from '@/hooks/useClockInOut';
 
 const BusinessDashboardHeader = () => {
   const { businessUser, business, logout, hasPermission } = useBusinessAuth();
   const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
+  const { isClockModalOpen, openClockModal, closeClockModal, isUserClockedIn } = useClockInOut();
 
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();
@@ -88,11 +91,16 @@ const BusinessDashboardHeader = () => {
         <Button 
           variant="outline" 
           size="icon" 
-          className="rounded-full border-orange-200 hover:bg-orange-50 hover:text-orange-600" 
-          title="Clock In"
+          className={`rounded-full ${
+            isUserClockedIn() 
+              ? 'bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200' 
+              : 'border-orange-200 hover:bg-orange-50 hover:text-orange-600'
+          }`}
+          title={isUserClockedIn() ? "Clock Out" : "Clock In"}
+          onClick={openClockModal}
         >
           <Clock className="h-4 w-4" />
-          <span className="sr-only">Clock In</span>
+          <span className="sr-only">Clock In/Out</span>
         </Button>
         
         <div className="hidden md:block text-right mr-2">
@@ -125,6 +133,8 @@ const BusinessDashboardHeader = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      
+      <ClockInOutModal isOpen={isClockModalOpen} onClose={closeClockModal} />
     </header>
   );
 };
