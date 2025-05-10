@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Clock } from "lucide-react";
-import { format } from "date-fns";
 import { useBusinessAuth } from "@/context/BusinessAuthContext";
 import { toast } from "sonner";
 import ClockDisplay from "./ClockDisplay";
@@ -84,7 +83,8 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
         toast.success("Clocked out successfully!");
       }
       
-      setElapsedTime("00:00:00");
+      // Remove the problematic line that was trying to use setElapsedTime
+      // setElapsedTime("00:00:00"); - This line was causing the error
     }
   };
 
