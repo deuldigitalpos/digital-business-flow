@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { LucideIcon } from "lucide-react";
 
 interface CalculatorButtonProps {
   onClick: () => void;
@@ -9,7 +8,6 @@ interface CalculatorButtonProps {
   variant?: "default" | "outline";
   children: React.ReactNode;
   colSpan?: number;
-  icon?: LucideIcon;
 }
 
 const CalculatorButton: React.FC<CalculatorButtonProps> = ({ 
@@ -17,8 +15,7 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
   className = "", 
   variant = "outline", 
   children, 
-  colSpan = 1,
-  icon: Icon
+  colSpan = 1
 }) => {
   return (
     <Button
@@ -26,7 +23,6 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
       variant={variant}
       className={`${className} ${colSpan > 1 ? `col-span-${colSpan}` : ''}`}
     >
-      {Icon && <Icon className="h-4 w-4 mr-1" />}
       {children}
     </Button>
   );

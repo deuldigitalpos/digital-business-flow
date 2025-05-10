@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Plus, Minus, X, Divide, Equal, Percent } from "lucide-react";
 import CalculatorButton from "./CalculatorButton";
 import { CalculatorOperation } from "@/hooks/useCalculator";
 
@@ -40,14 +39,12 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
       <CalculatorButton 
         onClick={onPercentClick} 
         className="bg-orange-50 hover:bg-orange-100 text-orange-700"
-        icon={Percent}
       >
         %
       </CalculatorButton>
       <CalculatorButton 
         onClick={() => onOperatorClick("/")} 
         className="bg-orange-200 hover:bg-orange-300 text-orange-800"
-        icon={Divide}
       >
         ÷
       </CalculatorButton>
@@ -58,7 +55,6 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
       <CalculatorButton 
         onClick={() => onOperatorClick("*")} 
         className="bg-orange-200 hover:bg-orange-300 text-orange-800"
-        icon={X}
       >
         ×
       </CalculatorButton>
@@ -69,7 +65,6 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
       <CalculatorButton 
         onClick={() => onOperatorClick("-")} 
         className="bg-orange-200 hover:bg-orange-300 text-orange-800"
-        icon={Minus}
       >
         −
       </CalculatorButton>
@@ -80,7 +75,6 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
       <CalculatorButton 
         onClick={() => onOperatorClick("+")} 
         className="bg-orange-200 hover:bg-orange-300 text-orange-800"
-        icon={Plus}
       >
         +
       </CalculatorButton>
@@ -95,7 +89,6 @@ const CalculatorKeypad: React.FC<CalculatorKeypadProps> = ({
       <CalculatorButton 
         onClick={onEqualClick} 
         className="bg-orange-500 hover:bg-orange-600 text-white"
-        icon={Equal}
       >
         =
       </CalculatorButton>
