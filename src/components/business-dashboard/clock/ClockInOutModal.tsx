@@ -126,7 +126,7 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-orange-500" />
@@ -137,19 +137,19 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-6">
+        <div className="py-4 sm:py-6">
           <div className="text-center">
-            <div className="text-4xl font-bold mb-2">
+            <div className="text-3xl sm:text-4xl font-bold mb-2">
               {format(currentTime, "hh:mm:ss a")}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs sm:text-sm text-muted-foreground">
               {format(currentTime, "EEEE, MMMM d, yyyy")}
             </div>
           </div>
           
           {isClockedIn && (
-            <div className="mt-4 p-3 bg-orange-50 rounded-md border border-orange-100">
-              <div className="text-sm text-orange-700">
+            <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-orange-50 rounded-md border border-orange-100">
+              <div className="text-xs sm:text-sm text-orange-700">
                 <p className="font-medium">Current session</p>
                 <div className="flex justify-between mt-1">
                   <span>Clock in time:</span>
@@ -176,21 +176,21 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
         
         <DialogFooter className="flex flex-col gap-2">
           {isClockedIn && !isOnBreak && (
-            <div className="flex gap-2 w-full">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Button 
                 variant="outline" 
-                className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200"
+                className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200 text-xs sm:text-sm"
                 onClick={() => handleStartBreak('lunch')}
               >
-                <Utensils className="mr-2 h-4 w-4" />
+                <Utensils className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Lunch Break
               </Button>
               <Button 
                 variant="outline" 
-                className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200"
+                className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200 text-xs sm:text-sm"
                 onClick={() => handleStartBreak('coffee')}
               >
-                <Coffee className="mr-2 h-4 w-4" />
+                <Coffee className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Coffee Break
               </Button>
             </div>
@@ -199,19 +199,22 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
           {isClockedIn && isOnBreak && (
             <Button 
               variant="outline" 
-              className="w-full bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200"
+              className="w-full bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200 text-xs sm:text-sm"
               onClick={handleEndBreak}
             >
-              {breakType === 'lunch' ? <Utensils className="mr-2 h-4 w-4" /> : <Coffee className="mr-2 h-4 w-4" />}
+              {breakType === 'lunch' ? 
+                <Utensils className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" /> : 
+                <Coffee className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              }
               End {breakType === 'lunch' ? 'Lunch' : 'Coffee'} Break
             </Button>
           )}
           
           <Button 
             onClick={handleClockInOut} 
-            className={`w-full ${isClockedIn ? 'bg-orange-100 hover:bg-orange-200 text-orange-800' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}
+            className={`w-full ${isClockedIn ? 'bg-orange-100 hover:bg-orange-200 text-orange-800' : 'bg-orange-500 hover:bg-orange-600 text-white'} text-xs sm:text-sm`}
           >
-            <ArrowRightLeft className="mr-2 h-4 w-4" />
+            <ArrowRightLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
             {isClockedIn ? "Clock Out" : "Clock In"} 
           </Button>
         </DialogFooter>

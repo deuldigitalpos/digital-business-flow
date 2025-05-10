@@ -74,8 +74,8 @@ const BusinessDashboardHeader = () => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center bg-white border-b border-orange-100 px-4 md:px-6">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-30 flex h-16 items-center bg-white border-b border-orange-100 px-2 sm:px-4 md:px-6">
+      <div className="flex items-center gap-2 sm:gap-4">
         <Button
           variant="ghost"
           size="icon"
@@ -91,30 +91,30 @@ const BusinessDashboardHeader = () => {
             <img 
               src={business.logo_url}
               alt={business.business_name}
-              className="h-8 w-auto"
+              className="h-6 sm:h-8 w-auto"
             />
           ) : (
             <img 
               src="/lovable-uploads/1df1545d-8aea-4a95-8a04-a342cff67de7.png" 
               alt="DeulDigital Logo"
-              className="h-8 w-auto"
+              className="h-6 sm:h-8 w-auto"
             />
           )}
-          <span className="font-semibold text-lg text-primary hidden md:inline">
+          <span className="font-semibold text-base sm:text-lg text-primary hidden sm:inline">
             {business?.business_name || 'Business Dashboard'}
           </span>
         </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-1 sm:gap-2">
         <Button 
           variant="outline" 
           size="icon" 
-          className="rounded-full border-orange-200 hover:bg-orange-50 hover:text-orange-600" 
+          className="rounded-full border-orange-200 hover:bg-orange-50 hover:text-orange-600 h-8 w-8 sm:h-10 sm:w-10" 
           title="POS"
           onClick={navigateToPOS}
         >
-          <ShoppingCart className="h-4 w-4" />
+          <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
           <span className="sr-only">POS</span>
         </Button>
         
@@ -123,7 +123,7 @@ const BusinessDashboardHeader = () => {
         <Button 
           variant="outline" 
           size="icon" 
-          className={`rounded-full ${getClockButtonStyle()}`}
+          className={`rounded-full h-8 w-8 sm:h-10 sm:w-10 ${getClockButtonStyle()}`}
           title={isOnBreak 
             ? `On ${breakType === 'lunch' ? 'Lunch' : 'Coffee'} Break` 
             : isUserClockedIn() 
@@ -136,17 +136,17 @@ const BusinessDashboardHeader = () => {
           <span className="sr-only">Clock In/Out</span>
         </Button>
         
-        <div className="hidden md:block text-right mr-2">
-          <p className="text-sm font-medium">{businessUser?.first_name} {businessUser?.last_name}</p>
-          <p className="text-xs text-gray-500">{businessUser?.role}</p>
+        <div className="hidden sm:block text-right mr-1 sm:mr-2">
+          <p className="text-xs sm:text-sm font-medium">{businessUser?.first_name} {businessUser?.last_name}</p>
+          <p className="text-xs text-gray-500 hidden sm:block">{businessUser?.role}</p>
         </div>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar>
+            <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full">
+              <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                 <AvatarImage src="/placeholder.svg" alt={businessUser?.first_name || ''} />
-                <AvatarFallback className="bg-orange-500 text-white">
+                <AvatarFallback className="bg-orange-500 text-white text-xs sm:text-sm">
                   {businessUser ? getInitials(businessUser.first_name) : 'U'}
                 </AvatarFallback>
               </Avatar>
