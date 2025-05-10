@@ -107,8 +107,8 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       setElapsedTime("00:00:00");
     }
     
-    // Close modal after action
-    setTimeout(() => onClose(), 500);
+    // Removed the setTimeout that was closing the modal automatically
+    // Let the user close it manually
   };
 
   const handleStartBreak = (type: 'lunch' | 'short') => {
@@ -116,7 +116,9 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       startBreak(type);
       const breakTypeName = type === 'lunch' ? 'Lunch' : '15 Minutes';
       toast.info(`${breakTypeName} break started`);
-      setTimeout(() => onClose(), 500);
+      
+      // Removed the setTimeout that was closing the modal automatically
+      // Let the user close it manually
     }
   };
 
@@ -125,7 +127,9 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       const breakTypeName = breakType === 'lunch' ? 'Lunch' : '15 Minutes';
       endBreak();
       toast.info(`${breakTypeName} break ended`);
-      setTimeout(() => onClose(), 500);
+      
+      // Removed the setTimeout that was closing the modal automatically
+      // Let the user close it manually
     }
   };
 
