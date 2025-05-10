@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Clock, ArrowRightLeft } from "lucide-react";
+import { Clock, ArrowRightLeft, Coffee, Utensils } from "lucide-react";
 import { format } from "date-fns";
 import { useBusinessAuth } from "@/context/BusinessAuthContext";
 import { toast } from "sonner";
@@ -10,13 +10,27 @@ import { toast } from "sonner";
 interface ClockInOutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isOnBreak?: boolean;
+  breakType?: 'lunch' | 'coffee' | null;
+  breakStartTime?: string | null;
+  startBreak?: (type: 'lunch' | 'coffee') => void;
+  endBreak?: () => void;
 }
 
-export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({ isOpen, onClose }) => {
+export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  isOnBreak = false, 
+  breakType = null,
+  breakStartTime = null,
+  startBreak,
+  endBreak
+}) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [clockInTime, setClockInTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
+  const [breakElapsedTime, setBreakElapsedTime] = useState<string>("00:00:00");
   const { businessUser } = useBusinessAuth();
 
   // Update current time every second
@@ -32,10 +46,20 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({ isOpen, onClos
         const seconds = (diff % 60).toString().padStart(2, "0");
         setElapsedTime(`${hours}:${minutes}:${seconds}`);
       }
+      
+      // If on break, update break elapsed time
+      if (isOnBreak && breakStartTime) {
+        const breakStart = new Date(breakStartTime);
+        const breakDiff = Math.floor((new Date().getTime() - breakStart.getTime()) / 1000);
+        const breakHours = Math.floor(breakDiff / 3600).toString().padStart(2, "0");
+        const breakMinutes = Math.floor((breakDiff % 3600) / 60).toString().padStart(2, "0");
+        const breakSeconds = (breakDiff % 60).toString().padStart(2, "0");
+        setBreakElapsedTime(`${breakHours}:${breakMinutes}:${breakSeconds}`);
+      }
     }, 1000);
     
     return () => clearInterval(timer);
-  }, [isClockedIn, clockInTime]);
+  }, [isClockedIn, clockInTime, isOnBreak, breakStartTime]);
 
   // Check if user is already clocked in (would normally come from backend)
   useEffect(() => {
@@ -65,6 +89,11 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({ isOpen, onClos
       localStorage.removeItem('clockInTime');
       localStorage.setItem('isClockedIn', 'false');
       
+      // If on break, end break when clocking out
+      if (isOnBreak && endBreak) {
+        endBreak();
+      }
+      
       // Calculate total time worked
       if (clockInTime) {
         const totalSeconds = Math.floor((clockOutTime.getTime() - clockInTime.getTime()) / 1000);
@@ -76,6 +105,22 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({ isOpen, onClos
       }
       
       setElapsedTime("00:00:00");
+    }
+  };
+
+  const handleStartBreak = (type: 'lunch' | 'coffee') => {
+    if (startBreak) {
+      startBreak(type);
+      const breakTypeName = type === 'lunch' ? 'Lunch' : 'Coffee';
+      toast.info(`${breakTypeName} break started`);
+    }
+  };
+
+  const handleEndBreak = () => {
+    if (endBreak) {
+      const breakTypeName = breakType === 'lunch' ? 'Lunch' : 'Coffee';
+      endBreak();
+      toast.info(`${breakTypeName} break ended`);
     }
   };
 
@@ -114,12 +159,54 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({ isOpen, onClos
                   <span>Elapsed time:</span>
                   <span className="font-semibold">{elapsedTime}</span>
                 </div>
+                
+                {isOnBreak && (
+                  <div className="mt-2 pt-2 border-t border-orange-200">
+                    <p className="font-medium">{breakType === 'lunch' ? 'Lunch' : 'Coffee'} break</p>
+                    <div className="flex justify-between">
+                      <span>Break time:</span>
+                      <span className="font-semibold">{breakElapsedTime}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
         
-        <DialogFooter className="sm:justify-center">
+        <DialogFooter className="flex flex-col gap-2">
+          {isClockedIn && !isOnBreak && (
+            <div className="flex gap-2 w-full">
+              <Button 
+                variant="outline" 
+                className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200"
+                onClick={() => handleStartBreak('lunch')}
+              >
+                <Utensils className="mr-2 h-4 w-4" />
+                Lunch Break
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200"
+                onClick={() => handleStartBreak('coffee')}
+              >
+                <Coffee className="mr-2 h-4 w-4" />
+                Coffee Break
+              </Button>
+            </div>
+          )}
+          
+          {isClockedIn && isOnBreak && (
+            <Button 
+              variant="outline" 
+              className="w-full bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200"
+              onClick={handleEndBreak}
+            >
+              {breakType === 'lunch' ? <Utensils className="mr-2 h-4 w-4" /> : <Coffee className="mr-2 h-4 w-4" />}
+              End {breakType === 'lunch' ? 'Lunch' : 'Coffee'} Break
+            </Button>
+          )}
+          
           <Button 
             onClick={handleClockInOut} 
             className={`w-full ${isClockedIn ? 'bg-orange-100 hover:bg-orange-200 text-orange-800' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}

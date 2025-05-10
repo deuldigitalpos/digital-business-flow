@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Menu, ShoppingCart, Clock, Settings, LogOut } from 'lucide-react';
+import { Menu, ShoppingCart, Clock, Settings, LogOut, Coffee, Utensils } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import { useNavigate } from 'react-router-dom';
 import CalculatorPopover from './calculator/CalculatorPopover';
@@ -22,7 +22,17 @@ const BusinessDashboardHeader = () => {
   const { businessUser, business, logout, hasPermission } = useBusinessAuth();
   const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
-  const { isClockModalOpen, openClockModal, closeClockModal, isUserClockedIn } = useClockInOut();
+  const { 
+    isClockModalOpen, 
+    openClockModal, 
+    closeClockModal, 
+    isUserClockedIn,
+    isOnBreak,
+    breakType,
+    breakStartTime,
+    startBreak,
+    endBreak
+  } = useClockInOut();
 
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();
@@ -39,6 +49,28 @@ const BusinessDashboardHeader = () => {
     } else {
       navigate('/business-dashboard/permission-denied');
     }
+  };
+
+  // Get the appropriate icon based on break status
+  const getClockButtonIcon = () => {
+    if (isUserClockedIn()) {
+      if (isOnBreak) {
+        return breakType === 'lunch' ? <Utensils className="h-4 w-4" /> : <Coffee className="h-4 w-4" />;
+      }
+      return <Clock className="h-4 w-4" />;
+    }
+    return <Clock className="h-4 w-4" />;
+  };
+
+  // Get the color styling based on status
+  const getClockButtonStyle = () => {
+    if (isUserClockedIn()) {
+      if (isOnBreak) {
+        return 'bg-orange-200 border-orange-400 text-orange-800 hover:bg-orange-300';
+      }
+      return 'bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200';
+    }
+    return 'border-orange-200 hover:bg-orange-50 hover:text-orange-600';
   };
 
   return (
@@ -91,15 +123,16 @@ const BusinessDashboardHeader = () => {
         <Button 
           variant="outline" 
           size="icon" 
-          className={`rounded-full ${
-            isUserClockedIn() 
-              ? 'bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200' 
-              : 'border-orange-200 hover:bg-orange-50 hover:text-orange-600'
-          }`}
-          title={isUserClockedIn() ? "Clock Out" : "Clock In"}
+          className={`rounded-full ${getClockButtonStyle()}`}
+          title={isOnBreak 
+            ? `On ${breakType === 'lunch' ? 'Lunch' : 'Coffee'} Break` 
+            : isUserClockedIn() 
+              ? "Clock Out" 
+              : "Clock In"
+          }
           onClick={openClockModal}
         >
-          <Clock className="h-4 w-4" />
+          {getClockButtonIcon()}
           <span className="sr-only">Clock In/Out</span>
         </Button>
         
@@ -134,7 +167,15 @@ const BusinessDashboardHeader = () => {
         </DropdownMenu>
       </div>
       
-      <ClockInOutModal isOpen={isClockModalOpen} onClose={closeClockModal} />
+      <ClockInOutModal 
+        isOpen={isClockModalOpen} 
+        onClose={closeClockModal} 
+        isOnBreak={isOnBreak}
+        breakType={breakType}
+        breakStartTime={breakStartTime}
+        startBreak={startBreak}
+        endBreak={endBreak}
+      />
     </header>
   );
 };
