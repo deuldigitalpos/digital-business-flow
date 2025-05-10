@@ -71,7 +71,7 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       setIsClockedIn(true);
       setClockInTime(new Date(savedClockInTime));
     }
-  }, []);
+  }, [isOpen]); // Re-check when modal is opened
 
   const handleClockInOut = () => {
     if (!isClockedIn) {
@@ -106,6 +106,9 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       
       setElapsedTime("00:00:00");
     }
+    
+    // Close modal after action
+    setTimeout(() => onClose(), 500);
   };
 
   const handleStartBreak = (type: 'lunch' | 'coffee') => {
@@ -113,6 +116,7 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       startBreak(type);
       const breakTypeName = type === 'lunch' ? 'Lunch' : 'Coffee';
       toast.info(`${breakTypeName} break started`);
+      setTimeout(() => onClose(), 500);
     }
   };
 
@@ -121,13 +125,14 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       const breakTypeName = breakType === 'lunch' ? 'Lunch' : 'Coffee';
       endBreak();
       toast.info(`${breakTypeName} break ended`);
+      setTimeout(() => onClose(), 500);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw] sm:w-full">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw] sm:w-full p-4 sm:p-6">
+        <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-orange-500" />
             {isClockedIn ? "Clock Out" : "Clock In"}
@@ -137,9 +142,9 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-4 sm:py-6">
+        <div className="py-3 sm:py-4">
           <div className="text-center">
-            <div className="text-3xl sm:text-4xl font-bold mb-2">
+            <div className="text-2xl sm:text-3xl font-bold mb-1">
               {format(currentTime, "hh:mm:ss a")}
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground">
@@ -148,7 +153,7 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
           </div>
           
           {isClockedIn && (
-            <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-orange-50 rounded-md border border-orange-100">
+            <div className="mt-3 p-2 sm:p-3 bg-orange-50 rounded-md border border-orange-100">
               <div className="text-xs sm:text-sm text-orange-700">
                 <p className="font-medium">Current session</p>
                 <div className="flex justify-between mt-1">
@@ -174,7 +179,7 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
           )}
         </div>
         
-        <DialogFooter className="flex flex-col gap-2">
+        <DialogFooter className="flex flex-col gap-2 pt-2">
           {isClockedIn && !isOnBreak && (
             <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Button 

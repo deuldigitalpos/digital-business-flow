@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export const useClockInOut = () => {
   const [isClockModalOpen, setIsClockModalOpen] = useState(false);
@@ -20,21 +20,21 @@ export const useClockInOut = () => {
     }
   }, []);
   
-  const openClockModal = () => {
+  const openClockModal = useCallback(() => {
     setIsClockModalOpen(true);
-  };
+  }, []);
   
-  const closeClockModal = () => {
+  const closeClockModal = useCallback(() => {
     setIsClockModalOpen(false);
-  };
+  }, []);
   
   // Check if the user is currently clocked in based on localStorage
-  const isUserClockedIn = () => {
+  const isUserClockedIn = useCallback(() => {
     return localStorage.getItem('isClockedIn') === 'true';
-  };
+  }, []);
   
   // Start a break
-  const startBreak = (type: 'lunch' | 'coffee') => {
+  const startBreak = useCallback((type: 'lunch' | 'coffee') => {
     if (isUserClockedIn()) {
       setIsOnBreak(true);
       setBreakType(type);
@@ -44,17 +44,17 @@ export const useClockInOut = () => {
       localStorage.setItem('breakType', type);
       localStorage.setItem('breakStartTime', now);
     }
-  };
+  }, [isUserClockedIn]);
   
   // End a break
-  const endBreak = () => {
+  const endBreak = useCallback(() => {
     setIsOnBreak(false);
     setBreakType(null);
     setBreakStartTime(null);
     localStorage.removeItem('isOnBreak');
     localStorage.removeItem('breakType');
     localStorage.removeItem('breakStartTime');
-  };
+  }, []);
   
   return {
     isClockModalOpen,

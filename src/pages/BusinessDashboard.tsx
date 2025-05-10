@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useBusinessAuth } from '@/context/BusinessAuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -27,20 +27,32 @@ const BusinessDashboard = () => {
 
   const isActive = business ? isBusinessActive(business) : false;
 
-  useEffect(() => {
-    // Initialize clock-in time from localStorage
+  // Memoize the check for clock-in status to prevent re-renders
+  const checkClockInStatus = useCallback(() => {
     const savedClockInTime = localStorage.getItem('clockInTime');
     if (savedClockInTime) {
       setClockInTime(new Date(savedClockInTime));
+    } else {
+      setClockInTime(null);
     }
+  }, []);
 
-    // Update time every second
+  useEffect(() => {
+    // Check clock-in status initially
+    checkClockInStatus();
+    
+    // Setup interval for time updates
     const timer = setInterval(() => {
-      setCurrentTime(new Date());
+      const now = new Date();
+      setCurrentTime(now);
       
       // Update elapsed time if clocked in
-      if (isUserClockedIn() && clockInTime) {
-        const diff = Math.floor((new Date().getTime() - clockInTime.getTime()) / 1000);
+      const isClockedInNow = localStorage.getItem('isClockedIn') === 'true';
+      const savedClockInTime = localStorage.getItem('clockInTime');
+      
+      if (isClockedInNow && savedClockInTime) {
+        const clockInTimeDate = new Date(savedClockInTime);
+        const diff = Math.floor((now.getTime() - clockInTimeDate.getTime()) / 1000);
         const hours = Math.floor(diff / 3600).toString().padStart(2, "0");
         const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, "0");
         const seconds = (diff % 60).toString().padStart(2, "0");
@@ -48,17 +60,28 @@ const BusinessDashboard = () => {
       }
     }, 1000);
     
-    return () => clearInterval(timer);
-  }, [clockInTime, isUserClockedIn]);
+    // Setup storage event listener to detect changes in localStorage
+    const handleStorageChange = () => {
+      checkClockInStatus();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Clean up
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [checkClockInStatus]);
 
   if (isLoading) {
     return <DashboardSkeleton />;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Welcome to {business?.business_name || 'Your Business'}!
         </h1>
         <p className="text-muted-foreground">
@@ -89,14 +112,14 @@ const BusinessDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-4">
-              <div className="bg-orange-100 p-3 rounded-full">
-                <Clock className="h-6 w-6 text-orange-600" />
+              <div className="bg-orange-100 p-2 sm:p-3 rounded-full">
+                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Clocked in at {clockInTime ? format(clockInTime, "hh:mm a") : "--"}
                 </p>
-                <p className="font-semibold text-lg">
+                <p className="font-semibold text-base sm:text-lg">
                   {elapsedTime} <span className="text-xs text-muted-foreground">elapsed</span>
                 </p>
               </div>
@@ -105,14 +128,14 @@ const BusinessDashboard = () => {
         </Card>
       )}
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <Card className="border-t-4 border-t-orange-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-orange-500" />
+          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Sales</CardTitle>
+            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$24,435.00</div>
+          <CardContent className="p-3 pt-0 sm:pt-0">
+            <div className="text-lg sm:text-2xl font-bold">$24,435</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <span className="text-green-500 flex items-center mr-1">
                 <TrendingUp className="h-3 w-3 mr-0.5" />
@@ -123,12 +146,12 @@ const BusinessDashboard = () => {
           </CardContent>
         </Card>
         <Card className="border-t-4 border-t-orange-400">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
-            <Package className="h-4 w-4 text-orange-400" />
+          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Inventory</CardTitle>
+            <Package className="h-3 w-3 sm:h-4 sm:w-4 text-orange-400" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$13,120.00</div>
+          <CardContent className="p-3 pt-0 sm:pt-0">
+            <div className="text-lg sm:text-2xl font-bold">$13,120</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <span className="text-green-500 flex items-center mr-1">
                 <TrendingUp className="h-3 w-3 mr-0.5" />
@@ -139,12 +162,12 @@ const BusinessDashboard = () => {
           </CardContent>
         </Card>
         <Card className="border-t-4 border-t-orange-300">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Customers</CardTitle>
-            <Users className="h-4 w-4 text-orange-300" />
+          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Customers</CardTitle>
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-orange-300" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">134</div>
+          <CardContent className="p-3 pt-0 sm:pt-0">
+            <div className="text-lg sm:text-2xl font-bold">134</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <span className="text-green-500 flex items-center mr-1">
                 <TrendingUp className="h-3 w-3 mr-0.5" />
@@ -155,12 +178,12 @@ const BusinessDashboard = () => {
           </CardContent>
         </Card>
         <Card className="border-t-4 border-t-orange-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Expenses</CardTitle>
-            <Wallet className="h-4 w-4 text-orange-200" />
+          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Expenses</CardTitle>
+            <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-orange-200" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$6,240.00</div>
+          <CardContent className="p-3 pt-0 sm:pt-0">
+            <div className="text-lg sm:text-2xl font-bold">$6,240</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <span className="text-red-500 flex items-center mr-1">
                 <TrendingDown className="h-3 w-3 mr-0.5" />
@@ -174,41 +197,29 @@ const BusinessDashboard = () => {
       
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg">Recent Orders</CardTitle>
             <CardDescription>Latest sales orders placed</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-center py-8 text-muted-foreground">
+            <p className="text-xs sm:text-sm text-center py-6 sm:py-8 text-muted-foreground">
               No recent orders to display
             </p>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader>
-            <CardTitle>Low Stock Items</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg">Low Stock Items</CardTitle>
             <CardDescription>Products that need reordering</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-center py-8 text-muted-foreground">
+            <p className="text-xs sm:text-sm text-center py-6 sm:py-8 text-muted-foreground">
               No low stock items to display
             </p>
           </CardContent>
         </Card>
       </div>
-      
-      <Card className="bg-gradient-to-r from-orange-50 to-white">
-        <CardHeader>
-          <CardTitle>Recent Activities</CardTitle>
-          <CardDescription>Latest system activity</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-center py-4 text-muted-foreground">
-            No recent activities to display
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 };

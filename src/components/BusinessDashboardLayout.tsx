@@ -59,9 +59,9 @@ const BusinessDashboardLayout = () => {
     <SidebarProvider>
       <div className="flex min-h-screen bg-orange-50/30">
         <BusinessSidebar />
-        <div className="flex flex-col flex-1 w-full">
+        <div className="flex flex-col flex-1 w-full max-h-screen overflow-hidden">
           <BusinessDashboardHeader />
-          <main className="flex-1 p-4 md:p-6">
+          <main className="flex-1 p-4 md:p-6 overflow-y-auto">
             <Outlet />
           </main>
         </div>
