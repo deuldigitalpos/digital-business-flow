@@ -1,11 +1,14 @@
 
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Clock, ArrowRightLeft, Timer, Utensils } from "lucide-react";
+import { Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useBusinessAuth } from "@/context/BusinessAuthContext";
 import { toast } from "sonner";
+import ClockDisplay from "./ClockDisplay";
+import SessionInfo from "./SessionInfo";
+import ClockActions from "./ClockActions";
+import { useTimeTracking } from "@/hooks/useTimeTracking";
 
 interface ClockInOutModalProps {
   isOpen: boolean;
@@ -26,40 +29,17 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
   startBreak,
   endBreak
 }) => {
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [clockInTime, setClockInTime] = useState<Date | null>(null);
-  const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
-  const [breakElapsedTime, setBreakElapsedTime] = useState<string>("00:00:00");
   const { businessUser } = useBusinessAuth();
 
-  // Update current time every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-      
-      // If clocked in, update elapsed time
-      if (isClockedIn && clockInTime) {
-        const diff = Math.floor((new Date().getTime() - clockInTime.getTime()) / 1000);
-        const hours = Math.floor(diff / 3600).toString().padStart(2, "0");
-        const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, "0");
-        const seconds = (diff % 60).toString().padStart(2, "0");
-        setElapsedTime(`${hours}:${minutes}:${seconds}`);
-      }
-      
-      // If on break, update break elapsed time
-      if (isOnBreak && breakStartTime) {
-        const breakStart = new Date(breakStartTime);
-        const breakDiff = Math.floor((new Date().getTime() - breakStart.getTime()) / 1000);
-        const breakHours = Math.floor(breakDiff / 3600).toString().padStart(2, "0");
-        const breakMinutes = Math.floor((breakDiff % 3600) / 60).toString().padStart(2, "0");
-        const breakSeconds = (breakDiff % 60).toString().padStart(2, "0");
-        setBreakElapsedTime(`${breakHours}:${breakMinutes}:${breakSeconds}`);
-      }
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [isClockedIn, clockInTime, isOnBreak, breakStartTime]);
+  const { 
+    currentTime, 
+    elapsedTime, 
+    breakElapsedTime,
+    formattedTime,
+    formattedDate
+  } = useTimeTracking(isClockedIn, clockInTime, isOnBreak, breakStartTime);
 
   // Check if user is already clocked in (would normally come from backend)
   useEffect(() => {
@@ -106,9 +86,6 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       
       setElapsedTime("00:00:00");
     }
-    
-    // Removed the setTimeout that was closing the modal automatically
-    // Let the user close it manually
   };
 
   const handleStartBreak = (type: 'lunch' | 'short') => {
@@ -116,9 +93,6 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       startBreak(type);
       const breakTypeName = type === 'lunch' ? 'Lunch' : '15 Minutes';
       toast.info(`${breakTypeName} break started`);
-      
-      // Removed the setTimeout that was closing the modal automatically
-      // Let the user close it manually
     }
   };
 
@@ -127,9 +101,6 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
       const breakTypeName = breakType === 'lunch' ? 'Lunch' : '15 Minutes';
       endBreak();
       toast.info(`${breakTypeName} break ended`);
-      
-      // Removed the setTimeout that was closing the modal automatically
-      // Let the user close it manually
     }
   };
 
@@ -147,85 +118,30 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
         </DialogHeader>
         
         <div className="py-3 sm:py-4">
-          <div className="text-center">
-            <div className="text-2xl sm:text-3xl font-bold mb-1">
-              {format(currentTime, "hh:mm:ss a")}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">
-              {format(currentTime, "EEEE, MMMM d, yyyy")}
-            </div>
-          </div>
+          <ClockDisplay 
+            formattedTime={formattedTime} 
+            formattedDate={formattedDate} 
+          />
           
-          {isClockedIn && (
-            <div className="mt-3 p-2 sm:p-3 bg-orange-50 rounded-md border border-orange-100">
-              <div className="text-xs sm:text-sm text-orange-700">
-                <p className="font-medium">Current session</p>
-                <div className="flex justify-between mt-1">
-                  <span>Clock in time:</span>
-                  <span className="font-semibold">{clockInTime ? format(clockInTime, "hh:mm a") : "--"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Elapsed time:</span>
-                  <span className="font-semibold">{elapsedTime}</span>
-                </div>
-                
-                {isOnBreak && (
-                  <div className="mt-2 pt-2 border-t border-orange-200">
-                    <p className="font-medium">{breakType === 'lunch' ? 'Lunch' : '15 Minutes'} break</p>
-                    <div className="flex justify-between">
-                      <span>Break time:</span>
-                      <span className="font-semibold">{breakElapsedTime}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <SessionInfo 
+            isClockedIn={isClockedIn}
+            clockInTime={clockInTime}
+            elapsedTime={elapsedTime}
+            isOnBreak={isOnBreak}
+            breakType={breakType}
+            breakElapsedTime={breakElapsedTime}
+          />
         </div>
         
         <DialogFooter className="flex flex-col gap-2 pt-2">
-          {isClockedIn && !isOnBreak && (
-            <div className="flex flex-col sm:flex-row gap-2 w-full">
-              <Button 
-                variant="outline" 
-                className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200 text-xs sm:text-sm"
-                onClick={() => handleStartBreak('lunch')}
-              >
-                <Utensils className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                Lunch Break
-              </Button>
-              <Button 
-                variant="outline" 
-                className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200 text-xs sm:text-sm"
-                onClick={() => handleStartBreak('short')}
-              >
-                <Timer className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                15 Minutes Break
-              </Button>
-            </div>
-          )}
-          
-          {isClockedIn && isOnBreak && (
-            <Button 
-              variant="outline" 
-              className="w-full bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200 text-xs sm:text-sm"
-              onClick={handleEndBreak}
-            >
-              {breakType === 'lunch' ? 
-                <Utensils className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" /> : 
-                <Timer className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-              }
-              End {breakType === 'lunch' ? 'Lunch' : '15 Minutes'} Break
-            </Button>
-          )}
-          
-          <Button 
-            onClick={handleClockInOut} 
-            className={`w-full ${isClockedIn ? 'bg-orange-100 hover:bg-orange-200 text-orange-800' : 'bg-orange-500 hover:bg-orange-600 text-white'} text-xs sm:text-sm`}
-          >
-            <ArrowRightLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-            {isClockedIn ? "Clock Out" : "Clock In"} 
-          </Button>
+          <ClockActions 
+            isClockedIn={isClockedIn}
+            isOnBreak={isOnBreak}
+            breakType={breakType}
+            handleClockInOut={handleClockInOut}
+            handleStartBreak={handleStartBreak}
+            handleEndBreak={handleEndBreak}
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>
