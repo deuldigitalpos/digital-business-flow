@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 export const useClockInOut = () => {
   const [isClockModalOpen, setIsClockModalOpen] = useState(false);
   const [isOnBreak, setIsOnBreak] = useState(false);
-  const [breakType, setBreakType] = useState<'lunch' | 'coffee' | null>(null);
+  const [breakType, setBreakType] = useState<'lunch' | 'short' | null>(null);
   const [breakStartTime, setBreakStartTime] = useState<string | null>(null);
   
   // Load break status from localStorage on component mount
@@ -15,7 +15,7 @@ export const useClockInOut = () => {
     
     if (savedBreakStatus === 'true') {
       setIsOnBreak(true);
-      setBreakType(savedBreakType as 'lunch' | 'coffee');
+      setBreakType(savedBreakType as 'lunch' | 'short');
       setBreakStartTime(savedBreakStartTime);
     }
   }, []);
@@ -34,7 +34,7 @@ export const useClockInOut = () => {
   }, []);
   
   // Start a break
-  const startBreak = useCallback((type: 'lunch' | 'coffee') => {
+  const startBreak = useCallback((type: 'lunch' | 'short') => {
     if (isUserClockedIn()) {
       setIsOnBreak(true);
       setBreakType(type);

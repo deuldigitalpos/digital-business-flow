@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Menu, ShoppingCart, Clock, Settings, LogOut, Coffee, Utensils } from 'lucide-react';
+import { Menu, ShoppingCart, Clock, Settings, LogOut, Timer, Utensils } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import { useNavigate } from 'react-router-dom';
 import CalculatorPopover from './calculator/CalculatorPopover';
@@ -55,7 +55,7 @@ const BusinessDashboardHeader = () => {
   const getClockButtonIcon = () => {
     if (isUserClockedIn()) {
       if (isOnBreak) {
-        return breakType === 'lunch' ? <Utensils className="h-4 w-4" /> : <Coffee className="h-4 w-4" />;
+        return breakType === 'lunch' ? <Utensils className="h-4 w-4" /> : <Timer className="h-4 w-4" />;
       }
       return <Clock className="h-4 w-4" />;
     }
@@ -125,7 +125,7 @@ const BusinessDashboardHeader = () => {
           size="icon" 
           className={`rounded-full h-8 w-8 sm:h-10 sm:w-10 ${getClockButtonStyle()}`}
           title={isOnBreak 
-            ? `On ${breakType === 'lunch' ? 'Lunch' : 'Coffee'} Break` 
+            ? `On ${breakType === 'lunch' ? 'Lunch' : '15 Minutes'} Break` 
             : isUserClockedIn() 
               ? "Clock Out" 
               : "Clock In"

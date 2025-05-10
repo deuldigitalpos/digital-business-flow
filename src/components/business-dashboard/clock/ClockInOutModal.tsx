@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Clock, ArrowRightLeft, Coffee, Utensils } from "lucide-react";
+import { Clock, ArrowRightLeft, Timer, Utensils } from "lucide-react";
 import { format } from "date-fns";
 import { useBusinessAuth } from "@/context/BusinessAuthContext";
 import { toast } from "sonner";
@@ -11,9 +11,9 @@ interface ClockInOutModalProps {
   isOpen: boolean;
   onClose: () => void;
   isOnBreak?: boolean;
-  breakType?: 'lunch' | 'coffee' | null;
+  breakType?: 'lunch' | 'short' | null;
   breakStartTime?: string | null;
-  startBreak?: (type: 'lunch' | 'coffee') => void;
+  startBreak?: (type: 'lunch' | 'short') => void;
   endBreak?: () => void;
 }
 
@@ -111,10 +111,10 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
     setTimeout(() => onClose(), 500);
   };
 
-  const handleStartBreak = (type: 'lunch' | 'coffee') => {
+  const handleStartBreak = (type: 'lunch' | 'short') => {
     if (startBreak) {
       startBreak(type);
-      const breakTypeName = type === 'lunch' ? 'Lunch' : 'Coffee';
+      const breakTypeName = type === 'lunch' ? 'Lunch' : '15 Minutes';
       toast.info(`${breakTypeName} break started`);
       setTimeout(() => onClose(), 500);
     }
@@ -122,7 +122,7 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
 
   const handleEndBreak = () => {
     if (endBreak) {
-      const breakTypeName = breakType === 'lunch' ? 'Lunch' : 'Coffee';
+      const breakTypeName = breakType === 'lunch' ? 'Lunch' : '15 Minutes';
       endBreak();
       toast.info(`${breakTypeName} break ended`);
       setTimeout(() => onClose(), 500);
@@ -167,7 +167,7 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
                 
                 {isOnBreak && (
                   <div className="mt-2 pt-2 border-t border-orange-200">
-                    <p className="font-medium">{breakType === 'lunch' ? 'Lunch' : 'Coffee'} break</p>
+                    <p className="font-medium">{breakType === 'lunch' ? 'Lunch' : '15 Minutes'} break</p>
                     <div className="flex justify-between">
                       <span>Break time:</span>
                       <span className="font-semibold">{breakElapsedTime}</span>
@@ -193,10 +193,10 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
               <Button 
                 variant="outline" 
                 className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200 text-xs sm:text-sm"
-                onClick={() => handleStartBreak('coffee')}
+                onClick={() => handleStartBreak('short')}
               >
-                <Coffee className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                Coffee Break
+                <Timer className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                15 Minutes Break
               </Button>
             </div>
           )}
@@ -209,9 +209,9 @@ export const ClockInOutModal: React.FC<ClockInOutModalProps> = ({
             >
               {breakType === 'lunch' ? 
                 <Utensils className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" /> : 
-                <Coffee className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <Timer className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               }
-              End {breakType === 'lunch' ? 'Lunch' : 'Coffee'} Break
+              End {breakType === 'lunch' ? 'Lunch' : '15 Minutes'} Break
             </Button>
           )}
           
